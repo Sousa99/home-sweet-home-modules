@@ -8,5 +8,5 @@ allowBuilds:
   esbuild: true
 
 minimumReleaseAgeExclude:
-  - '@sousa99/homesweethome-config'
-  - '@sousa99/homesweethome'
+  - '@{{NPM_SCOPE}}/homesweethome-config'
+  - '@{{NPM_SCOPE}}/homesweethome'

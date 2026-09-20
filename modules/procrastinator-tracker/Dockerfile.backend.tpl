@@ -16,4 +16,4 @@ COPY --from=build /out/node_modules ./node_modules
 COPY --from=build /app/backend/dist ./dist
 COPY --from=build /app/backend/drizzle ./drizzle
 EXPOSE 3000
-CMD ["sh", "-c", "node dist/migrate.js && node dist/index.js --http"]
+CMD ["sh", "-c", "node dist/migrate.js && node dist/index.js {{HTTP_ENTRY}}"]

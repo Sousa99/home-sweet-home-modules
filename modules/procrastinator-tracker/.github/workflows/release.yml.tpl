@@ -51,17 +51,17 @@ jobs:
       - name: 🔀 Scaffold check
         run: node scripts/scaffold.mjs --check
 
-
+{{#if backend}}
       - name: 🏗️ Build backend
         run: pnpm --filter ./backend build
-
-
+{{/if}}
+{{#if frontend}}
       - name: 🖼️ Build SPA
         run: pnpm --filter ./frontend build
 
       - name: 📦 Build library
         run: pnpm --filter ./frontend build:lib
-
+{{/if}}
 
   release:
     name: 🚀 Release

@@ -1,5 +1,5 @@
 {
-  "name": "@sousa99/procrastinator-tracker-backend",
+  "name": "{{BACKEND_PACKAGE}}",
   "version": "1.0.0",
   "private": true,
   "type": "module",

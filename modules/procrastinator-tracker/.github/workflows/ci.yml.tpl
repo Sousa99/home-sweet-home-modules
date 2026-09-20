@@ -143,7 +143,7 @@ jobs:
       - name: 🔀 Verify generated files match module.config.yaml
         run: node scripts/scaffold.mjs --check
 
-
+{{#if backend}}
   build-backend:
     name: 🏗️ Build backend
     runs-on: ubuntu-latest
@@ -169,9 +169,9 @@ jobs:
 
       - name: 🏗️ Backend build
         run: pnpm --filter ./backend build
+{{/if}}
 
-
-
+{{#if frontend}}
   build-spa:
     name: 🖼️ Build SPA
     runs-on: ubuntu-latest
@@ -223,7 +223,7 @@ jobs:
 
       - name: 📦 Library build
         run: pnpm --filter ./frontend build:lib
-
+{{/if}}
 
   actionlint:
     name: 🔬 actionlint
@@ -260,7 +260,7 @@ jobs:
   check:
     name: ✅ Check
     runs-on: ubuntu-latest
-    needs: [format, lint, typecheck, test, scaffold-check, build-backend, build-spa, build-lib, actionlint, pr-format]
+    needs: [format, lint, typecheck, test, scaffold-check{{#if backend}}, build-backend{{/if}}{{#if frontend}}, build-spa, build-lib{{/if}}, actionlint, pr-format]
 
     steps:
       - name: ✅ All required checks passed

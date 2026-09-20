@@ -1,4 +1,4 @@
-# Procrastinator Tracker — Agent Instructions
+# {{MODULE_NAME}} — Agent Instructions
 
 ## GitHub operations
 

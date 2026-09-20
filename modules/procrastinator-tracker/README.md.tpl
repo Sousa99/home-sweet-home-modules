@@ -1,14 +1,14 @@
 ---
-module: Procrastinator Tracker
-slug: procrastinator-tracker
-description: Local-first task tracker with REST + MCP backend and a React SPA frontend
-home: https://github.com/
-packages: backend frontend
+module: {{MODULE_NAME}}
+slug: {{MODULE_SLUG}}
+description: {{MODULE_DESCRIPTION}}
+home: {{UMBRELLA_LINK}}
+packages: {{#if backend}}backend{{/if}}{{#if frontend}} frontend{{/if}}
 ---
 
-# Procrastinator Tracker
+# {{MODULE_NAME}}
 
-[![Part of Home Sweet Home](https://img.shields.io/badge/Home%20Sweet%20Home-Module-blue)](https://github.com/)
+[![Part of Home Sweet Home](https://img.shields.io/badge/Home%20Sweet%20Home-Module-blue)]({{UMBRELLA_LINK}})
 
 A local-first task tracker: a Hono REST API (with OpenAPI/Swagger) plus an MCP server, a
 SQLite database via Drizzle, and a lightweight React single-page app that makes it easy to
@@ -87,8 +87,8 @@ The app dashboard offers a **Deck | List** toggle: Deck renders `TaskDeckWrapper
 and used in other React 19 apps:
 
 ```tsx
-import { TaskDeckWrapper } from '@sousa99/procrastinator-tracker-components';
-import '@sousa99/procrastinator-tracker-components/styles.css';
+import { TaskDeckWrapper } from '@{{NPM_SCOPE}}/{{MODULE_SLUG}}-components';
+import '@{{NPM_SCOPE}}/{{MODULE_SLUG}}-components/styles.css';
 
 <TaskDeckWrapper filters={{ status: 'started' }} autoRotateMs={5000} />;
 ```
@@ -150,11 +150,11 @@ The repository ships two GitHub Actions workflows (`.github/workflows/`):
 - **Release** — on push to `main` (or manual dispatch). Runs the quality gates, then
   semantic-release computes the next version from conventional-commit history and publishes
   three artifacts at the **same version** (all `package.json` files are kept in sync):
-  - **Backend image** → `ghcr.io/sousa99/procrastinator-tracker-backend` (multi-stage,
+  - **Backend image** → `ghcr.io/{{REPO_OWNER}}/{{MODULE_SLUG}}-backend` (multi-stage,
     `node:24-slim`, runs SQLite migrations on startup)
-  - **SPA image** → `ghcr.io/sousa99/procrastinator-tracker-frontend` (`nginx:alpine`,
+  - **SPA image** → `ghcr.io/{{REPO_OWNER}}/{{MODULE_SLUG}}-frontend` (`nginx:alpine`,
     serves the static build)
-  - **npm package** → `@sousa99/procrastinator-tracker-components` on GitHub Packages
+  - **npm package** → `@{{NPM_SCOPE}}/{{MODULE_SLUG}}-components` on GitHub Packages
     (`npm.pkg.github.com`)
 
 A `CHANGELOG.md` and a GitHub release are generated for every release; the version bump is
@@ -173,7 +173,7 @@ The repo's `opencode.json` registers the tracker as a **remote** MCP server:
 ```json
 {
   "mcp": {
-    "procrastinator-tracker": {
+    "{{MODULE_SLUG}}": {
       "type": "remote",
       "url": "http://localhost:3001/mcp",
       "enabled": true

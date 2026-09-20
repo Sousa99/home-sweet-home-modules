@@ -1,8 +1,8 @@
 {
-  "name": "@sousa99/procrastinator-tracker-components",
+  "name": "{{FRONTEND_PACKAGE}}",
   "version": "1.0.0",
   "type": "module",
-  "repository": "https://github.com/sousa99/procrastinator-tracker.git",
+  "repository": "https://github.com/{{REPO_OWNER}}/{{REPO_NAME}}.git",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/",
     "access": "restricted"

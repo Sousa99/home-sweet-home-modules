@@ -1,8 +1,8 @@
 {
-  "name": "procrastinator-tracker",
+  "name": "{{MODULE_SLUG}}",
   "version": "1.0.0",
   "private": true,
-  "description": "Local-first task tracker with REST + MCP backend and a React SPA frontend",
+  "description": "{{MODULE_DESCRIPTION}}",
   "packageManager": "pnpm@11.25.0",
   "engines": {
     "node": ">=24.0.0"
