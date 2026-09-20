@@ -7,12 +7,14 @@ GHCR="{{GHCR_ORG}}"
 
 {{#if backend}}
 docker buildx build --platform "$PLATFORMS" --push \
+  --secret id=npm_token,env=NPM_TOKEN \
   -t "$GHCR/{{MODULE_SLUG}}-backend:$VERSION" \
   -t "$GHCR/{{MODULE_SLUG}}-backend:latest" \
   -f Dockerfile.backend .
 {{/if}}
 {{#if frontend}}
 docker buildx build --platform "$PLATFORMS" --push \
+  --secret id=npm_token,env=NPM_TOKEN \
   -t "$GHCR/{{MODULE_SLUG}}-frontend:$VERSION" \
   -t "$GHCR/{{MODULE_SLUG}}-frontend:latest" \
   -f Dockerfile.frontend .

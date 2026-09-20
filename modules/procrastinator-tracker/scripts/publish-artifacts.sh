@@ -7,12 +7,14 @@ GHCR="ghcr.io/sousa99"
 
 
 docker buildx build --platform "$PLATFORMS" --push \
+  --secret id=npm_token,env=NPM_TOKEN \
   -t "$GHCR/procrastinator-tracker-backend:$VERSION" \
   -t "$GHCR/procrastinator-tracker-backend:latest" \
   -f Dockerfile.backend .
 
 
 docker buildx build --platform "$PLATFORMS" --push \
+  --secret id=npm_token,env=NPM_TOKEN \
   -t "$GHCR/procrastinator-tracker-frontend:$VERSION" \
   -t "$GHCR/procrastinator-tracker-frontend:latest" \
   -f Dockerfile.frontend .

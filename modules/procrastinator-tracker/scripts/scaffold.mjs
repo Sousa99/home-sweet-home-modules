@@ -315,6 +315,13 @@ function writeOutputs(root, outputs) {
   }
 }
 
+// semantic-release owns the package version; it is bumped in generated package.json files on
+// every release. Exclude the `version` field from drift comparison so a post-release repo stays
+// in sync with the templates (which carry a template-default version).
+function stripVersion(content) {
+  return content.replace(/^\s*"version"\s*:\s*"[^"]*",?\s*$/m, '');
+}
+
 function checkMode(root, config, outputs) {
   const states = [];
   for (const out of outputs) {
@@ -326,9 +333,12 @@ function checkMode(root, config, outputs) {
       states.push({ path: out.output, state: 'missing' });
       continue;
     }
+    const isPkgJson = /(^|\/)package\.json$/.test(out.output);
+    const expected = isPkgJson ? stripVersion(out.content) : out.content;
+    const actual = isPkgJson ? stripVersion(disk) : disk;
     states.push({
       path: out.output,
-      state: disk === out.content ? 'in_sync' : 'drifted',
+      state: actual === expected ? 'in_sync' : 'drifted',
     });
   }
 
