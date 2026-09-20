@@ -36,7 +36,10 @@ Render aborts before writing on any validation failure — no partial output (SC
 
 ### `--check` state rules
 
-- `drifted` — file exists but content differs from render output.
+- `drifted` — file exists but content differs from render output. The report prints a
+  line-based unified diff (expected render vs on-disk, first 20 differing lines + a count of
+  the rest) so the drift cause is visible (e.g. a backend section on disk while the config is
+  frontend-only).
 - `missing` — file expected per config (enabled package set) but absent.
 - `unexpected` — file present that the renderer would not produce for this config
   (e.g. leftover `backend/` files in a frontend-only module, or leftover `frontend/` files in
