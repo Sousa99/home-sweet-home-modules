@@ -81,12 +81,13 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          registry-url: https://npm.pkg.github.com/
 
       - name: 📦 Install
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: |
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > "$HOME/.npmrc"
+          echo "@sousa99:registry=https://npm.pkg.github.com/" >> "$HOME/.npmrc"
           echo "::group::pnpm install"
           pnpm install --frozen-lockfile
           echo "::endgroup::"
