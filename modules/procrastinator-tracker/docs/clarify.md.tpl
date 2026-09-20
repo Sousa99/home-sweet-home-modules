@@ -57,6 +57,10 @@ These are application code defaults that live in the module's source and are wri
   (e.g. `@{{NPM_SCOPE}}/homesweethome-config`), grant this repo read access in that package's
   GitHub Packages settings → "Manage Actions access". CI then works with `GITHUB_TOKEN`
   (the workflows already declare `packages: read`).
+- [ ] **`GH_PACKAGES_TOKEN` secret**: the release workflow publishes the npm package with
+  `NPM_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}` — add a repository secret named
+  `GH_PACKAGES_TOKEN` holding a classic PAT with `write:packages` (and `read:packages`)
+  scopes.
 
 ## 🧬 Technology variants
 

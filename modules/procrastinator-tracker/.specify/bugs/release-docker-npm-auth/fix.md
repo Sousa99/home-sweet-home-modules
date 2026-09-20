@@ -12,12 +12,16 @@ now depends on `@sousa99/homesweethome-config` from GitHub Packages, and two pub
 could not authenticate:
 
 1. **Docker image build** — `pnpm install` inside the image had no npm auth → `401`.
-2. **npm package publish** — `@semantic-release/npm` used `GITHUB_TOKEN`, which GitHub
-   Packages rejects for npm publish → `401 unauthenticated: User cannot be authenticated with
-   the token provided`.
+2. **npm package publish** — `setup-node registry-url` created a runner temp `.npmrc`
+   containing `GITHUB_TOKEN`, which `@semantic-release/npm` used instead of `NPM_TOKEN` →
+   `401 unauthenticated: User cannot be authenticated with the token provided`.
 
-Both are fixed: the Docker build now receives the token via a BuildKit secret, and npm
+All fixed: the Docker build receives the token via a BuildKit secret, the release job no
+longer uses `registry-url` (so `@semantic-release/npm` writes its own `NPM_TOKEN`), and npm
 publish uses a dedicated PAT (`GH_PACKAGES_TOKEN`) with `write:packages`.
+
+**Verified**: Release run `35526756156` — all jobs success; `@sousa99/procrastinator-tracker-components@1.1.4`,
+both GHCR images at `1.1.4`, tag `v1.1.4`, and the GitHub release all published.
 
 ## Changes
 
@@ -82,11 +86,18 @@ The assessment proposed passing the GitHub token into the Docker build via a Bui
 1. The first attempt (`cp /run/secrets/npm_token /root/.npmrc`) wrote a bare token to
    `/root/.npmrc`, which is not a valid npm auth line. Corrected to write the full
    `//npm.pkg.github.com/:_authToken=…` line.
-2. The assessment did not anticipate the **npm package publish** step also failing: after
-   Docker succeeded, `@semantic-release/npm` got `401 unauthenticated: User cannot be
-   authenticated with the token provided` because `GITHUB_TOKEN` cannot publish npm packages
-   to GitHub Packages. Fixed by switching `NPM_TOKEN` to a dedicated PAT
-   (`GH_PACKAGES_TOKEN`, `write:packages` scope) added as a repository secret.
+2. The assessment did not anticipate the **npm package publish** step also failing. After the
+   Docker fix, `@semantic-release/npm` got `401 unauthenticated: User cannot be authenticated
+   with the token provided`. Root cause was **not** that `GITHUB_TOKEN` cannot publish npm: the
+   successful `v1.0.0` release used `GITHUB_TOKEN` as `NPM_TOKEN` and published fine. The
+   regression was that feature-005 added `registry-url` to `setup-node` in the release job,
+   which makes `setup-node` create a runner temp `.npmrc` (`NPM_CONFIG_USERCONFIG`) carrying
+   `GITHUB_TOKEN`; `@semantic-release/npm` then found that existing auth line and used it
+   instead of writing `NPM_TOKEN` (compare: successful run had no `registry-url` and logged
+   "Wrote NPM_TOKEN"; failing runs had `registry-url` and logged no such line). Fix: removed
+   `registry-url` from the release job's `setup-node`, write the install auth explicitly with
+   the PAT, and set `NPM_TOKEN` to a dedicated PAT (`GH_PACKAGES_TOKEN`, `write:packages`)
+   added as a repository secret.
 
 ## Follow-ups
 
@@ -95,3 +106,5 @@ The assessment proposed passing the GitHub token into the Docker build via a Bui
   package reads (already noted in `docs/clarify.md`).
 - The `scaffold --check` version-strip is intentional; do not revert it or releases will fail
   the validate gate on version drift.
+- Do not re-add `registry-url` to `setup-node` in the release job — it overrides the
+  `NPM_TOKEN` used by `@semantic-release/npm`.
