@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Sousa99/procrastinator-tracker/compare/v1.1.0...v1.1.1) (2026-09-20)
+
+
+### Bug Fixes
+
+* pass GitHub Packages token into Docker builds via BuildKit secret ([f0d21dc](https://github.com/Sousa99/procrastinator-tracker/commit/f0d21dc6d6e4d8da5c165ccf49b08034d1362dab))
+
 # [1.1.0](https://github.com/Sousa99/procrastinator-tracker/compare/v1.0.0...v1.1.0) (2026-09-20)
 
 
