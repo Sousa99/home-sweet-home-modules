@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/Sousa99/procrastinator-tracker/compare/v1.1.2...v1.1.3) (2026-09-20)
+
+
+### Bug Fixes
+
+* use GH_PACKAGES_TOKEN PAT for npm publish to GitHub Packages ([77de20b](https://github.com/Sousa99/procrastinator-tracker/commit/77de20b75a7a6b8084cf69481fa06b0581ebd377))
+
 ## [1.1.2](https://github.com/Sousa99/procrastinator-tracker/compare/v1.1.1...v1.1.2) (2026-09-20)
 
 
