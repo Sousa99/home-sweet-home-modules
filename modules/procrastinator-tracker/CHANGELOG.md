@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/Sousa99/procrastinator-tracker/compare/v1.1.3...v1.1.4) (2026-09-20)
+
+
+### Bug Fixes
+
+* stop setup-node registry-url from overriding NPM_TOKEN for npm publish ([2d73edb](https://github.com/Sousa99/procrastinator-tracker/commit/2d73edb3dda2468c2bf0e51c952a9e5e03887dd9))
+
 ## [1.1.3](https://github.com/Sousa99/procrastinator-tracker/compare/v1.1.2...v1.1.3) (2026-09-20)
 
 
