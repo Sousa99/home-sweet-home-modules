@@ -1,0 +1,19 @@
+@baseUrl = http://localhost:3000
+
+### Fly-overs over a location (near CDG)
+GET {{baseUrl}}/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50
+
+### Invalid coordinates -> 400
+GET {{baseUrl}}/api/fly-overs?lat=999&lng=2.3522&radiusKm=50
+
+### Invalid radius -> 400
+GET {{baseUrl}}/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=-1
+
+### Missing parameter -> 400
+GET {{baseUrl}}/api/fly-overs?lat=48.8566&radiusKm=50
+
+### Empty area (open ocean) -> 200, count 0
+GET {{baseUrl}}/api/fly-overs?lat=0&lng=0&radiusKm=20
+
+### Feed unavailable -> 502/503 (e.g. run with an unreachable OPENSKY_BASE_URL)
+GET {{baseUrl}}/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50

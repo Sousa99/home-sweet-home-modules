@@ -15,7 +15,7 @@ config values. For each item, confirm the value or edit the config (and re-run
 |----------|---------------|--------|
 | Module name | `fly-over-tracker` | Confirm |
 | Module slug | `fly-over-tracker` | Confirm |
-| Description | `A Home Sweet Home module (fly-over-tracker)` | Confirm |
+| Description | `Track which aircraft are flying over a given location - REST API, MCP tool, and React SPA` | Confirm |
 | npm scope | `@sousa99` | Confirm |
 | Repo | `sousa99/fly-over-tracker` | Confirm |
 | GHCR org | `ghcr.io/sousa99` | Confirm |

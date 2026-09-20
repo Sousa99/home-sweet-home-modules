@@ -4,7 +4,7 @@
     "{{MODULE_SLUG}}": {
       "type": "remote",
       "url": "http://localhost:3001/mcp",
-      "enabled": false
+      "enabled": true
     },
     "github": {
       "type": "remote",

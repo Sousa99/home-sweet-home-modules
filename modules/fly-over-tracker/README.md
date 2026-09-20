@@ -1,7 +1,7 @@
 ---
 module: fly-over-tracker
 slug: fly-over-tracker
-description: A Home Sweet Home module (fly-over-tracker)
+description: Track which aircraft are flying over a given location - REST API, MCP tool, and React SPA
 home: https://github.com/
 packages: backend frontend
 ---
@@ -10,7 +10,7 @@ packages: backend frontend
 
 [![Part of Home Sweet Home](https://img.shields.io/badge/Home%20Sweet%20Home-Module-blue)](https://github.com/)
 
-A Home Sweet Home module (fly-over-tracker)
+Track which aircraft are flying over a given location - REST API, MCP tool, and React SPA
 
 ## 🧰 Stack
 

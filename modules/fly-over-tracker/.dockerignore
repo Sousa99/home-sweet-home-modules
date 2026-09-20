@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+dist-app/
+dist-lib/
+dist-storybook/
+coverage/
+
+# Git
+.git/
+.gitignore
+.git*
+
+# Logs & env
+*.log
+.env
+.env.*
+.env*.local
+
+# Spec Kit / docs artifacts (not needed in images)
+.specify/
+.opencode/
+specs/
+docs/
+
+# Tooling caches
+*.tsbuildinfo
+.vitest/

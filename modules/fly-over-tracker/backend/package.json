@@ -17,10 +17,19 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "dotenv": "^16.4.0"
+    "@hono/node-server": "^2.1.1",
+    "@hono/zod-validator": "^0.9.1",
+    "@modelcontextprotocol/hono": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "dotenv": "^16.4.0",
+    "hono": "^4.13.8",
+    "pino": "^10.3.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@types/node": "^26.6.2",
     "esbuild": "^0.28.2",
+    "pino-pretty": "^13.1.3",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"

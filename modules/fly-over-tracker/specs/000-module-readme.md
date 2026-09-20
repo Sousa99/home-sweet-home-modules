@@ -9,7 +9,7 @@ Module-level overview for `sousa99/fly-over-tracker`, a Home Sweet Home module
 |-------|-------|
 | Name | fly-over-tracker |
 | Slug | fly-over-tracker |
-| Description | A Home Sweet Home module (fly-over-tracker) |
+| Description | Track which aircraft are flying over a given location - REST API, MCP tool, and React SPA |
 | npm scope | `@sousa99` |
 | Repository | `sousa99/fly-over-tracker` |
 | GHCR org | `ghcr.io/sousa99` |

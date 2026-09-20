@@ -2,7 +2,7 @@
   "name": "fly-over-tracker",
   "version": "0.1.0",
   "private": true,
-  "description": "A Home Sweet Home module (fly-over-tracker)",
+  "description": "Track which aircraft are flying over a given location - REST API, MCP tool, and React SPA",
   "packageManager": "pnpm@11.25.0",
   "engines": {
     "node": ">=24.0.0"

@@ -46,9 +46,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
-  "dependencies": {},
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.59.1",
     "@storybook/addon-docs": "^9.1.20",
+    "@storybook/react": "^9.1.20",
     "@storybook/react-vite": "^9.1.20",
     "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/vite": "^4.1.0",

@@ -17,6 +17,5 @@ WORKDIR /app
 COPY --from=build /out/package.json ./package.json
 COPY --from=build /out/node_modules ./node_modules
 COPY --from=build /app/backend/dist ./dist
-COPY --from=build /app/backend/drizzle ./drizzle
 EXPOSE 3000
-CMD ["sh", "-c", "node dist/migrate.js && node dist/index.js {{HTTP_ENTRY}}"]
+CMD ["sh", "-c", "node dist/index.js {{HTTP_ENTRY}}"]
