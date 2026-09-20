@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Sousa99/procrastinator-tracker/compare/v1.0.0...v1.1.0) (2026-09-20)
+
+
+### Features
+
+* add Home Sweet Home module template (005) ([#5](https://github.com/Sousa99/procrastinator-tracker/issues/5)) ([aa16241](https://github.com/Sousa99/procrastinator-tracker/commit/aa16241eb20ee4e02e4d2705af6ed07cfdc0d6fa))
+
 # 1.0.0 (2026-09-19)
 
 
