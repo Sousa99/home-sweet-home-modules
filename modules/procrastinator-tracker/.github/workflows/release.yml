@@ -107,5 +107,5 @@ jobs:
       - name: 🚀 Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: pnpm exec semantic-release
