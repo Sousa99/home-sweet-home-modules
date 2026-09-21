@@ -3,6 +3,7 @@ import { bboxFromCircle } from '../../geometry';
 import { FeedUnavailableError } from '../../lib/errors';
 import { MockFeed } from '../../feeds/mock';
 import { mapOpenSkyResponse, OpenSkyFeed } from '../../feeds/opensky';
+import { OAuth2TokenManager } from '../../feeds/openskyAuth';
 
 const rawState = [
   '3c6444', // 0 icao24
@@ -95,6 +96,17 @@ describe('mapOpenSkyResponse', () => {
 
 describe('OpenSkyFeed', () => {
   const bbox = bboxFromCircle(48.8566, 2.3522, 50);
+  const noWait = async () => {};
+
+  function tokenManager() {
+    return new OAuth2TokenManager({
+      clientId: 'cid',
+      clientSecret: 'csec',
+      tokenUrl: 'https://auth.example.com/token',
+      fetchImpl: async () =>
+        new Response(JSON.stringify({ access_token: 'tok-x', expires_in: 1800 }), { status: 200 }),
+    });
+  }
 
   it('queries the bounding box with extended=1 and maps the response', async () => {
     let capturedUrl: URL | undefined;
@@ -117,14 +129,81 @@ describe('OpenSkyFeed', () => {
     expect(snapshot.states).toHaveLength(1);
   });
 
-  it('maps HTTP 429 to a retryable feed error (503)', async () => {
+  it('sends the Bearer token when credentials are configured', async () => {
+    const headers: Record<string, string> = {};
     const feed = new OpenSkyFeed({
-      fetchImpl: async () => new Response('{}', { status: 429 }),
+      baseUrl: 'https://example.com',
+      tokenManager: tokenManager(),
+      fetchImpl: async (_input, init) => {
+        Object.assign(headers, init?.headers);
+        return new Response(JSON.stringify({ time: 1, states: [rawState] }), { status: 200 });
+      },
+    });
+    await feed.getSnapshot(bbox);
+    expect(headers['authorization']).toBe('Bearer tok-x');
+  });
+
+  it('retries on 429 honoring the retry-after header, then succeeds', async () => {
+    const waits: number[] = [];
+    let calls = 0;
+    const feed = new OpenSkyFeed({
+      baseUrl: 'https://example.com',
+      attempts: 3,
+      wait: async (ms) => {
+        waits.push(ms);
+      },
+      fetchImpl: async () => {
+        calls += 1;
+        if (calls === 1) {
+          return new Response('{}', {
+            status: 429,
+            headers: { 'X-Rate-Limit-Retry-After-Seconds': '2' },
+          });
+        }
+        return new Response(JSON.stringify({ time: 1, states: [rawState] }), { status: 200 });
+      },
+    });
+    const snapshot = await feed.getSnapshot(bbox);
+    expect(snapshot.states).toHaveLength(1);
+    expect(calls).toBe(2);
+    expect(waits).toEqual([2000]);
+  });
+
+  it('throws a rate-limited error after bounded 429 attempts', async () => {
+    let calls = 0;
+    const feed = new OpenSkyFeed({
+      baseUrl: 'https://example.com',
+      attempts: 2,
+      wait: noWait,
+      fetchImpl: async () => {
+        calls += 1;
+        return new Response('{}', { status: 429 });
+      },
     });
     await expect(feed.getSnapshot(bbox)).rejects.toMatchObject({
       code: 'rate_limited',
       status: 503,
     });
+    expect(calls).toBe(2);
+  });
+
+  it('refreshes the token on 401 and retries once', async () => {
+    let calls = 0;
+    const headers: Record<string, string> = {};
+    const feed = new OpenSkyFeed({
+      baseUrl: 'https://example.com',
+      tokenManager: tokenManager(),
+      fetchImpl: async (_input, init) => {
+        calls += 1;
+        Object.assign(headers, init?.headers);
+        if (calls === 1) return new Response('{}', { status: 401 });
+        return new Response(JSON.stringify({ time: 1, states: [rawState] }), { status: 200 });
+      },
+    });
+    const snapshot = await feed.getSnapshot(bbox);
+    expect(snapshot.states).toHaveLength(1);
+    expect(calls).toBe(2);
+    expect(headers['authorization']).toBe('Bearer tok-x');
   });
 
   it('maps other HTTP errors to a feed error (502)', async () => {

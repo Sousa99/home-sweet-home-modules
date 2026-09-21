@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { AircraftFeed } from '../../feeds/types';
+import type { FlightRouteFeed } from '../../feeds/types';
 import { MockFeed } from '../../feeds/mock';
+import { MockRouteFeed } from '../../feeds/mockRoutes';
 import { FeedUnavailableError, ValidationError } from '../../lib/errors';
 import { createFlyOverService } from '../../services/flyOverService';
 
@@ -61,5 +63,68 @@ describe('flyOverService', () => {
     await expect(service.query({ ...CDG, radiusKm: 50 })).rejects.toBeInstanceOf(
       FeedUnavailableError,
     );
+  });
+});
+
+describe('flyOverService destination enrichment', () => {
+  it('fills destinations for every matched aircraft with complete enrichment', async () => {
+    const service = createFlyOverService(new MockFeed(), new MockRouteFeed());
+    const result = await service.query({ ...CDG, radiusKm: 50 });
+
+    expect(result.destinationEnrichment).toBe('complete');
+    expect(result.aircraft).toHaveLength(3);
+    for (const aircraft of result.aircraft) {
+      expect(aircraft.destinationAirport).not.toBeNull();
+      expect(aircraft.destinationCountry).not.toBeNull();
+    }
+    expect(result.aircraft[0]).toMatchObject({
+      callsign: 'DLH400',
+      destinationAirport: 'EDDF',
+      destinationCountry: 'Germany',
+    });
+  });
+
+  it('reports partial enrichment and null destinations when a lookup fails', async () => {
+    const failingRoutes: FlightRouteFeed = {
+      getDestination: async () => {
+        throw new FeedUnavailableError('destination rate limited', { retryable: true });
+      },
+    };
+    const service = createFlyOverService(new MockFeed(), failingRoutes);
+    const result = await service.query({ ...CDG, radiusKm: 50 });
+
+    expect(result.destinationEnrichment).toBe('partial');
+    expect(result.aircraft).toHaveLength(3);
+    for (const aircraft of result.aircraft) {
+      expect(aircraft.destinationAirport).toBeNull();
+      expect(aircraft.destinationCountry).toBeNull();
+    }
+  });
+
+  it('reports unavailable enrichment when no route feed is provided', async () => {
+    const service = createFlyOverService(new MockFeed());
+    const result = await service.query({ ...CDG, radiusKm: 50 });
+
+    expect(result.destinationEnrichment).toBe('unavailable');
+    for (const aircraft of result.aircraft) {
+      expect(aircraft.destinationAirport).toBeNull();
+    }
+  });
+
+  it('reuses cached destinations across queries (no repeat lookups)', async () => {
+    const routes = new MockRouteFeed();
+    const service = createFlyOverService(new MockFeed(), routes);
+
+    await service.query({ ...CDG, radiusKm: 50 });
+    expect(routes.callCount).toBe(3);
+    await service.query({ ...CDG, radiusKm: 50 });
+    expect(routes.callCount).toBe(3);
+  });
+
+  it('reports complete enrichment for an empty result', async () => {
+    const service = createFlyOverService(new MockFeed(), new MockRouteFeed());
+    const result = await service.query({ ...CDG, radiusKm: 1 });
+    expect(result.destinationEnrichment).toBe('complete');
+    expect(result.aircraft).toEqual([]);
   });
 });

@@ -1,6 +1,11 @@
 @baseUrl = http://localhost:3000
 
-### Fly-overs over a location (near CDG)
+# Requires OpenSky credentials (backend/.env → OPENSKY_CLIENT_ID/SECRET) for
+# destination enrichment; see docs/configuration.md. Without them each result
+# reports "destinationEnrichment": "unavailable".
+
+### Fly-overs over a location (near CDG) — aircraft include destinationAirport
+### and destinationCountry, plus destinationEnrichment on the result
 GET {{baseUrl}}/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50
 
 ### Invalid coordinates -> 400

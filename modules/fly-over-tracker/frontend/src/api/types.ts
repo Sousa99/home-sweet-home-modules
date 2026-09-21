@@ -47,6 +47,8 @@ export interface FlyOverResult {
   /** Unix seconds the result reflects the feed. */
   asOf: number;
   count: number;
+  /** Destination enrichment state: complete, partial, or unavailable. */
+  destinationEnrichment: 'complete' | 'partial' | 'unavailable';
   aircraft: Aircraft[];
 }
 

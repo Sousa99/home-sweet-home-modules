@@ -21,6 +21,24 @@ const envSchema = z.object({
   FEED: z.enum(['opensky', 'mock']).default('opensky'),
   LOG_LEVEL: z.enum(PINO_LEVELS).optional(),
   NODE_ENV: z.string().default('development'),
+  // OpenSky OAuth2 client credentials (optional — anonymous when absent).
+  OPENSKY_CLIENT_ID: z.string().default(''),
+  OPENSKY_CLIENT_SECRET: z.string().default(''),
+  OPENSKY_TOKEN_URL: z
+    .string()
+    .url()
+    .default(
+      'https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token',
+    ),
+  // Bounded 429/401 retry behaviour (independent budgets per feed).
+  RETRY_ATTEMPTS: z.coerce.number().int().positive().default(3),
+  RETRY_DEFAULT_MS: z.coerce.number().int().nonnegative().default(2000),
+  RETRY_CAP_MS: z.coerce.number().int().positive().default(10000),
+  // Destination enrichment tuning.
+  DEST_WINDOW_H: z.coerce.number().int().positive().default(24),
+  DEST_CONCURRENCY: z.coerce.number().int().positive().default(8),
+  DEST_CACHE_TTL_MS: z.coerce.number().int().positive().default(600_000),
+  DEST_NEGATIVE_TTL_MS: z.coerce.number().int().positive().default(60_000),
 });
 
 /**
@@ -45,6 +63,26 @@ export interface Config {
   feedTimeoutMs: number;
   /** Which feed implementation to use at runtime. */
   feedMode: 'opensky' | 'mock';
+  /** OpenSky OAuth2 client id (empty when running anonymously). */
+  openskyClientId: string;
+  /** OpenSky OAuth2 client secret (empty when running anonymously). */
+  openskyClientSecret: string;
+  /** OpenSky OAuth2 token endpoint URL. */
+  openskyTokenUrl: string;
+  /** Bounded number of retry attempts on upstream 429 (and 401). */
+  retryAttempts: number;
+  /** Default backoff in milliseconds when no retry-after header is present. */
+  retryDefaultMs: number;
+  /** Upper bound in milliseconds for a single retry wait. */
+  retryCapMs: number;
+  /** Destination lookup window in hours (clamped to the current UTC day). */
+  destinationWindowHours: number;
+  /** Maximum number of parallel destination lookups per query. */
+  destinationConcurrency: number;
+  /** TTL in milliseconds for positive destination cache entries. */
+  destinationCacheTtlMs: number;
+  /** TTL in milliseconds for negative destination cache entries. */
+  destinationNegativeTtlMs: number;
   /** pino log level. */
   logLevel: string;
   /** Runtime environment (`development`, `production`, `test`, ...). */
@@ -70,6 +108,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     feedBaseUrl: parsed.OPENSKY_BASE_URL,
     feedTimeoutMs: parsed.FEED_TIMEOUT_MS,
     feedMode: parsed.FEED,
+    openskyClientId: parsed.OPENSKY_CLIENT_ID,
+    openskyClientSecret: parsed.OPENSKY_CLIENT_SECRET,
+    openskyTokenUrl: parsed.OPENSKY_TOKEN_URL,
+    retryAttempts: parsed.RETRY_ATTEMPTS,
+    retryDefaultMs: parsed.RETRY_DEFAULT_MS,
+    retryCapMs: parsed.RETRY_CAP_MS,
+    destinationWindowHours: parsed.DEST_WINDOW_H,
+    destinationConcurrency: parsed.DEST_CONCURRENCY,
+    destinationCacheTtlMs: parsed.DEST_CACHE_TTL_MS,
+    destinationNegativeTtlMs: parsed.DEST_NEGATIVE_TTL_MS,
     logLevel: parsed.LOG_LEVEL ?? (envName === 'production' ? 'info' : 'debug'),
     env: envName,
   };

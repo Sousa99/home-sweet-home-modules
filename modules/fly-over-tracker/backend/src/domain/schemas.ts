@@ -67,6 +67,18 @@ export const AircraftSchema = z.object({
 });
 
 /**
+ * Reports how destination enrichment was resolved for a query result:
+ *
+ * - `complete` — every matched aircraft received a destination lookup;
+ *   destinations are filled where the data source identified them.
+ * - `partial` — at least one lookup failed or was rate-limited, so some
+ *   destinations are `null` (the query itself still succeeds).
+ * - `unavailable` — no route feed (e.g. running anonymously), so enrichment
+ *   was skipped entirely.
+ */
+export const DestinationEnrichmentSchema = z.enum(['complete', 'partial', 'unavailable']);
+
+/**
  * Schema for the complete answer to a location query. Shared by the REST
  * endpoint and the MCP `planes_over` tool so both interfaces return the exact
  * same shape (parity by construction).
@@ -78,5 +90,7 @@ export const FlyOverResultSchema = z.object({
   asOf: z.int(),
   /** Number of aircraft in the list. */
   count: z.int(),
+  /** Destination enrichment state for this result. */
+  destinationEnrichment: DestinationEnrichmentSchema,
   aircraft: z.array(AircraftSchema),
 });

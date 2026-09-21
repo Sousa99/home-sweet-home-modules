@@ -1,14 +1,32 @@
+// Load `.env` from the package directory (dev/standalone runs) before any
+// module reads `process.env`. Existing environment variables always win, so
+// container/CI-orchestrator env takes precedence. See docs/configuration.md.
+import 'dotenv/config';
 import { serve, type ServerType } from '@hono/node-server';
+import { OpenSkyFlightRouteFeed } from './feeds/flightRoutes';
 import { MockFeed } from './feeds/mock';
+import { MockRouteFeed } from './feeds/mockRoutes';
 import { OpenSkyFeed } from './feeds/opensky';
+import { OAuth2TokenManager } from './feeds/openskyAuth';
 import { createApp } from './http/app';
 import { config } from './lib/config';
 import { logger } from './lib/logger';
 import { createMcpApp } from './mcp/server';
 import { createFlyOverService } from './services/flyOverService';
 
+const tokenManager = new OAuth2TokenManager();
+
 function selectFeed() {
-  return config.feedMode === 'mock' ? new MockFeed() : new OpenSkyFeed();
+  return config.feedMode === 'mock' ? new MockFeed() : new OpenSkyFeed({ tokenManager });
+}
+
+function selectRouteFeed() {
+  if (config.feedMode === 'mock') return new MockRouteFeed();
+  // Without credentials the anonymous tier cannot resolve destinations; skip
+  // enrichment entirely so the result reports `destinationEnrichment:
+  // 'unavailable'` (spec FR-008) and the anonymous credit budget is preserved.
+  if (!tokenManager.hasCredentials) return undefined;
+  return new OpenSkyFlightRouteFeed({ tokenManager });
 }
 
 function shutdown(server: ServerType, signal: string) {
@@ -27,7 +45,7 @@ function main(): void {
     process.exit(1);
   }
 
-  const service = createFlyOverService(selectFeed());
+  const service = createFlyOverService(selectFeed(), selectRouteFeed());
 
   if (isHttp) {
     const app = createApp({ service });

@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { MockFeed } from '../../feeds/mock';
+import { MockRouteFeed } from '../../feeds/mockRoutes';
 import { createApp } from '../../http/app';
 import { FeedUnavailableError } from '../../lib/errors';
 import { createLogger } from '../../lib/logger';
 import type { FlyOverResult } from '../../domain/types';
 import { createFlyOverService } from '../../services/flyOverService';
 import type { FlyOverService } from '../../services/flyOverService';
+import type { FlightRouteFeed } from '../../feeds/types';
 
 function testApp(service: FlyOverService) {
   return createApp({ service, logger: createLogger({ env: 'test' }) });
 }
 
-const service = createFlyOverService(new MockFeed());
+const service = createFlyOverService(new MockFeed(), new MockRouteFeed());
 const app = testApp(service);
 
 describe('GET /api/fly-overs (REST contract)', () => {
@@ -26,13 +28,55 @@ describe('GET /api/fly-overs (REST contract)', () => {
       count: 3,
     });
     expect(typeof body.asOf).toBe('number');
+    expect(body.destinationEnrichment).toBe('complete');
     expect(body.aircraft).toHaveLength(3);
     const [first] = body.aircraft;
     expect(first).toMatchObject({
       icao24: '3c6444',
       callsign: 'DLH400',
       distanceKm: expect.any(Number),
+      destinationAirport: 'EDDF',
+      destinationCountry: 'Germany',
     });
+  });
+
+  it('returns destinations for every matched aircraft', async () => {
+    const res = await app.request('/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50');
+    const body = (await res.json()) as FlyOverResult;
+    for (const aircraft of body.aircraft) {
+      expect(aircraft.destinationAirport).not.toBeNull();
+      expect(aircraft.destinationCountry).not.toBeNull();
+    }
+  });
+
+  it('reports unavailable enrichment when no route feed is provided', async () => {
+    const res = await testApp(createFlyOverService(new MockFeed())).request(
+      '/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50',
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as FlyOverResult;
+    expect(body.destinationEnrichment).toBe('unavailable');
+    for (const aircraft of body.aircraft) {
+      expect(aircraft.destinationAirport).toBeNull();
+      expect(aircraft.destinationCountry).toBeNull();
+    }
+  });
+
+  it('reports partial enrichment when destination lookups are rate limited', async () => {
+    const failingRoutes: FlightRouteFeed = {
+      getDestination: async () => {
+        throw new FeedUnavailableError('destination rate limited', { retryable: true });
+      },
+    };
+    const res = await testApp(createFlyOverService(new MockFeed(), failingRoutes)).request(
+      '/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50',
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as FlyOverResult;
+    expect(body.destinationEnrichment).toBe('partial');
+    for (const aircraft of body.aircraft) {
+      expect(aircraft.destinationAirport).toBeNull();
+    }
   });
 
   it('returns 400 with per-field errors for out-of-range input', async () => {
@@ -64,7 +108,7 @@ describe('GET /api/fly-overs (REST contract)', () => {
     });
   });
 
-  it('returns 503 when the feed is rate limited', async () => {
+  it('returns 503 with a clear message when the feed is rate limited', async () => {
     const failing: FlyOverService = {
       query: async () => {
         throw new FeedUnavailableError('rate limited', { retryable: true });
@@ -72,6 +116,10 @@ describe('GET /api/fly-overs (REST contract)', () => {
     };
     const res = await testApp(failing).request('/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50');
     expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({
+      success: false,
+      message: 'rate limited',
+    });
   });
 
   it('returns 404 for unknown routes', async () => {

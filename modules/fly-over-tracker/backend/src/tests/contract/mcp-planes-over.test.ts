@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { Hono } from 'hono';
 import { MockFeed } from '../../feeds/mock';
+import { MockRouteFeed } from '../../feeds/mockRoutes';
 import { createApp } from '../../http/app';
 import { createLogger } from '../../lib/logger';
 import { createMcpApp } from '../../mcp/server';
 import { createFlyOverService } from '../../services/flyOverService';
 
-const service = createFlyOverService(new MockFeed());
+const service = createFlyOverService(new MockFeed(), new MockRouteFeed());
 const restApp = createApp({ service, logger: createLogger({ env: 'test' }) });
 const mcpApp = createMcpApp({ service });
 

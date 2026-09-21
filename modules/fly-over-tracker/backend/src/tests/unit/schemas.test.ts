@@ -126,6 +126,7 @@ describe('FlyOverResultSchema', () => {
       radiusKm: 50,
       asOf: 1_726_900_000,
       count: 1,
+      destinationEnrichment: 'complete',
       aircraft: [aircraftFixture],
     });
     expect(result.success).toBe(true);
@@ -137,6 +138,7 @@ describe('FlyOverResultSchema', () => {
       radiusKm: 10,
       asOf: 1_726_900_000,
       count: 0,
+      destinationEnrichment: 'unavailable',
       aircraft: [],
     });
     expect(result.success).toBe(true);
@@ -148,9 +150,24 @@ describe('FlyOverResultSchema', () => {
       radiusKm: 10,
       asOf: 1_726_900_000,
       count: 0,
+      destinationEnrichment: 'complete',
       aircraft: [],
     };
     expect(FlyOverResultSchema.safeParse({ ...base, asOf: 1.5 }).success).toBe(false);
     expect(FlyOverResultSchema.safeParse({ ...base, count: 0.5 }).success).toBe(false);
+  });
+
+  it('rejects an invalid destinationEnrichment value', () => {
+    const base = {
+      center: { lat: 0, lng: 0 },
+      radiusKm: 10,
+      asOf: 1_726_900_000,
+      count: 0,
+      destinationEnrichment: 'complete',
+      aircraft: [],
+    };
+    expect(FlyOverResultSchema.safeParse({ ...base, destinationEnrichment: 'nope' }).success).toBe(
+      false,
+    );
   });
 });

@@ -7,6 +7,7 @@ const result: FlyOverResult = {
   radiusKm: 50,
   asOf: 1_726_900_000,
   count: 1,
+  destinationEnrichment: 'complete',
   aircraft: [
     {
       icao24: '3c6444',
