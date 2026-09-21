@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Sousa99/fly-over-tracker/compare/v1.0.1...v1.1.0) (2026-09-21)
+
+
+### Features
+
+* map view & location selection for fly-overs ([#3](https://github.com/Sousa99/fly-over-tracker/issues/3)) ([c78c37a](https://github.com/Sousa99/fly-over-tracker/commit/c78c37a66d106ab61c0da20f9ee30279679cf78e))
+
 ## [1.0.1](https://github.com/Sousa99/fly-over-tracker/compare/v1.0.0...v1.0.1) (2026-09-21)
 
 
