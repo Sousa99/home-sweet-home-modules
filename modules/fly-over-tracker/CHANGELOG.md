@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/Sousa99/fly-over-tracker/compare/v1.2.0...v1.2.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* live destination enrichment via adsb.lol ([#6](https://github.com/Sousa99/fly-over-tracker/issues/6)) ([6167b4e](https://github.com/Sousa99/fly-over-tracker/commit/6167b4e93b3dfb7eb5bdd97d1772120c681476c9))
+
 # [1.2.0](https://github.com/Sousa99/fly-over-tracker/compare/v1.1.0...v1.2.0) (2026-09-21)
 
 
