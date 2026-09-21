@@ -69,6 +69,21 @@ The Release workflow failed because `semantic-release` and its plugins were neve
 - **Smoke check placement**: Assessment said "validate job / CI"; added to the release workflow's validate job (the CI workflow currently starts 0 jobs — a separate issue — so the release workflow is the reliable home for this guard).
 - Exact version pinning follows the assessment's recommendation; the rest of the template keeps `^` ranges.
 
+## Follow-up fix (found via end-to-end run)
+
+Run `35572005758` confirmed the dependency fix works (validate passed, smoke check green,
+semantic-release analyzed → v1.0.0, tag created), but the publish step failed:
+
+```
+[7:15:34 AM] [@semantic-release/exec] › ℹ  Call script scripts/publish-artifacts.sh 1.0.0
+/bin/sh: 1: scripts/publish-artifacts.sh: Permission denied
+Command failed with exit code 126: 'scripts/publish-artifacts.sh 1.0.0'
+```
+
+`scripts/publish-artifacts.sh` (and its `.tpl`) were committed as `0644`; the `@semantic-release/exec`
+`publishCmd` invokes the script directly, so it needs the executable bit. Both files set to `0755`.
+Scaffold check still passes.
+
 ## Follow-ups
 
 - **CI starts 0 jobs**: all `ci.yml` runs report 0 jobs (never started) — separate issue; investigate separately.
