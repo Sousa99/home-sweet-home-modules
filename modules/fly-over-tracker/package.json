@@ -1,6 +1,6 @@
 {
   "name": "fly-over-tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Track which aircraft are flying over a given location - REST API, MCP tool, and React SPA",
   "packageManager": "pnpm@11.25.0",

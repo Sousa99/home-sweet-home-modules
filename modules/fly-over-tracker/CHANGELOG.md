@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/Sousa99/fly-over-tracker/compare/v1.0.0...v1.0.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* **release:** make publish-artifacts.sh executable ([1a0d89e](https://github.com/Sousa99/fly-over-tracker/commit/1a0d89ec2c9a4fff75c4a2ab9c6d8d4b3138d17e))
+
 # 1.0.0 (2026-09-21)
 
 
