@@ -10,8 +10,13 @@ import {
 const aircraftFixture = {
   icao24: '3c6444',
   callsign: 'DLH400',
+  originAirport: null,
+  originCity: null,
+  originAirportName: null,
   originCountry: 'Germany',
   destinationAirport: null,
+  destinationCity: null,
+  destinationAirportName: null,
   destinationCountry: null,
   latitude: 48.9211,
   longitude: 2.4288,
@@ -54,12 +59,12 @@ describe('LocationQuerySchema', () => {
     expect(LocationQuerySchema.safeParse({ lat: 0, lng: 181, radiusKm: 50 }).success).toBe(false);
     expect(LocationQuerySchema.safeParse({ lat: 0, lng: 0, radiusKm: 0 }).success).toBe(false);
     expect(LocationQuerySchema.safeParse({ lat: 0, lng: 0, radiusKm: -5 }).success).toBe(false);
-    expect(LocationQuerySchema.safeParse({ lat: 0, lng: 0, radiusKm: 501 }).success).toBe(false);
+    expect(LocationQuerySchema.safeParse({ lat: 0, lng: 0, radiusKm: 464 }).success).toBe(false);
   });
 
   it('accepts boundary values', () => {
-    expect(LocationQuerySchema.safeParse({ lat: 90, lng: 180, radiusKm: 500 }).success).toBe(true);
-    expect(LocationQuerySchema.safeParse({ lat: -90, lng: -180, radiusKm: 500 }).success).toBe(
+    expect(LocationQuerySchema.safeParse({ lat: 90, lng: 180, radiusKm: 463 }).success).toBe(true);
+    expect(LocationQuerySchema.safeParse({ lat: -90, lng: -180, radiusKm: 463 }).success).toBe(
       true,
     );
   });

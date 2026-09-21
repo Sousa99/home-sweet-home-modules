@@ -23,35 +23,43 @@ and alternatives considered. Spec `NEEDS CLARIFICATION` items were resolved duri
   first use, caches it with an expiry margin (refresh ~5 min before the 30-min expiry), and
   refreshes on `401`. No new dependency.
 
-## Decision 2: Destination source — `GET /flights/aircraft`
+## Decision 2: Destination source — adsb.lol routeset (`POST /api/0/routeset`)
 
-- **Decision**: For each matched aircraft, query
-  `GET /api/flights/aircraft?icao24=<hex>&begin=<t0>&end=<now>` and read
-  `estArrivalAirport` (+ `estDepartureAirport`) from the returned flight records. The chosen
-  flight is the one whose `[firstSeen, lastSeen]` interval covers `now`; fall back to the most
-  recent record. The airport code is looked up in the bundled ICAO→country map to derive
-  `destinationCountry`.
-- **Rationale**: `/flights/*` returns live flight records with estimated arrival airports, the
-  natural source for "destination of the flight". One request per aircraft; cost 4 credits each in
-  the independent `/flights/*` bucket.
+> **Revised by bug fix `empty-destinations`.** The original choice, OpenSky
+> `GET /flights/aircraft`, was shipped and observed to return no destinations
+> for live traffic: per the official REST docs it only returns flights that
+> "departed and arrived within [begin, end]" and only "from the previous day or
+> earlier" (nightly batch), so a window clamped to the current UTC day yields
+> empty responses. The route source is now the adsb.lol routeset endpoint,
+> which resolves the current route (origin/destination airports) per callsign
+> in a single batched POST per query — no auth, no credit budget.
+
+- **Decision**: For each fly-over query, POST the matched aircraft's
+  callsigns to `POST /api/0/routeset` and read the departure (first) and
+  arrival (last) airport ICAO codes from each route. Aircraft without a
+  callsign or an unknown route resolve to `null`. Airport codes are looked up
+  in the bundled ICAO→country map to derive `originCountry`/`destinationCountry`.
+- **Rationale**: adsb.lol is a free, open (ODbL) ADSBExchange-compatible API;
+  one batched request covers the whole query (no per-aircraft fan-out) and
+  requires no credentials. Positions come from the same provider's
+  `GET /v2/point/{lat}/{lon}/{radius}` endpoint (max 250 nm ≈ 463 km), which
+  also bounds the accepted query radius.
 - **Alternatives considered**:
-  - Legacy `GET /api/routes?callsign=` → `{ route: [...] }` — a single request per callsign, but
-    no longer in the current official docs and observed to be unreliable; rejected.
-  - `GET /flights/all?begin&end` — network-wide, not bbox-filterable; unusable for per-query
-    enrichment; rejected.
+  - OpenSky `GET /flights/aircraft` — rejected (night-batched, historical only;
+    see revision note above).
+  - adsbdb `/v0/callsign/…` — viable per-callsign fallback, but adds a second
+    dependency when the routeset endpoint already provides origin+destination.
   - Bundled static route data — stale by definition; rejected.
 
-## Decision 3: Destination lookup window — 24h, clamped to the current UTC day
+## Decision 3: Route lookup window — not applicable (live routeset)
 
-- **Decision**: `DEST_WINDOW_H = 24`; `begin = max(now − 24h, 00:00 UTC today)`, `end = now`.
-- **Rationale**: OpenSky costs `/flights/*` by the **UTC calendar-day partitions crossed**, not
-  by window length: within a single day / <24h = **4 credits**, crossing a midnight = **2
-  partitions = 30 credits**. A naive rolling `[now−24h, now]` crosses midnight most of the day and
-  silently jumps to 30 credits. Clamping to the current UTC day keeps every lookup in the 4-credit
-  band while providing up to 24h of lookback.
-- **Edge (documented)**: in the first hours of the UTC day, a flight airborne since "yesterday"
-  may be outside the window → destination `null` (graceful, spec FR-005). This mirrors the MVP's
-  documented antimeridian clamp limitation in `geometry.ts`.
+- **Decision**: routeset is a live, callsign-keyed lookup with no time window.
+  The previous OpenSky `[begin, end]` windowing (24 h, clamped to the current
+  UTC day for credit cost) was removed along with the source.
+- **Rationale**: with adsb.lol there is no per-day credit cost to bound; the
+  in-memory route cache (10 min positive / 60 s negative TTL) covers repeated
+  queries. The OpenSky `DEST_WINDOW_H` / `DEST_CONCURRENCY` settings were
+  removed from runtime configuration.
 
 ## Decision 4: Airport → country mapping — bundled static data
 

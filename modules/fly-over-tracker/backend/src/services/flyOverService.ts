@@ -2,10 +2,11 @@ import type { Aircraft, FlyOverResult, LocationQuery } from '../domain/types';
 import { LocationQuerySchema } from '../domain/schemas';
 import type { FeedState } from '../feeds/types';
 import type { AircraftFeed } from '../feeds/types';
-import type { DestinationInfo, FlightRouteFeed } from '../feeds/types';
-import { bboxFromCircle, haversineKm } from '../geometry';
+import type { DestinationInfo, FlightRouteFeed, RouteLookup } from '../feeds/types';
+import { haversineKm } from '../geometry';
 import { countryForIcao } from '../lib/airports';
 import { loadConfig } from '../lib/config';
+import { countryForIso2 } from '../lib/countries';
 import { createDestinationCache, type DestinationCache } from '../lib/destinationCache';
 import { FeedUnavailableError, ValidationError, formatZodError } from '../lib/errors';
 
@@ -29,8 +30,6 @@ export interface FlyOverServiceOptions {
   destinationCacheTtlMs?: number;
   /** TTL in ms for negative (not found) destination lookups. */
   destinationNegativeTtlMs?: number;
-  /** Maximum number of parallel destination lookups per query. */
-  destinationConcurrency?: number;
 }
 
 function toAircraft(
@@ -40,9 +39,15 @@ function toAircraft(
   return {
     icao24: state.icao24,
     callsign: state.callsign,
-    originCountry: state.originCountry,
-    // Populated by destination enrichment (see query pipeline below).
+    // Origin/destination are populated by route enrichment (see query pipeline
+    // below); the position feed contributes none.
+    originAirport: null,
+    originCity: null,
+    originAirportName: null,
+    originCountry: null,
     destinationAirport: null,
+    destinationCity: null,
+    destinationAirportName: null,
     destinationCountry: null,
     latitude: state.latitude,
     longitude: state.longitude,
@@ -56,55 +61,46 @@ function toAircraft(
 }
 
 /**
- * Map `fn` over `items` with at most `limit` promises in flight at once,
- * preserving input order.
+ * Resolve routes for every matched aircraft via the route feed and cache.
+ * Only aircraft with no cached route are sent to the feed (one batched
+ * request); a failed lookup (rate-limited or unavailable) leaves those
+ * aircraft's routes unresolved and flags the result as partial.
  */
-async function mapWithConcurrency<T, R>(
-  items: readonly T[],
-  limit: number,
-  fn: (item: T) => Promise<R>,
-): Promise<R[]> {
-  if (items.length === 0) return [];
-  const results = new Array<R>(items.length);
-  let next = 0;
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (next < items.length) {
-      const index = next;
-      next += 1;
-      // Index is within bounds by the loop guard above.
-      results[index] = await fn(items[index] as T);
-    }
-  });
-  await Promise.all(workers);
-  return results;
-}
-
-/**
- * Resolve a destination for every matched aircraft via the route feed and
- * cache. Lookups are bounded by `concurrency`; a failed lookup (rate-limited
- * or unavailable) leaves that aircraft's destination unresolved and flags the
- * result as partial.
- */
-async function enrichDestinations(
+async function enrichRoutes(
   aircraft: readonly Aircraft[],
   routeFeed: FlightRouteFeed,
   cache: DestinationCache,
-  concurrency: number,
-): Promise<{ enrichment: 'complete' | 'partial'; destinations: (DestinationInfo | null)[] }> {
+): Promise<{
+  enrichment: 'complete' | 'partial';
+  destinations: Map<string, DestinationInfo | null>;
+}> {
+  const lookups: RouteLookup[] = aircraft
+    .filter((aircraft) => cache.get(aircraft.icao24) === undefined)
+    .map((aircraft) => ({
+      icao24: aircraft.icao24,
+      callsign: aircraft.callsign,
+      latitude: aircraft.latitude,
+      longitude: aircraft.longitude,
+    }));
+
   let hadFailure = false;
-  const destinations = await mapWithConcurrency(aircraft, concurrency, async (aircraft) => {
-    const cached = cache.get(aircraft.icao24);
-    if (cached !== undefined) return cached;
+  if (lookups.length > 0) {
     try {
-      const info = await routeFeed.getDestination(aircraft.icao24);
-      cache.set(aircraft.icao24, info);
-      return info;
+      const fresh = await routeFeed.resolveRoutes(lookups);
+      for (const [icao24, info] of fresh) {
+        cache.set(icao24, info);
+      }
     } catch (err) {
       if (!(err instanceof FeedUnavailableError)) throw err;
       hadFailure = true;
-      return null;
     }
-  });
+  }
+
+  const destinations = new Map<string, DestinationInfo | null>();
+  for (const aircraftItem of aircraft) {
+    const cached = cache.get(aircraftItem.icao24);
+    destinations.set(aircraftItem.icao24, cached === undefined ? null : cached);
+  }
   return { enrichment: hadFailure ? 'partial' : 'complete', destinations };
 }
 
@@ -115,8 +111,9 @@ async function enrichDestinations(
  * of truth) so every caller — REST and MCP — gets identical validation.
  *
  * @param feed - the aircraft feed to query
- * @param routeFeed - optional flight-route feed for destination enrichment;
- *   when absent the result reports `destinationEnrichment: 'unavailable'`
+ * @param routeFeed - optional flight-route feed for origin/destination
+ *   enrichment; when absent the result reports `destinationEnrichment:
+ *   'unavailable'`
  * @param options - enrichment tuning (defaults from runtime config)
  * @returns a {@link FlyOverService}
  */
@@ -126,7 +123,6 @@ export function createFlyOverService(
   options: FlyOverServiceOptions = {},
 ): FlyOverService {
   const cfg = loadConfig();
-  const concurrency = options.destinationConcurrency ?? cfg.destinationConcurrency;
   const cache = createDestinationCache({
     ttlMs: options.destinationCacheTtlMs ?? cfg.destinationCacheTtlMs,
     negativeTtlMs: options.destinationNegativeTtlMs ?? cfg.destinationNegativeTtlMs,
@@ -140,7 +136,7 @@ export function createFlyOverService(
       }
 
       const { lat, lng, radiusKm } = parsed.data;
-      const snapshot = await feed.getSnapshot(bboxFromCircle(lat, lng, radiusKm));
+      const snapshot = await feed.getSnapshot(lat, lng, radiusKm);
 
       const aircraft = snapshot.states
         .filter(
@@ -156,23 +152,34 @@ export function createFlyOverService(
         .map(({ state, distanceKm }) => toAircraft(state, distanceKm));
 
       let destinationEnrichment: FlyOverResult['destinationEnrichment'];
-      let destinations: (DestinationInfo | null)[] | null = null;
+      let destinations: Map<string, DestinationInfo | null> | null = null;
 
       if (routeFeed === undefined) {
         destinationEnrichment = 'unavailable';
       } else {
-        const enriched = await enrichDestinations(aircraft, routeFeed, cache, concurrency);
+        const enriched = await enrichRoutes(aircraft, routeFeed, cache);
         destinationEnrichment = enriched.enrichment;
         destinations = enriched.destinations;
       }
 
-      const enrichedAircraft = aircraft.map((aircraft, index) => {
+      const enrichedAircraft = aircraft.map((aircraft) => {
         if (destinations === null) return aircraft;
-        const airport = destinations[index]?.estArrivalAirport ?? null;
+        const info = destinations.get(aircraft.icao24);
+        const origin = info?.estDepartureAirport ?? null;
+        const destination = info?.estArrivalAirport ?? null;
         return {
           ...aircraft,
-          destinationAirport: airport,
-          destinationCountry: countryForIcao(airport),
+          originAirport: origin?.icao ?? null,
+          originCity: origin?.city ?? null,
+          originAirportName: origin?.name ?? null,
+          originCountry:
+            countryForIso2(origin?.countryIso2 ?? null) ?? countryForIcao(origin?.icao ?? null),
+          destinationAirport: destination?.icao ?? null,
+          destinationCity: destination?.city ?? null,
+          destinationAirportName: destination?.name ?? null,
+          destinationCountry:
+            countryForIso2(destination?.countryIso2 ?? null) ??
+            countryForIcao(destination?.icao ?? null),
         };
       });
 

@@ -1,152 +1,142 @@
 import { describe, expect, it } from 'vitest';
-import { bboxFromCircle } from '../../geometry';
 import { FeedUnavailableError } from '../../lib/errors';
 import { MockFeed } from '../../feeds/mock';
-import { mapOpenSkyResponse, OpenSkyFeed } from '../../feeds/opensky';
-import { OAuth2TokenManager } from '../../feeds/openskyAuth';
+import { AdsbLolFeed, mapAdsbLolResponse } from '../../feeds/adsbLol';
 
-const rawState = [
-  '3c6444', // 0 icao24
-  'DLH400 ', // 1 callsign (trailing space)
-  'Germany', // 2 origin_country
-  1_726_900_000, // 3 time_position
-  1_726_900_010, // 4 last_contact
-  2.4288, // 5 longitude
-  48.9211, // 6 latitude
-  9144.0, // 7 baro_altitude
-  false, // 8 on_ground
-  251.2, // 9 velocity
-  87.5, // 10 true_track
-  0.0, // 11 vertical_rate
-  null, // 12 sensors
-  9448.8, // 13 geo_altitude
-  '1000', // 14 squawk
-  false, // 15 spi
-  0, // 16 position_source
-  3, // 17 category (extended)
-] as unknown[];
+const CDG = { lat: 48.8566, lng: 2.3522 };
 
-describe('mapOpenSkyResponse', () => {
-  it('maps a state vector by index and trims the callsign', () => {
-    const snapshot = mapOpenSkyResponse({ time: 1_726_900_000, states: [rawState] });
+const rawAircraft = {
+  hex: '3c6444',
+  type: 'adsb_icao',
+  flight: 'DLH400 ',
+  alt_baro: 30000,
+  gs: 251.2,
+  track: 87.5,
+  baro_rate: 0,
+  lat: 48.9211,
+  lon: 2.4288,
+};
+
+describe('mapAdsbLolResponse', () => {
+  it('maps an adsb.lol aircraft to a FeedState with unit conversions', () => {
+    const snapshot = mapAdsbLolResponse({ ac: [rawAircraft], now: 1_726_900_000_000 }, 0);
     expect(snapshot.time).toBe(1_726_900_000);
-    const [state] = snapshot.states;
+    const state = snapshot.states[0]!;
     expect(state).toMatchObject({
       icao24: '3c6444',
       callsign: 'DLH400',
-      originCountry: 'Germany',
+      originCountry: null,
       longitude: 2.4288,
       latitude: 48.9211,
-      baroAltitude: 9144.0,
+      // 30000 ft → m
+      baroAltitude: 9144,
       onGround: false,
-      velocity: 251.2,
       trueTrack: 87.5,
       verticalRate: 0.0,
     });
+    // 251.2 kt → m/s
+    expect(state.velocity).toBeCloseTo(129.23, 2);
   });
 
-  it('maps null positions and empty callsigns to null', () => {
-    const snapshot = mapOpenSkyResponse({
-      time: 1,
-      states: [
-        [
-          'abc123',
-          '   ',
-          'France',
-          null,
-          null,
-          null,
-          null,
-          null,
-          true,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          false,
-          0,
-          0,
-        ],
-      ],
-    });
-    expect(snapshot.states[0]).toMatchObject({
-      icao24: 'abc123',
-      callsign: null,
-      originCountry: 'France',
-      latitude: null,
-      longitude: null,
-      baroAltitude: null,
-      onGround: true,
-      velocity: null,
-    });
+  it('maps a string ground altitude to onGround with no baro altitude', () => {
+    const snapshot = mapAdsbLolResponse(
+      {
+        ac: [{ ...rawAircraft, alt_baro: 'ground', gs: 0, baro_rate: null }],
+        now: 1,
+      },
+      0,
+    );
+    const state = snapshot.states[0]!;
+    expect(state.onGround).toBe(true);
+    expect(state.baroAltitude).toBeNull();
   });
 
-  it('treats a null states payload as an empty snapshot (no aircraft in area)', () => {
-    const snapshot = mapOpenSkyResponse({ time: 1_726_900_000, states: null });
-    expect(snapshot).toEqual({ time: 1_726_900_000, states: [] });
+  it('treats a low ground speed as on the ground', () => {
+    const snapshot = mapAdsbLolResponse({ ac: [{ ...rawAircraft, alt_baro: 100, gs: 3 }] }, 0);
+    expect(snapshot.states[0]?.onGround).toBe(true);
+  });
+
+  it('filters ~-prefixed non-ICAO addresses and empty hex values', () => {
+    const snapshot = mapAdsbLolResponse(
+      {
+        ac: [{ ...rawAircraft, hex: '~abc123' }, { ...rawAircraft, hex: '' }, rawAircraft],
+      },
+      0,
+    );
+    expect(snapshot.states).toHaveLength(1);
+    expect(snapshot.states[0]?.icao24).toBe('3c6444');
+  });
+
+  it('maps nulls and empty callsigns to null', () => {
+    const snapshot = mapAdsbLolResponse(
+      { ac: [{ ...rawAircraft, flight: '   ', gs: null, track: null }] },
+      0,
+    );
+    const state = snapshot.states[0]!;
+    expect(state.callsign).toBeNull();
+    expect(state.velocity).toBeNull();
+    expect(state.trueTrack).toBeNull();
+  });
+
+  it('uses the fallback time when the payload has no clock', () => {
+    const snapshot = mapAdsbLolResponse({ ac: [] }, 42);
+    expect(snapshot).toEqual({ time: 42, states: [] });
   });
 
   it('rejects malformed payloads', () => {
-    expect(() => mapOpenSkyResponse({ time: 1, states: 'nope' })).toThrow(FeedUnavailableError);
-    expect(() => mapOpenSkyResponse({})).toThrow(FeedUnavailableError);
+    expect(() => mapAdsbLolResponse('nope', 0)).toThrow(FeedUnavailableError);
+    expect(() => mapAdsbLolResponse({}, 0)).toThrow(FeedUnavailableError);
+    expect(() => mapAdsbLolResponse({ ac: 'nope' }, 0)).toThrow(FeedUnavailableError);
   });
 });
 
-describe('OpenSkyFeed', () => {
-  const bbox = bboxFromCircle(48.8566, 2.3522, 50);
+describe('AdsbLolFeed', () => {
   const noWait = async () => {};
 
-  function tokenManager() {
-    return new OAuth2TokenManager({
-      clientId: 'cid',
-      clientSecret: 'csec',
-      tokenUrl: 'https://auth.example.com/token',
-      fetchImpl: async () =>
-        new Response(JSON.stringify({ access_token: 'tok-x', expires_in: 1800 }), { status: 200 }),
-    });
-  }
-
-  it('queries the bounding box with extended=1 and maps the response', async () => {
+  it('queries /v2/point with the radius converted to nautical miles', async () => {
     let capturedUrl: URL | undefined;
-    const feed = new OpenSkyFeed({
+    const feed = new AdsbLolFeed({
       baseUrl: 'https://example.com',
       fetchImpl: async (input) => {
         capturedUrl = input instanceof URL ? input : new URL(String(input));
-        return new Response(JSON.stringify({ time: 1_726_900_000, states: [rawState] }), {
-          status: 200,
-        });
+        return new Response(JSON.stringify({ ac: [rawAircraft], now: 1 }), { status: 200 });
       },
     });
-    const snapshot = await feed.getSnapshot(bbox);
-    expect(capturedUrl?.pathname).toBe('/api/states/all');
-    expect(capturedUrl?.searchParams.get('lamin')).toBe(String(bbox.latMin));
-    expect(capturedUrl?.searchParams.get('lomin')).toBe(String(bbox.lngMin));
-    expect(capturedUrl?.searchParams.get('lamax')).toBe(String(bbox.latMax));
-    expect(capturedUrl?.searchParams.get('lomax')).toBe(String(bbox.lngMax));
-    expect(capturedUrl?.searchParams.get('extended')).toBe('1');
+    const snapshot = await feed.getSnapshot(CDG.lat, CDG.lng, 50);
+    expect(capturedUrl?.pathname).toBe('/v2/point/48.8566/2.3522/27');
     expect(snapshot.states).toHaveLength(1);
   });
 
-  it('sends the Bearer token when credentials are configured', async () => {
-    const headers: Record<string, string> = {};
-    const feed = new OpenSkyFeed({
+  it('sends a descriptive User-Agent (adsb.lol rejects generic ones with 403)', async () => {
+    const userAgents: string[] = [];
+    const feed = new AdsbLolFeed({
       baseUrl: 'https://example.com',
-      tokenManager: tokenManager(),
       fetchImpl: async (_input, init) => {
-        Object.assign(headers, init?.headers);
-        return new Response(JSON.stringify({ time: 1, states: [rawState] }), { status: 200 });
+        userAgents.push(String((init?.headers as Record<string, string>)['user-agent'] ?? ''));
+        return new Response(JSON.stringify({ ac: [rawAircraft], now: 1 }), { status: 200 });
       },
     });
-    await feed.getSnapshot(bbox);
-    expect(headers['authorization']).toBe('Bearer tok-x');
+    await feed.getSnapshot(CDG.lat, CDG.lng, 50);
+    expect(userAgents).toEqual([expect.stringMatching(/^fly-over-tracker\//)]);
+  });
+
+  it('rounds a sub-nm radius up to 1 nm', async () => {
+    let capturedUrl: URL | undefined;
+    const feed = new AdsbLolFeed({
+      baseUrl: 'https://example.com',
+      fetchImpl: async (input) => {
+        capturedUrl = input instanceof URL ? input : new URL(String(input));
+        return new Response(JSON.stringify({ ac: [], now: 1 }), { status: 200 });
+      },
+    });
+    await feed.getSnapshot(CDG.lat, CDG.lng, 0.5);
+    expect(capturedUrl?.pathname.endsWith('/1')).toBe(true);
   });
 
   it('retries on 429 honoring the retry-after header, then succeeds', async () => {
     const waits: number[] = [];
     let calls = 0;
-    const feed = new OpenSkyFeed({
+    const feed = new AdsbLolFeed({
       baseUrl: 'https://example.com',
       attempts: 3,
       wait: async (ms) => {
@@ -160,10 +150,10 @@ describe('OpenSkyFeed', () => {
             headers: { 'X-Rate-Limit-Retry-After-Seconds': '2' },
           });
         }
-        return new Response(JSON.stringify({ time: 1, states: [rawState] }), { status: 200 });
+        return new Response(JSON.stringify({ ac: [rawAircraft], now: 1 }), { status: 200 });
       },
     });
-    const snapshot = await feed.getSnapshot(bbox);
+    const snapshot = await feed.getSnapshot(CDG.lat, CDG.lng, 50);
     expect(snapshot.states).toHaveLength(1);
     expect(calls).toBe(2);
     expect(waits).toEqual([2000]);
@@ -171,7 +161,7 @@ describe('OpenSkyFeed', () => {
 
   it('throws a rate-limited error after bounded 429 attempts', async () => {
     let calls = 0;
-    const feed = new OpenSkyFeed({
+    const feed = new AdsbLolFeed({
       baseUrl: 'https://example.com',
       attempts: 2,
       wait: noWait,
@@ -180,59 +170,40 @@ describe('OpenSkyFeed', () => {
         return new Response('{}', { status: 429 });
       },
     });
-    await expect(feed.getSnapshot(bbox)).rejects.toMatchObject({
+    await expect(feed.getSnapshot(CDG.lat, CDG.lng, 50)).rejects.toMatchObject({
       code: 'rate_limited',
       status: 503,
     });
     expect(calls).toBe(2);
   });
 
-  it('refreshes the token on 401 and retries once', async () => {
-    let calls = 0;
-    const headers: Record<string, string> = {};
-    const feed = new OpenSkyFeed({
-      baseUrl: 'https://example.com',
-      tokenManager: tokenManager(),
-      fetchImpl: async (_input, init) => {
-        calls += 1;
-        Object.assign(headers, init?.headers);
-        if (calls === 1) return new Response('{}', { status: 401 });
-        return new Response(JSON.stringify({ time: 1, states: [rawState] }), { status: 200 });
-      },
-    });
-    const snapshot = await feed.getSnapshot(bbox);
-    expect(snapshot.states).toHaveLength(1);
-    expect(calls).toBe(2);
-    expect(headers['authorization']).toBe('Bearer tok-x');
-  });
-
   it('maps other HTTP errors to a feed error (502)', async () => {
-    const feed = new OpenSkyFeed({
+    const feed = new AdsbLolFeed({
       fetchImpl: async () => new Response('{}', { status: 500 }),
     });
-    await expect(feed.getSnapshot(bbox)).rejects.toMatchObject({
+    await expect(feed.getSnapshot(CDG.lat, CDG.lng, 50)).rejects.toMatchObject({
       code: 'feed_unavailable',
       status: 502,
     });
   });
 
   it('maps network failures to a retryable feed error (503)', async () => {
-    const feed = new OpenSkyFeed({
+    const feed = new AdsbLolFeed({
       fetchImpl: async () => {
         throw new Error('network down');
       },
     });
-    await expect(feed.getSnapshot(bbox)).rejects.toMatchObject({
+    await expect(feed.getSnapshot(CDG.lat, CDG.lng, 50)).rejects.toMatchObject({
       code: 'rate_limited',
       status: 503,
     });
   });
 
   it('maps an unreadable payload to a feed error (502)', async () => {
-    const feed = new OpenSkyFeed({
+    const feed = new AdsbLolFeed({
       fetchImpl: async () => new Response('<html>not json</html>', { status: 200 }),
     });
-    await expect(feed.getSnapshot(bbox)).rejects.toMatchObject({
+    await expect(feed.getSnapshot(CDG.lat, CDG.lng, 50)).rejects.toMatchObject({
       code: 'feed_unavailable',
       status: 502,
     });
@@ -240,22 +211,22 @@ describe('OpenSkyFeed', () => {
 });
 
 describe('MockFeed', () => {
-  it('returns only states inside the bounding box', async () => {
+  it('returns only states inside the circle', async () => {
     const feed = new MockFeed();
-    const snapshot = await feed.getSnapshot(bboxFromCircle(48.8566, 2.3522, 50));
+    const snapshot = await feed.getSnapshot(CDG.lat, CDG.lng, 50);
     const callsigns = snapshot.states.map((s) => s.callsign);
     expect(callsigns).toEqual(['DLH400', 'AFR123', 'BAW456']);
   });
 
-  it('returns no states for a tiny bounding box', async () => {
+  it('returns no states for a tiny radius', async () => {
     const feed = new MockFeed();
-    const snapshot = await feed.getSnapshot(bboxFromCircle(48.8566, 2.3522, 1));
+    const snapshot = await feed.getSnapshot(CDG.lat, CDG.lng, 1);
     expect(snapshot.states).toHaveLength(0);
   });
 
   it('keeps a deterministic time', async () => {
     const feed = new MockFeed();
-    const snapshot = await feed.getSnapshot(bboxFromCircle(48.8566, 2.3522, 50));
+    const snapshot = await feed.getSnapshot(CDG.lat, CDG.lng, 50);
     expect(snapshot.time).toBe(1_726_900_000);
   });
 });

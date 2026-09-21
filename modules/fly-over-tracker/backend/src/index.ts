@@ -3,30 +3,23 @@
 // container/CI-orchestrator env takes precedence. See docs/configuration.md.
 import 'dotenv/config';
 import { serve, type ServerType } from '@hono/node-server';
-import { OpenSkyFlightRouteFeed } from './feeds/flightRoutes';
+import { AdsbLolFeed } from './feeds/adsbLol';
+import { AdsbRouteFeed } from './feeds/adsbRoutes';
 import { MockFeed } from './feeds/mock';
 import { MockRouteFeed } from './feeds/mockRoutes';
-import { OpenSkyFeed } from './feeds/opensky';
-import { OAuth2TokenManager } from './feeds/openskyAuth';
 import { createApp } from './http/app';
 import { config } from './lib/config';
 import { logger } from './lib/logger';
 import { createMcpApp } from './mcp/server';
 import { createFlyOverService } from './services/flyOverService';
 
-const tokenManager = new OAuth2TokenManager();
-
 function selectFeed() {
-  return config.feedMode === 'mock' ? new MockFeed() : new OpenSkyFeed({ tokenManager });
+  return config.feedMode === 'mock' ? new MockFeed() : new AdsbLolFeed();
 }
 
 function selectRouteFeed() {
   if (config.feedMode === 'mock') return new MockRouteFeed();
-  // Without credentials the anonymous tier cannot resolve destinations; skip
-  // enrichment entirely so the result reports `destinationEnrichment:
-  // 'unavailable'` (spec FR-008) and the anonymous credit budget is preserved.
-  if (!tokenManager.hasCredentials) return undefined;
-  return new OpenSkyFlightRouteFeed({ tokenManager });
+  return new AdsbRouteFeed();
 }
 
 function shutdown(server: ServerType, signal: string) {

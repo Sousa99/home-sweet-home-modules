@@ -10,8 +10,13 @@ const CENTER = { lat: 48.8566, lng: 2.3522 };
 const aircraft: Aircraft = {
   icao24: '3c6444',
   callsign: 'DLH400',
+  originAirport: null,
+  originCity: null,
+  originAirportName: null,
   originCountry: 'Germany',
   destinationAirport: null,
+  destinationCity: null,
+  destinationAirportName: null,
   destinationCountry: null,
   latitude: 48.9211,
   longitude: 2.4288,

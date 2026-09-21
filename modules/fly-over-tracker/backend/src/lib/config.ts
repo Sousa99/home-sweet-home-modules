@@ -4,10 +4,10 @@ import { z } from 'zod';
  * Default maximum query radius in kilometers.
  *
  * A query with a larger radius is rejected by the shared location query schema
- * (see {@link createLocationQuerySchema}). Hand-written runtime default per
- * `docs/clarify.md` (FR-012).
+ * (see {@link createLocationQuerySchema}). Bounded by the adsb.lol `/v2/point`
+ * endpoint's 250 nm (~463 km) radius cap.
  */
-export const DEFAULT_MAX_RADIUS_KM = 500;
+export const DEFAULT_MAX_RADIUS_KM = 463;
 
 const PINO_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'] as const;
 
@@ -16,27 +16,17 @@ const envSchema = z.object({
   HTTP_PORT: z.coerce.number().int().positive().default(3000),
   MCP_PORT: z.coerce.number().int().positive().default(3001),
   MAX_RADIUS_KM: z.coerce.number().positive().default(DEFAULT_MAX_RADIUS_KM),
-  OPENSKY_BASE_URL: z.string().url().default('https://opensky-network.org'),
+  ADSB_BASE_URL: z.string().url().default('https://api.adsb.lol'),
+  ADSB_ROUTE_BASE_URL: z.string().url().default('https://vrs-standing-data.adsb.lol'),
   FEED_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
-  FEED: z.enum(['opensky', 'mock']).default('opensky'),
+  FEED: z.enum(['adsb', 'mock']).default('adsb'),
   LOG_LEVEL: z.enum(PINO_LEVELS).optional(),
   NODE_ENV: z.string().default('development'),
-  // OpenSky OAuth2 client credentials (optional — anonymous when absent).
-  OPENSKY_CLIENT_ID: z.string().default(''),
-  OPENSKY_CLIENT_SECRET: z.string().default(''),
-  OPENSKY_TOKEN_URL: z
-    .string()
-    .url()
-    .default(
-      'https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token',
-    ),
-  // Bounded 429/401 retry behaviour (independent budgets per feed).
+  // Bounded 429 retry behaviour for the adsb.lol feeds.
   RETRY_ATTEMPTS: z.coerce.number().int().positive().default(3),
   RETRY_DEFAULT_MS: z.coerce.number().int().nonnegative().default(2000),
   RETRY_CAP_MS: z.coerce.number().int().positive().default(10000),
-  // Destination enrichment tuning.
-  DEST_WINDOW_H: z.coerce.number().int().positive().default(24),
-  DEST_CONCURRENCY: z.coerce.number().int().positive().default(8),
+  // Destination route cache tuning.
   DEST_CACHE_TTL_MS: z.coerce.number().int().positive().default(600_000),
   DEST_NEGATIVE_TTL_MS: z.coerce.number().int().positive().default(60_000),
 });
@@ -57,31 +47,23 @@ export interface Config {
   mcpPort: number;
   /** Maximum accepted query radius in kilometers. */
   maxRadiusKm: number;
-  /** Base URL of the aircraft position feed. */
+  /** Base URL of the aircraft position/route feed. */
   feedBaseUrl: string;
+  /** Base URL of the adsb.lol standing-data route files. */
+  routeBaseUrl: string;
   /** Timeout in milliseconds for a single feed request. */
   feedTimeoutMs: number;
   /** Which feed implementation to use at runtime. */
-  feedMode: 'opensky' | 'mock';
-  /** OpenSky OAuth2 client id (empty when running anonymously). */
-  openskyClientId: string;
-  /** OpenSky OAuth2 client secret (empty when running anonymously). */
-  openskyClientSecret: string;
-  /** OpenSky OAuth2 token endpoint URL. */
-  openskyTokenUrl: string;
-  /** Bounded number of retry attempts on upstream 429 (and 401). */
+  feedMode: 'adsb' | 'mock';
+  /** Bounded number of retry attempts on upstream 429. */
   retryAttempts: number;
   /** Default backoff in milliseconds when no retry-after header is present. */
   retryDefaultMs: number;
   /** Upper bound in milliseconds for a single retry wait. */
   retryCapMs: number;
-  /** Destination lookup window in hours (clamped to the current UTC day). */
-  destinationWindowHours: number;
-  /** Maximum number of parallel destination lookups per query. */
-  destinationConcurrency: number;
-  /** TTL in milliseconds for positive destination cache entries. */
+  /** TTL in milliseconds for positive destination route cache entries. */
   destinationCacheTtlMs: number;
-  /** TTL in milliseconds for negative destination cache entries. */
+  /** TTL in milliseconds for negative destination route cache entries. */
   destinationNegativeTtlMs: number;
   /** pino log level. */
   logLevel: string;
@@ -105,17 +87,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     httpPort: parsed.HTTP_PORT,
     mcpPort: parsed.MCP_PORT,
     maxRadiusKm: parsed.MAX_RADIUS_KM,
-    feedBaseUrl: parsed.OPENSKY_BASE_URL,
+    feedBaseUrl: parsed.ADSB_BASE_URL,
+    routeBaseUrl: parsed.ADSB_ROUTE_BASE_URL,
     feedTimeoutMs: parsed.FEED_TIMEOUT_MS,
     feedMode: parsed.FEED,
-    openskyClientId: parsed.OPENSKY_CLIENT_ID,
-    openskyClientSecret: parsed.OPENSKY_CLIENT_SECRET,
-    openskyTokenUrl: parsed.OPENSKY_TOKEN_URL,
     retryAttempts: parsed.RETRY_ATTEMPTS,
     retryDefaultMs: parsed.RETRY_DEFAULT_MS,
     retryCapMs: parsed.RETRY_CAP_MS,
-    destinationWindowHours: parsed.DEST_WINDOW_H,
-    destinationConcurrency: parsed.DEST_CONCURRENCY,
     destinationCacheTtlMs: parsed.DEST_CACHE_TTL_MS,
     destinationNegativeTtlMs: parsed.DEST_NEGATIVE_TTL_MS,
     logLevel: parsed.LOG_LEVEL ?? (envName === 'production' ? 'info' : 'debug'),

@@ -1,5 +1,3 @@
-import type { BoundingBox } from '../geometry';
-
 /**
  * A normalized aircraft state as reported by a position feed.
  *
@@ -40,12 +38,28 @@ export interface FeedSnapshot {
  */
 export interface AircraftFeed {
   /**
-   * Fetch the current aircraft states inside a bounding box.
+   * Fetch the current aircraft states inside a circle.
    *
-   * @param bbox - the bounding box to query
-   * @returns a snapshot of states with positions inside (or near) the box
+   * @param lat - circle center latitude in decimal degrees
+   * @param lng - circle center longitude in decimal degrees
+   * @param radiusKm - circle radius in kilometers
+   * @returns a snapshot of states with positions inside (or near) the circle
    */
-  getSnapshot(bbox: BoundingBox): Promise<FeedSnapshot>;
+  getSnapshot(lat: number, lng: number, radiusKm: number): Promise<FeedSnapshot>;
+}
+
+/**
+ * Origin/destination airport metadata resolved for one end of a route.
+ */
+export interface RouteAirport {
+  /** ICAO airport code, e.g. `LPPR`. */
+  icao: string;
+  /** City the airport serves, e.g. `Porto` (adsb `location`). */
+  city: string | null;
+  /** Full airport name, e.g. `Francisco de Sá Carneiro Airport`. */
+  name: string | null;
+  /** ISO 3166-1 alpha-2 country code, e.g. `PT`. */
+  countryIso2: string | null;
 }
 
 /**
@@ -54,27 +68,42 @@ export interface AircraftFeed {
 export interface DestinationInfo {
   /** The aircraft these route details belong to. */
   icao24: string;
-  /** ICAO code of the estimated departure airport, when identified. */
-  estDepartureAirport: string | null;
-  /** ICAO code of the estimated arrival airport, when identified. */
-  estArrivalAirport: string | null;
+  /** Estimated departure airport, when identified. */
+  estDepartureAirport: RouteAirport | null;
+  /** Estimated arrival airport, when identified. */
+  estArrivalAirport: RouteAirport | null;
 }
 
 /**
  * A source of flight route/destination data, keyed by aircraft identity.
  *
  * Kept separate from {@link AircraftFeed} so the position source and the
- * route source are independently mockable and independently rate-limited,
- * mirroring the OpenSky credit-bucket model.
+ * route source are independently mockable and independently rate-limited.
+ * Implementations resolve many aircraft in one batched request (the adsb.lol
+ * routeset endpoint), so lookups are keyed by the identity of each aircraft.
  */
 export interface FlightRouteFeed {
   /**
-   * Resolve the estimated destination for a single aircraft.
+   * Resolve the route (origin/destination) for a batch of aircraft.
    *
-   * @param icao24 - the aircraft's ICAO 24-bit transponder address (hex)
-   * @returns the identified destination info, or `null` when the route is
-   *   unknown or no current flight is found
+   * @param lookups - the aircraft to resolve
+   * @returns a map from `icao24` to its destination info, or `null` when the
+   *   route is unknown or the aircraft has no current route
    * @throws {FeedUnavailableError} when the route source cannot be reached
    */
-  getDestination(icao24: string): Promise<DestinationInfo | null>;
+  resolveRoutes(lookups: readonly RouteLookup[]): Promise<Map<string, DestinationInfo | null>>;
+}
+
+/**
+ * The minimal identity and position needed to resolve an aircraft's route.
+ */
+export interface RouteLookup {
+  /** The aircraft identity the route is resolved for. */
+  icao24: string;
+  /** The current callsign, when transmitted; route feeds key on this. */
+  callsign: string | null;
+  /** Current latitude in decimal degrees. */
+  latitude: number;
+  /** Current longitude in decimal degrees. */
+  longitude: number;
 }

@@ -35,7 +35,11 @@ describe('GET /api/fly-overs (REST contract)', () => {
       icao24: '3c6444',
       callsign: 'DLH400',
       distanceKm: expect.any(Number),
+      originAirport: 'LFPG',
+      originCity: 'Paris',
+      originCountry: 'France',
       destinationAirport: 'EDDF',
+      destinationCity: 'Frankfurt-am-Main',
       destinationCountry: 'Germany',
     });
   });
@@ -44,6 +48,7 @@ describe('GET /api/fly-overs (REST contract)', () => {
     const res = await app.request('/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50');
     const body = (await res.json()) as FlyOverResult;
     for (const aircraft of body.aircraft) {
+      expect(aircraft.originAirport).not.toBeNull();
       expect(aircraft.destinationAirport).not.toBeNull();
       expect(aircraft.destinationCountry).not.toBeNull();
     }
@@ -62,10 +67,10 @@ describe('GET /api/fly-overs (REST contract)', () => {
     }
   });
 
-  it('reports partial enrichment when destination lookups are rate limited', async () => {
+  it('reports partial enrichment when route lookups are rate limited', async () => {
     const failingRoutes: FlightRouteFeed = {
-      getDestination: async () => {
-        throw new FeedUnavailableError('destination rate limited', { retryable: true });
+      resolveRoutes: async () => {
+        throw new FeedUnavailableError('route lookup rate limited', { retryable: true });
       },
     };
     const res = await testApp(createFlyOverService(new MockFeed(), failingRoutes)).request(

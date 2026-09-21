@@ -51,9 +51,19 @@ export const CenterSchema = z.object({
 export const AircraftSchema = z.object({
   icao24: z.string(),
   callsign: z.string().nullable(),
+  /** Estimated origin airport (ICAO code), when a flight lookup provides it. */
+  originAirport: z.string().nullable(),
+  /** City of the origin airport, when the route lookup provides it. */
+  originCity: z.string().nullable(),
+  /** Full name of the origin airport, when the route lookup provides it. */
+  originAirportName: z.string().nullable(),
   originCountry: z.string().nullable(),
   /** Estimated destination airport (ICAO code), when a flight lookup provides it. */
   destinationAirport: z.string().nullable(),
+  /** City of the destination airport, when the route lookup provides it. */
+  destinationCity: z.string().nullable(),
+  /** Full name of the destination airport, when the route lookup provides it. */
+  destinationAirportName: z.string().nullable(),
   /** Country of the destination airport, derived from a code lookup when known. */
   destinationCountry: z.string().nullable(),
   latitude: z.number(),

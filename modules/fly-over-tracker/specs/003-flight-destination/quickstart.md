@@ -7,17 +7,12 @@ implementation details live in `tasks.md` and the implementation phase.
 ## Prerequisites
 
 - Node.js 24 LTS, pnpm 11; `pnpm install` (no new dependencies added).
-- **Optional**: a free OpenSky account with an API client (OAuth2
-  `client_id`/`client_secret`). Full step-by-step instructions and the env
-  reference live in [`docs/configuration.md`](../../docs/configuration.md).
-  The simplest setup is to copy the example and fill it in:
+- No credentials required — the feeds use the free, open adsb.lol API. The
+  simplest setup is to copy the example:
 
   ```bash
-  cp backend/.env.example backend/.env   # then fill in OPENSKY_CLIENT_ID/SECRET
+  cp backend/.env.example backend/.env
   ```
-
-  Without credentials the backend runs on the anonymous tier and enrichment
-  reports `destinationEnrichment: "unavailable"` (spec FR-008).
 
 ## 1. Start the backend
 
@@ -26,7 +21,7 @@ pnpm --filter ./backend dev          # REST API (--http) on :3000
 pnpm --filter ./backend dev:mcp      # MCP server (--mcp) on :3001
 ```
 
-For deterministic, offline validation use the mock feed (includes fixture destinations):
+For deterministic, offline validation use the mock feed (includes fixture routes):
 
 ```bash
 FEED=mock pnpm --filter ./backend dev
@@ -34,23 +29,23 @@ FEED=mock pnpm --filter ./backend dev
 
 **Expected**: pino logs show the servers listening (colored in dev via `pino-pretty`).
 
-## 2. Validate the REST API (with credentials)
+## 2. Validate the REST API
 
 ```bash
 curl 'http://localhost:3000/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50'
 ```
 
-**Expected**: `200` with a `FlyOverResult` where each aircraft has a populated
-`destinationAirport` (ICAO) and `destinationCountry` where the data source identifies the
-destination, and `destinationEnrichment` is `"complete"` (or `"partial"` if some lookups were
-rate-limited).
+**Expected**: `200` with a `FlyOverResult` where each aircraft has populated
+`originAirport`/`originCountry` and `destinationAirport`/`destinationCountry` where the data
+source identifies the route, and `destinationEnrichment` is `"complete"` (or `"partial"` if the
+route lookup was rate-limited).
 
 Also validate:
 
-- **No credentials** (unset the env vars, restart): `destinationEnrichment` is `"unavailable"`
-  and `destinationAirport`/`destinationCountry` are `null` — the core answer still works.
-- **Unknown destination**: an aircraft whose route is unidentified returns `null` destinations,
-  not an error.
+- **No route feed**: a service built without a route feed reports `destinationEnrichment`
+  `"unavailable"` and null origins/destinations — the core answer still works.
+- **Unknown route**: an aircraft whose route is unidentified (e.g. general aviation, or on the
+  ground) returns `null` origins/destinations, not an error.
 - **Invalid input**: `curl 'http://localhost:3000/api/fly-overs?lat=999&lng=2&radiusKm=50'`
   → `400` with a flat `errors` list.
 - **Empty area**: a remote/ocean location → `200` with `count: 0` and `destinationEnrichment`
@@ -80,17 +75,18 @@ pnpm --filter ./backend test
 ```
 
 The unit tests cover: a mocked `429` with `X-Rate-Limit-Retry-After-Seconds` → waits, retries,
-succeeds; persistent `429` → bounded attempts then `503 rate_limited`; a `401` → token refresh +
-single retry; and independent states/flights retry budgets.
+succeeds; persistent `429` → bounded attempts then `503 rate_limited`; and independent
+position/route retry budgets.
 
-## 5. Validate the SPA (no UI change expected)
+## 5. Validate the SPA
 
 ```bash
 pnpm --filter ./frontend dev
 ```
 
-Open `http://localhost:5173`. Query a busy location; each aircraft card's **Destination** row
-(already rendered, `AircraftCard.tsx`) now shows the airport country/code instead of `—`.
+Open `http://localhost:5173`. Query a busy location; each aircraft card's **Origin** and
+**Destination** rows (`AircraftCard.tsx` / `AircraftMapCard.tsx`) show the airport country/code
+instead of `—`; aircraft on the ground show `—` for both.
 
 ## 6. Quality gates
 
@@ -106,11 +102,12 @@ node scripts/scaffold.mjs --check
 
 ## Rate-limit awareness (updated)
 
-Authenticated (standard) tier: **4,000 credits/day per bucket** (`/states/*`, `/flights/*`,
-`/tracks/*` are independent). Each destination lookup costs **4 credits** (window clamped to the
-current UTC day). A 20-aircraft query ≈ 80 `/flights/*` credits ≈ 50 such queries/day. Anonymous
-tier: 400/day — prefer `FEED=mock` for repetitive validation. `429` surfaces as `503` only after
-bounded retries honoring the retry-after header.
+adsb.lol enforces dynamic, load-based rate limits (free, no key today; a future API key may be
+required for production use) and **rejects generic User-Agent strings with `403`** — the feeds
+always send a descriptive `fly-over-tracker/…` User-Agent. `429` surfaces as `503` only after
+bounded retries honoring the retry-after header. Route lookups are one static
+`GET /routes/{xx}/{callsign}.json` per aircraft (bounded concurrency). Prefer `FEED=mock` for
+repetitive validation.
 
 ## Feasibility evaluation (deliverable)
 

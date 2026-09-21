@@ -5,8 +5,13 @@ import type { Aircraft } from '../api/types';
 const sampleAircraft: Aircraft = {
   icao24: '3c6444',
   callsign: 'DLH400',
+  originAirport: null,
+  originCity: null,
+  originAirportName: null,
   originCountry: 'Germany',
   destinationAirport: 'LPPT',
+  destinationCity: null,
+  destinationAirportName: null,
   destinationCountry: 'Portugal',
   latitude: 48.9211,
   longitude: 2.4288,

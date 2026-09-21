@@ -2,9 +2,10 @@ import type { ApiErrorBody, FieldError, FlyOverResult, LocationQuery } from './t
 
 /**
  * Maximum accepted query radius in kilometers, mirrored from the backend
- * default (`backend/src/lib/config.ts`). Used for client-side validation.
+ * default (`backend/src/lib/config.ts`). Bounded by the adsb.lol `/v2/point`
+ * endpoint's 250 nm (~463 km) radius cap. Used for client-side validation.
  */
-export const MAX_RADIUS_KM = 500;
+export const MAX_RADIUS_KM = 463;
 
 /**
  * Error thrown when the fly-over API returns a non-OK response.

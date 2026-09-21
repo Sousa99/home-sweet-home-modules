@@ -1,11 +1,11 @@
 @baseUrl = http://localhost:3000
 
-# Requires OpenSky credentials (backend/.env → OPENSKY_CLIENT_ID/SECRET) for
-# destination enrichment; see docs/configuration.md. Without them each result
-# reports "destinationEnrichment": "unavailable".
+# Position + route data come from the free adsb.lol API (no credentials);
+# see docs/configuration.md. Aircraft include originAirport/originCountry and
+# destinationAirport/destinationCountry, plus destinationEnrichment.
 
-### Fly-overs over a location (near CDG) — aircraft include destinationAirport
-### and destinationCountry, plus destinationEnrichment on the result
+### Fly-overs over a location (near CDG) — aircraft include origin and
+### destination airports/countries, plus destinationEnrichment on the result
 GET {{baseUrl}}/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50
 
 ### Invalid coordinates -> 400
@@ -20,5 +20,5 @@ GET {{baseUrl}}/api/fly-overs?lat=48.8566&radiusKm=50
 ### Empty area (open ocean) -> 200, count 0
 GET {{baseUrl}}/api/fly-overs?lat=0&lng=0&radiusKm=20
 
-### Feed unavailable -> 502/503 (e.g. run with an unreachable OPENSKY_BASE_URL)
+### Feed unavailable -> 502/503 (e.g. run with an unreachable ADSB_BASE_URL)
 GET {{baseUrl}}/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50

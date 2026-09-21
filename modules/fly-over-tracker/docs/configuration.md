@@ -2,8 +2,8 @@
 
 The backend reads its runtime configuration from environment variables
 (`backend/src/lib/config.ts` → `loadConfig`). Every variable has a safe
-default; **only the OpenSky credentials are required for destination
-enrichment** — everything else is optional.
+default; **no credentials are required** — the feeds run against the free,
+open adsb.lol API. Everything is optional.
 
 ## How configuration is loaded
 
@@ -15,47 +15,39 @@ enrichment** — everything else is optional.
   `.env`, so container / CI-orchestrator env takes precedence.
 - Tests never load `.env`; they inject environment explicitly.
 
-## Getting OpenSky API credentials
+## Data source: adsb.lol
 
-Destination enrichment requires an authenticated OpenSky account (the
-anonymous tier cannot resolve destinations). Since **2026-03-18** OpenSky only
-accepts the **OAuth2 client-credentials flow** — username/password basic auth
-is gone.
+Live aircraft positions come from the adsb.lol API
+(`GET /v2/point/{lat}/{lon}/{radius}`, radius in nautical miles, max
+250 nm ≈ 463 km) and flight routes from its standing-data route files
+(`GET /routes/{xx}/{callsign}.json` on `vrs-standing-data.adsb.lol`, one
+static file per callsign). Both are free and open (ODbL license), require no
+API key today, and carry no OpenSky credit budget. The feed resolves origin
+and destination airports for every matched aircraft; aircraft without a
+resolvable route (e.g. general aviation, or planes on the ground) report
+`null` origin/destination.
 
-1. Create a free account at <https://opensky-network.org> (Sign up).
-2. Log in and open your **Account** page.
-3. In the **API client** card, create a new API client. You receive:
-   - `client_id` — ends in `-api-client` (e.g. `abc123-api-client`)
-   - `client_secret` — shown once / available in the downloadable
-     `credentials.json`
-   > Use the **API client** credentials only for the REST API. The feeder and
-   > Trino interfaces use your plain website username — do not enter the API
-   > client id there.
-4. Configure the backend with those two values (see below).
-
-Registered users get the **standard tier** (4,000 credits/day per endpoint
-bucket) instead of the anonymous 400/day.
+> **User-Agent**: adsb.lol rejects generic User-Agent strings (e.g. Node's
+> default) with HTTP `403 "User-Agent too generic"`. The feeds always send
+> `fly-over-tracker/1.2 (https://github.com/sousa99/fly-over-tracker)`, so no
+> configuration is needed.
 
 ## Reference
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `OPENSKY_CLIENT_ID` | for enrichment | *(empty)* | OpenSky OAuth2 client id |
-| `OPENSKY_CLIENT_SECRET` | for enrichment | *(empty)* | OpenSky OAuth2 client secret |
-| `OPENSKY_TOKEN_URL` | no | `https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token` | Token endpoint |
-| `OPENSKY_BASE_URL` | no | `https://opensky-network.org` | Position feed base URL |
-| `FEED` | no | `opensky` | `opensky` or `mock` (deterministic offline data) |
+| `ADSB_BASE_URL` | no | `https://api.adsb.lol` | adsb.lol API base URL |
+| `ADSB_ROUTE_BASE_URL` | no | `https://vrs-standing-data.adsb.lol` | adsb.lol standing-data route files base URL |
+| `FEED` | no | `adsb` | `adsb` or `mock` (deterministic offline data) |
 | `FEED_TIMEOUT_MS` | no | `8000` | Per-request feed timeout |
 | `HOST` | no | `127.0.0.1` | Bind address |
 | `HTTP_PORT` | no | `3000` | REST API port (`--http`) |
 | `MCP_PORT` | no | `3001` | MCP server port (`--mcp`) |
-| `MAX_RADIUS_KM` | no | `500` | Maximum accepted query radius |
+| `MAX_RADIUS_KM` | no | `463` | Maximum accepted query radius (adsb.lol `/v2/point` cap) |
 | `RETRY_ATTEMPTS` | no | `3` | Bounded retries on upstream `429` |
 | `RETRY_DEFAULT_MS` | no | `2000` | Backoff when no retry-after header |
 | `RETRY_CAP_MS` | no | `10000` | Upper bound for a single retry wait |
-| `DEST_WINDOW_H` | no | `24` | Destination lookup window (clamped to the current UTC day) |
-| `DEST_CONCURRENCY` | no | `8` | Parallel destination lookups per query |
-| `DEST_CACHE_TTL_MS` | no | `600000` | Cache TTL for found destinations |
+| `DEST_CACHE_TTL_MS` | no | `600000` | Cache TTL for found routes |
 | `DEST_NEGATIVE_TTL_MS` | no | `60000` | Cache TTL for "not found" lookups |
 | `LOG_LEVEL` | no | `debug` (dev) / `info` (prod) | pino level |
 | `NODE_ENV` | no | `development` | Runtime environment |
@@ -65,32 +57,23 @@ bucket) instead of the anonymous 400/day.
 ### Local development
 
 ```bash
-cp backend/.env.example backend/.env   # then fill in OPENSKY_CLIENT_ID/SECRET
+cp backend/.env.example backend/.env
 pnpm --filter ./backend dev            # REST on :3000
 pnpm --filter ./backend dev:mcp        # MCP on :3001
 ```
 
 ### Docker / orchestrator (released image)
 
-Inject at container runtime — the image itself contains no secrets:
+The image ships with no secrets and needs none:
 
 ```bash
-docker run -p 3000:3000 \
-  -e OPENSKY_CLIENT_ID="$OPENSKY_CLIENT_ID" \
-  -e OPENSKY_CLIENT_SECRET="$OPENSKY_CLIENT_SECRET" \
-  ghcr.io/sousa99/fly-over-tracker-backend
+docker run -p 3000:3000 ghcr.io/sousa99/fly-over-tracker-backend
 ```
-
-or via your orchestrator's secrets mechanism (e.g. Kubernetes `envFrom` a
-Secret). Never bake credentials into the image or commit them.
 
 ### GitHub Actions
 
-No CI job requires credentials today (tests use the mock feed). If a future
-CI/scheduled step needs authenticated access, store the two values as
-repository or organization **secrets** named `OPENSKY_CLIENT_ID` and
-`OPENSKY_CLIENT_SECRET` and reference them with `${{ secrets.OPENSKY_CLIENT_ID }}`
-— never inline them in workflow files.
+No CI job requires credentials today (tests use the mock feed). The adsb.lol
+feeds need no authentication.
 
 ## Note on generated docs
 

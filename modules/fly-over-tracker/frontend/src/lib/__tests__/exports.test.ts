@@ -42,6 +42,6 @@ describe('library entry', () => {
   it('exports the api client and shared constants', () => {
     expect(getFlyOvers).toBeTypeOf('function');
     expect(ApiError).toBeTypeOf('function');
-    expect(MAX_RADIUS_KM).toBe(500);
+    expect(MAX_RADIUS_KM).toBe(463);
   });
 });

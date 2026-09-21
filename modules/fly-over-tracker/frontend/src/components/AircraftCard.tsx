@@ -15,6 +15,19 @@ export function headingDegrees(value: number | null): string {
   return value === null ? '—' : `${Math.round(value)}°`;
 }
 
+/**
+ * Format an airport for display: `<city>, <country>` when available, falling
+ * back to city, country, or the raw ICAO code.
+ */
+export function airportLabel(
+  airport: string | null,
+  city: string | null,
+  country: string | null,
+): string {
+  const cityCountry = [city, country].filter(Boolean).join(', ');
+  return cityCountry !== '' ? cityCountry : (airport ?? '—');
+}
+
 export interface AircraftCardProps {
   aircraft: Aircraft;
 }
@@ -24,7 +37,12 @@ export interface AircraftCardProps {
  * altitude, speed, heading, and distance from the query center.
  */
 export const AircraftCard = ({ aircraft }: AircraftCardProps): JSX.Element => {
-  const destination = aircraft.destinationCountry ?? aircraft.destinationAirport ?? '—';
+  const origin = airportLabel(aircraft.originAirport, aircraft.originCity, aircraft.originCountry);
+  const destination = airportLabel(
+    aircraft.destinationAirport,
+    aircraft.destinationCity,
+    aircraft.destinationCountry,
+  );
   return (
     <Card>
       <CardHeader>
@@ -35,9 +53,9 @@ export const AircraftCard = ({ aircraft }: AircraftCardProps): JSX.Element => {
       <CardContent>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-1">
           <dt className="text-slate-400">Origin</dt>
-          <dd>{aircraft.originCountry ?? '—'}</dd>
+          <dd title={aircraft.originAirportName ?? undefined}>{origin}</dd>
           <dt className="text-slate-400">Destination</dt>
-          <dd>{destination}</dd>
+          <dd title={aircraft.destinationAirportName ?? undefined}>{destination}</dd>
           <dt className="text-slate-400">Altitude</dt>
           <dd>{altitudeMeters(aircraft.altitude)}</dd>
           <dt className="text-slate-400">Speed</dt>

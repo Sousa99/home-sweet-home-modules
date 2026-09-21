@@ -1,4 +1,4 @@
-import type { BoundingBox } from '../geometry';
+import { haversineKm } from '../geometry';
 import type { AircraftFeed, FeedSnapshot, FeedState } from './types';
 
 export interface MockFeedOptions {
@@ -17,7 +17,6 @@ const KM_PER_DEG = 111.19;
 interface Fixture {
   icao24: string;
   callsign: string;
-  originCountry: string;
   /** Distance from the cluster center in kilometers. */
   distanceKm: number;
   /** Compass bearing from the center in degrees. */
@@ -37,7 +36,6 @@ const FIXTURES: Fixture[] = [
   {
     icao24: '3c6444',
     callsign: 'DLH400',
-    originCountry: 'Germany',
     distanceKm: 8,
     bearing: 30,
     altitude: 9144,
@@ -48,7 +46,6 @@ const FIXTURES: Fixture[] = [
   {
     icao24: '3946b0',
     callsign: 'AFR123',
-    originCountry: 'France',
     distanceKm: 25,
     bearing: 135,
     altitude: 10300,
@@ -59,7 +56,6 @@ const FIXTURES: Fixture[] = [
   {
     icao24: '4caa01',
     callsign: 'BAW456',
-    originCountry: 'United Kingdom',
     distanceKm: 27,
     bearing: 315,
     altitude: 11000,
@@ -70,7 +66,6 @@ const FIXTURES: Fixture[] = [
   {
     icao24: 'a0ae62',
     callsign: 'UAL789',
-    originCountry: 'United States',
     distanceKm: 160,
     bearing: 250,
     altitude: 9500,
@@ -81,7 +76,6 @@ const FIXTURES: Fixture[] = [
   {
     icao24: '4840d6',
     callsign: 'KLM999',
-    originCountry: 'Netherlands',
     distanceKm: 340,
     bearing: 10,
     altitude: 8900,
@@ -115,7 +109,7 @@ function buildStates(center: { lat: number; lng: number }): FeedState[] {
     return {
       icao24: fixture.icao24,
       callsign: fixture.callsign,
-      originCountry: fixture.originCountry,
+      originCountry: null,
       latitude: point.lat,
       longitude: point.lng,
       baroAltitude: fixture.altitude,
@@ -129,7 +123,7 @@ function buildStates(center: { lat: number; lng: number }): FeedState[] {
 
 /**
  * Deterministic aircraft feed for tests and offline development. Returns the
- * same snapshot on every call, filtered by the requested bounding box.
+ * same snapshot on every call, filtered to the requested circle.
  */
 export class MockFeed implements AircraftFeed {
   private readonly time: number;
@@ -141,20 +135,19 @@ export class MockFeed implements AircraftFeed {
   }
 
   /**
-   * Return the fixture states whose position falls inside the bounding box.
+   * Return the fixture states whose position falls inside the circle.
    *
-   * @param bbox - the bounding box to filter by
+   * @param lat - circle center latitude in decimal degrees
+   * @param lng - circle center longitude in decimal degrees
+   * @param radiusKm - circle radius in kilometers
    * @returns a deterministic snapshot
    */
-  async getSnapshot(bbox: BoundingBox): Promise<FeedSnapshot> {
+  async getSnapshot(lat: number, lng: number, radiusKm: number): Promise<FeedSnapshot> {
     const states = this.states.filter(
       (state) =>
         state.latitude !== null &&
         state.longitude !== null &&
-        state.latitude >= bbox.latMin &&
-        state.latitude <= bbox.latMax &&
-        state.longitude >= bbox.lngMin &&
-        state.longitude <= bbox.lngMax,
+        haversineKm(lat, lng, state.latitude, state.longitude) <= radiusKm,
     );
     return { time: this.time, states };
   }

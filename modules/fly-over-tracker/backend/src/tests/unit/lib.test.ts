@@ -16,9 +16,10 @@ describe('config', () => {
     expect(cfg.httpPort).toBe(3000);
     expect(cfg.mcpPort).toBe(3001);
     expect(cfg.maxRadiusKm).toBe(DEFAULT_MAX_RADIUS_KM);
-    expect(cfg.feedBaseUrl).toBe('https://opensky-network.org');
+    expect(cfg.feedBaseUrl).toBe('https://api.adsb.lol');
+    expect(cfg.routeBaseUrl).toBe('https://vrs-standing-data.adsb.lol');
     expect(cfg.feedTimeoutMs).toBe(8000);
-    expect(cfg.feedMode).toBe('opensky');
+    expect(cfg.feedMode).toBe('adsb');
     expect(cfg.env).toBe('development');
     expect(cfg.logLevel).toBe('debug');
   });
@@ -29,7 +30,7 @@ describe('config', () => {
       HTTP_PORT: '4100',
       MCP_PORT: '4101',
       MAX_RADIUS_KM: '250',
-      OPENSKY_BASE_URL: 'https://example.com',
+      ADSB_BASE_URL: 'https://example.com',
       FEED_TIMEOUT_MS: '5000',
       FEED: 'mock',
       LOG_LEVEL: 'warn',

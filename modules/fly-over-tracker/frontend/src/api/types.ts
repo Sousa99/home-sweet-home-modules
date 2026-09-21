@@ -21,9 +21,19 @@ export interface Center {
 export interface Aircraft {
   icao24: string;
   callsign: string | null;
+  /** Estimated origin airport (ICAO code); null until a lookup source exists. */
+  originAirport: string | null;
+  /** City of the origin airport, when the route lookup provides it. */
+  originCity: string | null;
+  /** Full name of the origin airport, when the route lookup provides it. */
+  originAirportName: string | null;
   originCountry: string | null;
   /** Estimated destination airport (ICAO code); null until a lookup source exists. */
   destinationAirport: string | null;
+  /** City of the destination airport, when the route lookup provides it. */
+  destinationCity: string | null;
+  /** Full name of the destination airport, when the route lookup provides it. */
+  destinationAirportName: string | null;
   /** Country of the destination airport; null until a lookup source exists. */
   destinationCountry: string | null;
   latitude: number;

@@ -3,8 +3,8 @@ import { createDestinationCache } from '../../lib/destinationCache';
 
 const FOUND = {
   icao24: '3c6444',
-  estDepartureAirport: 'LFPG',
-  estArrivalAirport: 'EDDF',
+  estDepartureAirport: { icao: 'LFPG', city: 'Paris', name: null, countryIso2: 'FR' },
+  estArrivalAirport: { icao: 'EDDF', city: 'Frankfurt', name: null, countryIso2: 'DE' },
 };
 
 describe('createDestinationCache', () => {
