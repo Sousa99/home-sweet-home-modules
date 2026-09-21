@@ -48,6 +48,9 @@ jobs:
       - name: 🧪 Test
         run: pnpm test
 
+      - name: 🔍 Semantic-release smoke check
+        run: pnpm exec semantic-release --version
+
       - name: 🔀 Scaffold check
         run: node scripts/scaffold.mjs --check
 

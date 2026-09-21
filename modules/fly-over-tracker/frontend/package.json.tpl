@@ -1,7 +1,7 @@
 {
   "name": "{{FRONTEND_PACKAGE}}",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
@@ -34,6 +34,10 @@
   "files": [
     "dist-lib"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
+  },
   "typesVersions": {
     "*": {
       "styles.css": [
