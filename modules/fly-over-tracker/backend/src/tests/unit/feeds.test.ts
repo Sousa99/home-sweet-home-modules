@@ -82,6 +82,11 @@ describe('mapOpenSkyResponse', () => {
     });
   });
 
+  it('treats a null states payload as an empty snapshot (no aircraft in area)', () => {
+    const snapshot = mapOpenSkyResponse({ time: 1_726_900_000, states: null });
+    expect(snapshot).toEqual({ time: 1_726_900_000, states: [] });
+  });
+
   it('rejects malformed payloads', () => {
     expect(() => mapOpenSkyResponse({ time: 1, states: 'nope' })).toThrow(FeedUnavailableError);
     expect(() => mapOpenSkyResponse({})).toThrow(FeedUnavailableError);

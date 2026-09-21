@@ -28,6 +28,10 @@ function toAircraft(
     icao24: state.icao24,
     callsign: state.callsign,
     originCountry: state.originCountry,
+    // Destination requires a flight/route lookup that the live feed does not
+    // provide; leave null until such a source is wired up.
+    destinationAirport: null,
+    destinationCountry: null,
     latitude: state.latitude,
     longitude: state.longitude,
     altitude: state.baroAltitude,

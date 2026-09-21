@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import type { FlyOverResult } from '../api/types';
 import { AircraftCard } from './AircraftCard';
 import { Button } from './ui/button';
@@ -21,7 +22,12 @@ function formatAsOf(asOf: number): string {
  * The fly-over result area: idle hint, loading, error, and the aircraft list
  * with a manual refresh button.
  */
-export function FlyOverList({ status, result, error, onRefresh }: FlyOverListProps) {
+export const FlyOverList = ({
+  status,
+  result,
+  error,
+  onRefresh,
+}: FlyOverListProps): JSX.Element | null => {
   if (status === 'idle') {
     return <p className="text-sm text-slate-500">Enter a location to see the aircraft overhead.</p>;
   }
@@ -75,4 +81,4 @@ export function FlyOverList({ status, result, error, onRefresh }: FlyOverListPro
       </ul>
     </div>
   );
-}
+};

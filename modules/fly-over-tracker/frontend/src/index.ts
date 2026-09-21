@@ -7,6 +7,7 @@
  */
 export {
   AircraftCard,
+  AircraftMapCard,
   Badge,
   Button,
   Card,
@@ -15,17 +16,25 @@ export {
   CardTitle,
   FlyOverForm,
   FlyOverList,
+  FlyOverMap,
   Input,
   Label,
+  PlaneGlyph,
   Select,
   Textarea,
+  ViewModeToggle,
 } from './components';
 export type {
   AircraftCardProps,
+  AircraftMapCardProps,
   ButtonProps,
   FlyOverFormProps,
   FlyOverListProps,
+  FlyOverMapProps,
   FlyOverStatus,
+  PlaneGlyphProps,
+  ViewMode,
+  ViewModeToggleProps,
 } from './components';
 
 export { ApiError, MAX_RADIUS_KM, getFlyOvers } from './api/client';

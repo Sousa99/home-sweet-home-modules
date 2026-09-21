@@ -26,6 +26,9 @@
       "types": "./dist-lib/index.d.ts",
       "import": "./dist-lib/index.js"
     },
+    "./index.css": {
+      "default": "./dist-lib/index.css"
+    },
     "./styles.css": {
       "types": "./dist-lib/styles.d.ts",
       "default": "./dist-lib/styles.css"
@@ -47,8 +50,10 @@
   },
   "sideEffects": false,
   "peerDependencies": {
+    "leaflet": "^1.9.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.59.1",
@@ -60,10 +65,13 @@
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.0",
+    "@types/leaflet": "^1.9.22",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.0",
     "jsdom": "^25.0.0",
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^5.0.0",
     "storybook": "^9.1.20",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.7.0",

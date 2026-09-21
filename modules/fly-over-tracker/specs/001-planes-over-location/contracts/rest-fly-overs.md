@@ -34,6 +34,8 @@ Validated with the shared `LocationQuerySchema` (zod v4):
       "icao24": "3c6444",
       "callsign": "DLH400",
       "originCountry": "Germany",
+      "destinationAirport": null,
+      "destinationCountry": null,
       "latitude": 48.9211,
       "longitude": 2.4288,
       "altitude": 9144.0,
@@ -50,6 +52,8 @@ Validated with the shared `LocationQuerySchema` (zod v4):
 - `asOf`: Unix seconds the result reflects the feed.
 - `count`: length of `aircraft`.
 - `aircraft` may be an empty array (no aircraft in range — still 200, spec FR-006).
+- `destinationAirport` / `destinationCountry`: estimated destination for the aircraft,
+  `null` until a flight/route lookup is wired up (the live feed does not provide it).
 
 ### 400 Bad Request — validation error
 

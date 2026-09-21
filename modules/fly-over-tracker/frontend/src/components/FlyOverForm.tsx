@@ -1,11 +1,15 @@
-import { useState } from 'react';
-import type { FormEvent } from 'react';
+import { useEffect, useState } from 'react';
+import type { FormEvent, JSX } from 'react';
 import { MAX_RADIUS_KM } from '../api/client';
 import type { LocationQuery } from '../api/types';
 import { Button } from './ui/button';
 import { Input, Label } from './ui/input';
 
 export interface FlyOverFormProps {
+  /** The shared location draft rendered into the fields (map ↔ inputs sync). */
+  value?: LocationQuery;
+  /** Called with a validated query whenever a field becomes a valid value. */
+  onChange?: (value: LocationQuery) => void;
   /** Called with a validated query when the form is submitted. */
   onSubmit: (query: LocationQuery) => void;
   /** Disables the inputs and submit button while a query is in flight. */
@@ -14,6 +18,7 @@ export interface FlyOverFormProps {
 
 type Field = 'lat' | 'lng' | 'radiusKm';
 type FieldErrors = Partial<Record<Field, string>>;
+type Fields = Record<Field, string>;
 
 function parseNumber(value: string): number | null {
   const trimmed = value.trim();
@@ -28,7 +33,7 @@ function parseNumber(value: string): number | null {
  * @param raw - the raw string field values
  * @returns a parsed query (when valid) and any per-field errors
  */
-function validate(raw: Record<Field, string>): { query?: LocationQuery; errors: FieldErrors } {
+function validate(raw: Fields): { query?: LocationQuery; errors: FieldErrors } {
   const errors: FieldErrors = {};
 
   const lat = parseNumber(raw.lat);
@@ -55,19 +60,60 @@ function validate(raw: Record<Field, string>): { query?: LocationQuery; errors: 
   return { query: { lat, lng, radiusKm }, errors };
 }
 
+function toFields(query: LocationQuery): Fields {
+  return {
+    lat: String(query.lat),
+    lng: String(query.lng),
+    radiusKm: String(query.radiusKm),
+  };
+}
+
 /**
  * The fly-over query form: latitude, longitude, and radius inputs with inline
- * validation and a submit button.
+ * validation and a submit button. Controlled via `value`/`onChange` so the map
+ * selection and the inputs stay consistent; backward-compatible when only
+ * `onSubmit` is provided.
  */
-export function FlyOverForm({ onSubmit, loading = false }: FlyOverFormProps) {
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
-  const [radiusKm, setRadiusKm] = useState('');
+export const FlyOverForm = ({
+  value,
+  onChange,
+  onSubmit,
+  loading = false,
+}: FlyOverFormProps): JSX.Element => {
+  const [fields, setFields] = useState<Fields>(() =>
+    value ? toFields(value) : { lat: '', lng: '', radiusKm: '' },
+  );
   const [errors, setErrors] = useState<FieldErrors>({});
+
+  useEffect(() => {
+    if (value === undefined) return;
+    setFields((prev) => {
+      const current = {
+        lat: parseNumber(prev.lat),
+        lng: parseNumber(prev.lng),
+        radiusKm: parseNumber(prev.radiusKm),
+      };
+      const matches =
+        current.lat === value.lat &&
+        current.lng === value.lng &&
+        current.radiusKm === value.radiusKm;
+      return matches ? prev : toFields(value);
+    });
+  }, [value]);
+
+  const handleFieldChange = (field: Field) => (raw: string) => {
+    const next = { ...fields, [field]: raw };
+    setFields(next);
+    setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
+    const { query } = validate(next);
+    if (query && onChange) {
+      onChange(query);
+    }
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const { query, errors: nextErrors } = validate({ lat, lng, radiusKm });
+    const { query, errors: nextErrors } = validate(fields);
     setErrors(nextErrors);
     if (query) {
       onSubmit(query);
@@ -85,8 +131,8 @@ export function FlyOverForm({ onSubmit, loading = false }: FlyOverFormProps) {
           <Label htmlFor="lat">Latitude</Label>
           <Input
             id="lat"
-            value={lat}
-            onChange={(event) => setLat(event.target.value)}
+            value={fields.lat}
+            onChange={(event) => handleFieldChange('lat')(event.target.value)}
             placeholder="e.g. 48.8566"
             aria-invalid={errors.lat ? true : undefined}
           />
@@ -100,8 +146,8 @@ export function FlyOverForm({ onSubmit, loading = false }: FlyOverFormProps) {
           <Label htmlFor="lng">Longitude</Label>
           <Input
             id="lng"
-            value={lng}
-            onChange={(event) => setLng(event.target.value)}
+            value={fields.lng}
+            onChange={(event) => handleFieldChange('lng')(event.target.value)}
             placeholder="e.g. 2.3522"
             aria-invalid={errors.lng ? true : undefined}
           />
@@ -115,8 +161,8 @@ export function FlyOverForm({ onSubmit, loading = false }: FlyOverFormProps) {
           <Label htmlFor="radiusKm">Radius (km)</Label>
           <Input
             id="radiusKm"
-            value={radiusKm}
-            onChange={(event) => setRadiusKm(event.target.value)}
+            value={fields.radiusKm}
+            onChange={(event) => handleFieldChange('radiusKm')(event.target.value)}
             placeholder={`max ${MAX_RADIUS_KM}`}
             aria-invalid={errors.radiusKm ? true : undefined}
           />
@@ -132,4 +178,4 @@ export function FlyOverForm({ onSubmit, loading = false }: FlyOverFormProps) {
       </Button>
     </form>
   );
-}
+};

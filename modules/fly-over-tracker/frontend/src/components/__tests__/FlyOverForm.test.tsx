@@ -57,4 +57,61 @@ describe('FlyOverForm', () => {
     render(<FlyOverForm onSubmit={() => {}} loading />);
     expect(screen.getByRole('button', { name: 'Loading…' })).toBeDisabled();
   });
+
+  it('reflects an external value in the inputs', () => {
+    const { rerender } = render(
+      <FlyOverForm
+        value={{ lat: 48.8566, lng: 2.3522, radiusKm: 50 }}
+        onChange={() => {}}
+        onSubmit={() => {}}
+      />,
+    );
+    expect(screen.getByLabelText('Latitude')).toHaveValue('48.8566');
+    expect(screen.getByLabelText('Longitude')).toHaveValue('2.3522');
+    expect(screen.getByLabelText('Radius (km)')).toHaveValue('50');
+
+    rerender(
+      <FlyOverForm
+        value={{ lat: 40, lng: 3, radiusKm: 100 }}
+        onChange={() => {}}
+        onSubmit={() => {}}
+      />,
+    );
+    expect(screen.getByLabelText('Latitude')).toHaveValue('40');
+    expect(screen.getByLabelText('Longitude')).toHaveValue('3');
+    expect(screen.getByLabelText('Radius (km)')).toHaveValue('100');
+  });
+
+  it('calls onChange with a valid query when a field is edited', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <FlyOverForm
+        value={{ lat: 48.8566, lng: 2.3522, radiusKm: 50 }}
+        onChange={onChange}
+        onSubmit={() => {}}
+      />,
+    );
+
+    await user.clear(screen.getByLabelText('Latitude'));
+    await user.type(screen.getByLabelText('Latitude'), '40');
+
+    expect(onChange).toHaveBeenLastCalledWith({ lat: 40, lng: 2.3522, radiusKm: 50 });
+  });
+
+  it('does not call onChange while a field is empty', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <FlyOverForm
+        value={{ lat: 48.8566, lng: 2.3522, radiusKm: 50 }}
+        onChange={onChange}
+        onSubmit={() => {}}
+      />,
+    );
+
+    await user.clear(screen.getByLabelText('Latitude'));
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

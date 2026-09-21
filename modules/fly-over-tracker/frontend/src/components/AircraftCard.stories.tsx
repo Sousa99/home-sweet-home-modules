@@ -6,6 +6,8 @@ const aircraft: Aircraft = {
   icao24: '3c6444',
   callsign: 'DLH400',
   originCountry: 'Germany',
+  destinationAirport: null,
+  destinationCountry: null,
   latitude: 48.9211,
   longitude: 2.4288,
   altitude: 9144,

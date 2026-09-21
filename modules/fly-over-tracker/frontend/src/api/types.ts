@@ -22,6 +22,10 @@ export interface Aircraft {
   icao24: string;
   callsign: string | null;
   originCountry: string | null;
+  /** Estimated destination airport (ICAO code); null until a lookup source exists. */
+  destinationAirport: string | null;
+  /** Country of the destination airport; null until a lookup source exists. */
+  destinationCountry: string | null;
   latitude: number;
   longitude: number;
   /** Barometric altitude in meters. */

@@ -29,7 +29,12 @@ export default defineConfig({
     outDir: 'dist-lib',
     rollupOptions: {
       external: (id) =>
-        id === 'react' || id === 'react-dom' || id === 'react/jsx-runtime' || id === 'lucide-react',
+        id === 'react' ||
+        id === 'react-dom' ||
+        id === 'react/jsx-runtime' ||
+        id === 'lucide-react' ||
+        id === 'leaflet' ||
+        id === 'react-leaflet',
     },
   },
 });

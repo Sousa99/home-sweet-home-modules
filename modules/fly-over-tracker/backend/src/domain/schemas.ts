@@ -52,6 +52,10 @@ export const AircraftSchema = z.object({
   icao24: z.string(),
   callsign: z.string().nullable(),
   originCountry: z.string().nullable(),
+  /** Estimated destination airport (ICAO code), when a flight lookup provides it. */
+  destinationAirport: z.string().nullable(),
+  /** Country of the destination airport, derived from a code lookup when known. */
+  destinationCountry: z.string().nullable(),
   latitude: z.number(),
   longitude: z.number(),
   altitude: z.number().nullable(),

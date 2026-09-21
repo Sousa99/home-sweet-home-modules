@@ -19,16 +19,17 @@ const STATE_INDEX = {
 
 interface OpenSkyResponse {
   time: number;
-  states: unknown[][];
+  /** Aircraft state vectors, or `null` when the area has no aircraft. */
+  states: unknown[][] | null;
 }
 
 function isOpenSkyResponse(value: unknown): value is OpenSkyResponse {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Record<string, unknown>;
+  if (typeof candidate['time'] !== 'number') return false;
+  if (candidate['states'] === null) return true;
   return (
-    typeof candidate['time'] === 'number' &&
-    Array.isArray(candidate['states']) &&
-    candidate['states'].every((row) => Array.isArray(row))
+    Array.isArray(candidate['states']) && candidate['states'].every((row) => Array.isArray(row))
   );
 }
 
@@ -44,6 +45,9 @@ function nullableNumber(value: unknown): number | null {
  * Map a raw OpenSky `/states/all` payload into a {@link FeedSnapshot}.
  * Exported for unit testing.
  *
+ * `states: null` (OpenSky's response for an area with no aircraft) maps to an
+ * empty snapshot — a valid "no aircraft" result, not an error.
+ *
  * @param data - the parsed JSON response body
  * @returns a normalized snapshot
  * @throws {FeedUnavailableError} when the payload is malformed
@@ -52,7 +56,7 @@ export function mapOpenSkyResponse(data: unknown): FeedSnapshot {
   if (!isOpenSkyResponse(data)) {
     throw new FeedUnavailableError('Aircraft feed returned a malformed payload');
   }
-  const states = data.states.map((row): FeedState => ({
+  const states = (data.states ?? []).map((row): FeedState => ({
     icao24: String(row[STATE_INDEX.icao24] ?? ''),
     callsign: nullableString(row[STATE_INDEX.callsign]),
     originCountry: nullableString(row[STATE_INDEX.originCountry]),

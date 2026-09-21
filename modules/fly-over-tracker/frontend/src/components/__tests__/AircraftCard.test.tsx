@@ -7,6 +7,8 @@ const aircraft: Aircraft = {
   icao24: '3c6444',
   callsign: 'DLH400',
   originCountry: 'Germany',
+  destinationAirport: null,
+  destinationCountry: null,
   latitude: 48.9211,
   longitude: 2.4288,
   altitude: 9144,
@@ -46,6 +48,21 @@ describe('AircraftCard', () => {
       />,
     );
     expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('shows a destination placeholder until a lookup source provides it', () => {
+    render(<AircraftCard aircraft={aircraft} />);
+    const destinationRow = screen.getByText('Destination');
+    expect(destinationRow.nextElementSibling?.textContent).toBe('—');
+  });
+
+  it('shows the destination country when available', () => {
+    render(
+      <AircraftCard
+        aircraft={{ ...aircraft, destinationAirport: 'LPPT', destinationCountry: 'Portugal' }}
+      />,
+    );
+    expect(screen.getByText('Portugal')).toBeInTheDocument();
   });
 
   it('shows an on-ground badge when applicable', () => {

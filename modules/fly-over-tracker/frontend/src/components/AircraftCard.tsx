@@ -1,16 +1,17 @@
+import type { JSX } from 'react';
 import type { Aircraft } from '../api/types';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
-function speedKmh(velocity: number | null): string {
+export function speedKmh(velocity: number | null): string {
   return velocity === null ? '—' : `${Math.round(velocity * 3.6)} km/h`;
 }
 
-function altitudeMeters(altitude: number | null): string {
+export function altitudeMeters(altitude: number | null): string {
   return altitude === null ? '—' : `${Math.round(altitude)} m`;
 }
 
-function headingDegrees(value: number | null): string {
+export function headingDegrees(value: number | null): string {
   return value === null ? '—' : `${Math.round(value)}°`;
 }
 
@@ -19,10 +20,11 @@ export interface AircraftCardProps {
 }
 
 /**
- * A single aircraft in the fly-over result: callsign, origin, altitude, speed,
- * heading, and distance from the query center.
+ * A single aircraft in the fly-over result: callsign, origin, destination,
+ * altitude, speed, heading, and distance from the query center.
  */
-export function AircraftCard({ aircraft }: AircraftCardProps) {
+export const AircraftCard = ({ aircraft }: AircraftCardProps): JSX.Element => {
+  const destination = aircraft.destinationCountry ?? aircraft.destinationAirport ?? '—';
   return (
     <Card>
       <CardHeader>
@@ -34,6 +36,8 @@ export function AircraftCard({ aircraft }: AircraftCardProps) {
         <dl className="grid grid-cols-2 gap-x-4 gap-y-1">
           <dt className="text-slate-400">Origin</dt>
           <dd>{aircraft.originCountry ?? '—'}</dd>
+          <dt className="text-slate-400">Destination</dt>
+          <dd>{destination}</dd>
           <dt className="text-slate-400">Altitude</dt>
           <dd>{altitudeMeters(aircraft.altitude)}</dd>
           <dt className="text-slate-400">Speed</dt>
@@ -44,4 +48,4 @@ export function AircraftCard({ aircraft }: AircraftCardProps) {
       </CardContent>
     </Card>
   );
-}
+};

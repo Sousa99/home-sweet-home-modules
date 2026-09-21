@@ -1,15 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
   AircraftCard,
+  AircraftMapCard,
   ApiError,
   Badge,
   Button,
   Card,
   FlyOverForm,
   FlyOverList,
+  FlyOverMap,
   Input,
   Label,
   MAX_RADIUS_KM,
+  PlaneGlyph,
+  ViewModeToggle,
   getFlyOvers,
 } from '../../index';
 
@@ -17,7 +21,14 @@ describe('library entry', () => {
   it('exports the fly-over components', () => {
     expect(FlyOverForm).toBeTypeOf('function');
     expect(FlyOverList).toBeTypeOf('function');
+    expect(FlyOverMap).toBeTypeOf('function');
     expect(AircraftCard).toBeTypeOf('function');
+    expect(AircraftMapCard).toBeTypeOf('function');
+    expect(PlaneGlyph).toBeTypeOf('function');
+  });
+
+  it('exports the display-mode components', () => {
+    expect(ViewModeToggle).toBeTypeOf('function');
   });
 
   it('exports the ui primitives', () => {

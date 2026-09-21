@@ -27,7 +27,6 @@ jobs:
           node-version: 24
           cache: pnpm
           registry-url: https://npm.pkg.github.com/
-          registry-url: https://npm.pkg.github.com/
 
       - name: 📦 Install
         env:
