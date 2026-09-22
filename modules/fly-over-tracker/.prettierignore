@@ -9,6 +9,7 @@ data/
 drizzle/
 *.db
 *.md
+*.svg
 pnpm-lock.yaml
 .gitignore
 .env

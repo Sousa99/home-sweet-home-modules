@@ -37,12 +37,12 @@ const result: FlyOverResult = {
 describe('FlyOverList', () => {
   it('shows a hint in the idle state', () => {
     render(<FlyOverList status="idle" result={null} onRefresh={() => {}} />);
-    expect(screen.getByText(/enter a location/i)).toBeInTheDocument();
+    expect(screen.getByText(/enter a location/i)).toHaveClass('text-center');
   });
 
   it('shows a loading message while querying', () => {
     render(<FlyOverList status="loading" result={null} onRefresh={() => {}} />);
-    expect(screen.getByText('Loading aircraft…')).toBeInTheDocument();
+    expect(screen.getByText('Loading aircraft…')).toHaveClass('text-center');
   });
 
   it('shows the error message on failure', () => {
@@ -78,7 +78,7 @@ describe('FlyOverList', () => {
       aircraft: [],
     };
     render(<FlyOverList status="success" result={empty} onRefresh={() => {}} />);
-    expect(screen.getByText(/no aircraft/i)).toBeInTheDocument();
+    expect(screen.getByText(/no aircraft/i)).toHaveClass('text-center');
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
   });
 });

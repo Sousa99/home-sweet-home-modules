@@ -17,3 +17,5 @@ export { FlyOverMap } from './FlyOverMap';
 export type { FlyOverMapProps } from './FlyOverMap';
 export { ViewModeToggle } from './ViewModeToggle';
 export type { ViewMode, ViewModeToggleProps } from './ViewModeToggle';
+export { RefreshRateSelect } from './RefreshRateSelect';
+export type { RefreshRate, RefreshRateSelectProps } from './RefreshRateSelect';

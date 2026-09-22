@@ -29,11 +29,15 @@ export const FlyOverList = ({
   onRefresh,
 }: FlyOverListProps): JSX.Element | null => {
   if (status === 'idle') {
-    return <p className="text-sm text-slate-500">Enter a location to see the aircraft overhead.</p>;
+    return (
+      <p className="text-center text-sm text-slate-500">
+        Enter a location to see the aircraft overhead.
+      </p>
+    );
   }
 
   if (status === 'loading') {
-    return <p className="text-sm text-slate-500">Loading aircraft…</p>;
+    return <p className="text-center text-sm text-slate-500">Loading aircraft…</p>;
   }
 
   if (status === 'error') {
@@ -51,12 +55,14 @@ export const FlyOverList = ({
   if (result.count === 0) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-slate-500">
+        <p className="text-center text-sm text-slate-500">
           No aircraft within {result.radiusKm} km of this location.
         </p>
-        <Button variant="outline" size="sm" onClick={onRefresh}>
-          Refresh
-        </Button>
+        <div className="flex justify-center">
+          <Button variant="outline" size="sm" onClick={onRefresh}>
+            Refresh
+          </Button>
+        </div>
       </div>
     );
   }

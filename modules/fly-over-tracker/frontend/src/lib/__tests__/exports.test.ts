@@ -13,6 +13,7 @@ import {
   Label,
   MAX_RADIUS_KM,
   PlaneGlyph,
+  RefreshRateSelect,
   ViewModeToggle,
   getFlyOvers,
 } from '../../index';
@@ -29,6 +30,7 @@ describe('library entry', () => {
 
   it('exports the display-mode components', () => {
     expect(ViewModeToggle).toBeTypeOf('function');
+    expect(RefreshRateSelect).toBeTypeOf('function');
   });
 
   it('exports the ui primitives', () => {

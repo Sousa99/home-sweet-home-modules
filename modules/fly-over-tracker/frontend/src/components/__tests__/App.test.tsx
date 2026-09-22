@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { FlyOverResult } from '../../api/types';
 import App from '../../App';
 import { markerStore } from '../../test/react-leaflet-mock';
@@ -13,6 +14,20 @@ vi.mock('../../api/client', () => ({
 import { getFlyOvers } from '../../api/client';
 
 const mockedGetFlyOvers = vi.mocked(getFlyOvers);
+
+function createTestQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+}
+
+function renderApp(): ReturnType<typeof render> {
+  return render(
+    <QueryClientProvider client={createTestQueryClient()}>
+      <App />
+    </QueryClientProvider>,
+  );
+}
 
 const result: FlyOverResult = {
   center: { lat: 48.8566, lng: 2.3522 },
@@ -45,8 +60,11 @@ const result: FlyOverResult = {
 };
 
 async function submitValidQuery(user: ReturnType<typeof userEvent.setup>) {
+  await user.clear(screen.getByLabelText('Latitude'));
   await user.type(screen.getByLabelText('Latitude'), '48.8566');
+  await user.clear(screen.getByLabelText('Longitude'));
   await user.type(screen.getByLabelText('Longitude'), '2.3522');
+  await user.clear(screen.getByLabelText('Radius (km)'));
   await user.type(screen.getByLabelText('Radius (km)'), '50');
   await user.click(screen.getByRole('button', { name: 'Find aircraft' }));
 }
@@ -57,14 +75,14 @@ beforeEach(() => {
 
 describe('App', () => {
   it('shows the query hint before the first search', () => {
-    render(<App />);
+    renderApp();
     expect(screen.getByText(/enter a location/i)).toBeInTheDocument();
   });
 
   it('submits a query and renders the resulting aircraft', async () => {
     const user = userEvent.setup();
     mockedGetFlyOvers.mockResolvedValue(result);
-    render(<App />);
+    renderApp();
 
     await submitValidQuery(user);
 
@@ -79,7 +97,7 @@ describe('App', () => {
   it('re-queries the last location on Refresh', async () => {
     const user = userEvent.setup();
     mockedGetFlyOvers.mockResolvedValue(result);
-    render(<App />);
+    renderApp();
 
     await submitValidQuery(user);
     await screen.findByText('DLH400');
@@ -97,7 +115,7 @@ describe('App', () => {
   it('shows an error message when the query fails', async () => {
     const user = userEvent.setup();
     mockedGetFlyOvers.mockRejectedValue(new Error('Aircraft feed is temporarily unavailable'));
-    render(<App />);
+    renderApp();
 
     await submitValidQuery(user);
 
@@ -107,7 +125,7 @@ describe('App', () => {
   it('switches to map mode without re-querying and shows the same aircraft', async () => {
     const user = userEvent.setup();
     mockedGetFlyOvers.mockResolvedValue(result);
-    render(<App />);
+    renderApp();
 
     await submitValidQuery(user);
     await screen.findByText('DLH400');
@@ -127,7 +145,7 @@ describe('App', () => {
 
   it('switches modes before any query without running one', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(screen.getByRole('button', { name: 'Map' }));
 
@@ -137,7 +155,7 @@ describe('App', () => {
 
   it('updates the inputs when a location is selected on the map', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(screen.getByRole('button', { name: 'Map' }));
     const centerMarker = markerStore.find(
@@ -159,7 +177,7 @@ describe('App', () => {
   it('moves the map selection when the inputs change', async () => {
     const user = userEvent.setup();
     mockedGetFlyOvers.mockResolvedValue(result);
-    render(<App />);
+    renderApp();
 
     await submitValidQuery(user);
     await screen.findByText('DLH400');
@@ -177,7 +195,7 @@ describe('App', () => {
   it('submits the shared location selected on the map', async () => {
     const user = userEvent.setup();
     mockedGetFlyOvers.mockResolvedValue(result);
-    render(<App />);
+    renderApp();
 
     await user.click(screen.getByRole('button', { name: 'Map' }));
     const centerMarker = markerStore.find(
@@ -193,5 +211,213 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Find aircraft' }));
 
     expect(mockedGetFlyOvers).toHaveBeenCalledWith({ lat: 48.8566, lng: 2.3522, radiusKm: 10 });
+  });
+
+  it('centers the selection panel in list mode', () => {
+    renderApp();
+
+    const toggle = screen.getByRole('group', { name: 'View mode' });
+    const form = screen.getByLabelText('Latitude').closest('form') as HTMLFormElement;
+
+    expect(toggle.parentElement).toHaveClass('flex', 'flex-col', 'items-center', 'gap-4');
+    expect(form.parentElement).toHaveClass('w-full', 'max-w-3xl');
+  });
+
+  it('centers the selection panel in map mode', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    await user.click(screen.getByRole('button', { name: 'Map' }));
+
+    const toggle = screen.getByRole('group', { name: 'View mode' });
+    const form = screen.getByLabelText('Latitude').closest('form') as HTMLFormElement;
+
+    expect(toggle.parentElement).toHaveClass('flex', 'flex-col', 'items-center', 'gap-4');
+    expect(form.parentElement).toHaveClass('w-full', 'max-w-3xl');
+    expect(screen.getByTestId('map-container')).toBeInTheDocument();
+  });
+
+  it('prefills the inputs with the default location on first load', () => {
+    renderApp();
+
+    expect(screen.getByLabelText('Latitude')).toHaveValue('38.7223');
+    expect(screen.getByLabelText('Longitude')).toHaveValue('-9.1393');
+    expect(screen.getByLabelText('Radius (km)')).toHaveValue('10');
+  });
+
+  it('shows a waiting-for-search notice when the inputs diverge from the submitted query', async () => {
+    const user = userEvent.setup();
+    mockedGetFlyOvers.mockResolvedValue(result);
+    renderApp();
+
+    await submitValidQuery(user);
+    await screen.findByText('DLH400');
+    expect(screen.queryByText(/Waiting for search/)).not.toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText('Latitude'));
+    await user.type(screen.getByLabelText('Latitude'), '40');
+    expect(screen.getByText(/Waiting for search/)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveClass('fixed');
+
+    await user.click(screen.getByRole('button', { name: 'Find aircraft' }));
+    await screen.findByText('DLH400');
+    expect(screen.queryByText(/Waiting for search/)).not.toBeInTheDocument();
+  });
+
+  it('shows an updating indicator during a refresh and clears it after', async () => {
+    const user = userEvent.setup();
+    let resolveFlyOvers!: (value: FlyOverResult) => void;
+    mockedGetFlyOvers.mockResolvedValueOnce(result).mockImplementationOnce(
+      () =>
+        new Promise<FlyOverResult>((resolve) => {
+          resolveFlyOvers = resolve;
+        }),
+    );
+    renderApp();
+
+    await submitValidQuery(user);
+    await screen.findByText('DLH400');
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(screen.getByText('Updating…')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveFlyOvers(result);
+    });
+    await waitFor(() => expect(screen.queryByText('Updating…')).not.toBeInTheDocument());
+  });
+
+  describe('auto-refresh', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    function submitValidQuerySync(): void {
+      fireEvent.change(screen.getByLabelText('Latitude'), { target: { value: '48.8566' } });
+      fireEvent.change(screen.getByLabelText('Longitude'), { target: { value: '2.3522' } });
+      fireEvent.change(screen.getByLabelText('Radius (km)'), { target: { value: '50' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Find aircraft' }));
+    }
+
+    function setRefreshRate(rate: string): void {
+      fireEvent.change(screen.getByLabelText('Auto-refresh'), { target: { value: rate } });
+    }
+
+    async function flush(): Promise<void> {
+      await act(async () => {});
+    }
+
+    async function advance(ms: number): Promise<void> {
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(ms);
+      });
+    }
+
+    it('re-queries the last submitted query at the selected cadence', async () => {
+      mockedGetFlyOvers.mockResolvedValue(result);
+      renderApp();
+
+      submitValidQuerySync();
+      await flush();
+      setRefreshRate('10');
+      await flush();
+      expect(mockedGetFlyOvers).toHaveBeenCalledTimes(1);
+
+      await advance(10_000);
+      expect(mockedGetFlyOvers).toHaveBeenCalledTimes(2);
+
+      await advance(10_000);
+      expect(mockedGetFlyOvers).toHaveBeenCalledTimes(3);
+    });
+
+    it('does not auto-refresh when the rate is off', async () => {
+      mockedGetFlyOvers.mockResolvedValue(result);
+      renderApp();
+
+      submitValidQuerySync();
+      await flush();
+      mockedGetFlyOvers.mockClear();
+
+      await advance(30_000);
+      expect(mockedGetFlyOvers).not.toHaveBeenCalled();
+    });
+
+    it('resets the interval when the rate changes', async () => {
+      mockedGetFlyOvers.mockResolvedValue(result);
+      renderApp();
+
+      submitValidQuerySync();
+      await flush();
+      mockedGetFlyOvers.mockClear();
+
+      setRefreshRate('5');
+      await flush();
+      await advance(5_000);
+      expect(mockedGetFlyOvers).toHaveBeenCalledTimes(1);
+
+      setRefreshRate('60');
+      await flush();
+      await advance(10_000);
+      expect(mockedGetFlyOvers).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not poll while a fetch is still in flight', async () => {
+      let resolveFlyOvers!: (value: FlyOverResult) => void;
+      mockedGetFlyOvers.mockImplementation(
+        () =>
+          new Promise<FlyOverResult>((resolve) => {
+            resolveFlyOvers = resolve;
+          }),
+      );
+      renderApp();
+
+      submitValidQuerySync();
+      setRefreshRate('10');
+      await flush();
+
+      await advance(10_000);
+      expect(mockedGetFlyOvers).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveFlyOvers(result);
+      });
+      await flush();
+      await advance(10_000);
+      expect(mockedGetFlyOvers).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not poll before a query has been submitted', async () => {
+      mockedGetFlyOvers.mockResolvedValue(result);
+      renderApp();
+
+      setRefreshRate('10');
+      await advance(30_000);
+      expect(mockedGetFlyOvers).not.toHaveBeenCalled();
+    });
+
+    it('pauses auto-refresh while the draft is stale and resumes after submit', async () => {
+      mockedGetFlyOvers.mockResolvedValue(result);
+      renderApp();
+
+      submitValidQuerySync();
+      await flush();
+      setRefreshRate('10');
+      await flush();
+      mockedGetFlyOvers.mockClear();
+
+      fireEvent.change(screen.getByLabelText('Latitude'), { target: { value: '40' } });
+      await flush();
+      await advance(30_000);
+      expect(mockedGetFlyOvers).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Find aircraft' }));
+      await flush();
+      await advance(10_000);
+      expect(mockedGetFlyOvers).toHaveBeenCalledTimes(2);
+    });
   });
 });

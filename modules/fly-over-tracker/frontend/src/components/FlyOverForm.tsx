@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent, JSX } from 'react';
 import { MAX_RADIUS_KM } from '../api/client';
 import type { LocationQuery } from '../api/types';
+import { isValidLat, isValidLng, isValidRadiusKm } from '../lib/location';
 import { Button } from './ui/button';
 import { Input, Label } from './ui/input';
 
@@ -20,11 +21,27 @@ type Field = 'lat' | 'lng' | 'radiusKm';
 type FieldErrors = Partial<Record<Field, string>>;
 type Fields = Record<Field, string>;
 
+/** Default radius used when the current-location fill has no other radius. */
+const DEFAULT_RADIUS_KM = 10;
+
+type GeolocationStatus = 'idle' | 'loading' | 'success' | 'error';
+
 function parseNumber(value: string): number | null {
   const trimmed = value.trim();
   if (trimmed === '') return null;
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Pick the radius the current-location fill should keep: the current field
+ * value when valid, then the shared draft radius, then the default.
+ */
+function preserveRadius(rawRadius: string, draftRadius: number | undefined): number {
+  const typed = parseNumber(rawRadius);
+  if (typed !== null && isValidRadiusKm(typed)) return typed;
+  if (draftRadius !== undefined && isValidRadiusKm(draftRadius)) return draftRadius;
+  return DEFAULT_RADIUS_KM;
 }
 
 /**
@@ -70,9 +87,9 @@ function toFields(query: LocationQuery): Fields {
 
 /**
  * The fly-over query form: latitude, longitude, and radius inputs with inline
- * validation and a submit button. Controlled via `value`/`onChange` so the map
- * selection and the inputs stay consistent; backward-compatible when only
- * `onSubmit` is provided.
+ * validation, a "Use my current location" control, and a submit button.
+ * Controlled via `value`/`onChange` so the map selection and the inputs stay
+ * consistent; backward-compatible when only `onSubmit` is provided.
  */
 export const FlyOverForm = ({
   value,
@@ -84,6 +101,8 @@ export const FlyOverForm = ({
     value ? toFields(value) : { lat: '', lng: '', radiusKm: '' },
   );
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [geoStatus, setGeoStatus] = useState<GeolocationStatus>('idle');
+  const [geoError, setGeoError] = useState<string>();
 
   useEffect(() => {
     if (value === undefined) return;
@@ -120,12 +139,66 @@ export const FlyOverForm = ({
     }
   };
 
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setGeoStatus('error');
+      setGeoError('Location is unavailable in this browser.');
+      return;
+    }
+    setGeoStatus('loading');
+    setGeoError(undefined);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        if (!isValidLat(lat) || !isValidLng(lng)) {
+          setGeoStatus('error');
+          setGeoError('Unable to determine your location.');
+          return;
+        }
+        const radiusKm = preserveRadius(fields.radiusKm, value?.radiusKm);
+        const next: LocationQuery = { lat, lng, radiusKm };
+        setFields({ lat: String(lat), lng: String(lng), radiusKm: String(radiusKm) });
+        setErrors({});
+        setGeoStatus('success');
+        onChange?.(next);
+      },
+      (error) => {
+        setGeoError(
+          error.code === 1
+            ? 'Location permission was denied.'
+            : error.code === 3
+              ? 'The location lookup timed out.'
+              : 'Unable to determine your location.',
+        );
+        setGeoStatus('error');
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+    );
+  };
+
   return (
     <form
       onSubmit={handleSubmit}
       noValidate
       className="space-y-4 rounded-xl border border-primary/20 bg-white p-4 shadow-sm"
     >
+      <div className="flex justify-center">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleUseCurrentLocation}
+          disabled={loading || geoStatus === 'loading'}
+        >
+          {geoStatus === 'loading' ? 'Locating…' : 'Use my current location'}
+        </Button>
+      </div>
+      {geoError && (
+        <p className="text-xs text-red-600" role="alert">
+          {geoError}
+        </p>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
           <Label htmlFor="lat">Latitude</Label>
@@ -173,9 +246,11 @@ export const FlyOverForm = ({
           )}
         </div>
       </div>
-      <Button type="submit" disabled={loading}>
-        {loading ? 'Loading…' : 'Find aircraft'}
-      </Button>
+      <div className="flex justify-center">
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Loading…' : 'Find aircraft'}
+        </Button>
+      </div>
     </form>
   );
 };

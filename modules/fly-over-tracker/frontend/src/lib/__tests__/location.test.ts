@@ -11,6 +11,7 @@ import {
   isValidRadiusKm,
   MAX_RADIUS_KM,
   MIN_RADIUS_KM,
+  queriesEqual,
   radiusKmFromCenterAndEdge,
 } from '../location';
 
@@ -112,5 +113,19 @@ describe('bearingDegFromCenterTo', () => {
     );
     expect(bearing).toBeGreaterThanOrEqual(0);
     expect(bearing).toBeLessThan(360);
+  });
+});
+
+describe('queriesEqual', () => {
+  it('is true for identical queries', () => {
+    const query = { lat: 48.8566, lng: 2.3522, radiusKm: 50 };
+    expect(queriesEqual(query, { ...query })).toBe(true);
+  });
+
+  it('is false when any field differs', () => {
+    const query = { lat: 48.8566, lng: 2.3522, radiusKm: 50 };
+    expect(queriesEqual(query, { ...query, lat: 40 })).toBe(false);
+    expect(queriesEqual(query, { ...query, lng: 3 })).toBe(false);
+    expect(queriesEqual(query, { ...query, radiusKm: 100 })).toBe(false);
   });
 });

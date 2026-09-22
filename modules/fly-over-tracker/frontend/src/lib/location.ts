@@ -1,4 +1,5 @@
 import { MAX_RADIUS_KM } from '../api/client';
+import type { LocationQuery } from '../api/types';
 
 export { MAX_RADIUS_KM };
 
@@ -96,4 +97,9 @@ export function bearingDegFromCenterTo(center: LatLng, to: LatLng): number {
   const y = Math.sin(dLng) * Math.cos(lat2);
   const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+/** Whether two location queries describe exactly the same center and radius. */
+export function queriesEqual(a: LocationQuery, b: LocationQuery): boolean {
+  return a.lat === b.lat && a.lng === b.lng && a.radiusKm === b.radiusKm;
 }

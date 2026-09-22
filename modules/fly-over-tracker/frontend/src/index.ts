@@ -20,6 +20,7 @@ export {
   Input,
   Label,
   PlaneGlyph,
+  RefreshRateSelect,
   Select,
   Textarea,
   ViewModeToggle,
@@ -33,6 +34,8 @@ export type {
   FlyOverMapProps,
   FlyOverStatus,
   PlaneGlyphProps,
+  RefreshRate,
+  RefreshRateSelectProps,
   ViewMode,
   ViewModeToggleProps,
 } from './components';

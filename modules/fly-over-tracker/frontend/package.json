@@ -78,5 +78,8 @@
     "vite": "^6.0.0",
     "vite-plugin-dts": "^5.1.0",
     "vitest": "^3.0.0"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.103.2"
   }
 }
