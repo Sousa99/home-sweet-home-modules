@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/Sousa99/fly-over-tracker/compare/v1.2.1...v1.3.0) (2026-09-22)
+
+
+### Features
+
+* spa ux improvements (layout, current location, auto-refresh, favicon) ([#7](https://github.com/Sousa99/fly-over-tracker/issues/7)) ([7b30a41](https://github.com/Sousa99/fly-over-tracker/commit/7b30a419db7089d0b8aec5444b8329abd235b96d))
+
 ## [1.2.1](https://github.com/Sousa99/fly-over-tracker/compare/v1.2.0...v1.2.1) (2026-09-21)
 
 
