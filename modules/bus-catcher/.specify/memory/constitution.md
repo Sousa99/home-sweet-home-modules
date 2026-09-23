@@ -1,50 +1,90 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: 0.0.0 (unratified template scaffold) → 1.0.0
+- Modified principles: none (initial ratification; all five principles are new)
+- Added sections: Core Principles (I–V), Data & Integration Constraints,
+  Development Workflow & Quality Gates, Governance
+- Removed sections: none
+- Follow-up TODOs: none
+-->
+# bus-catcher Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Location-Scoped Data
+All bus information MUST be resolved against a given location, expressed as
+coordinates or a named place. Every query MUST either carry a location or
+derive one from an explicit context; context-free, global bus queries are not
+allowed. Rationale: the module's purpose is "buses at a given location" — the
+location is the primary key of the domain and everything else hangs off it.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Freshness-Aware Realtime
+Transit information is time-sensitive. Every data point MUST carry a timestamp
+of when it was produced and when it was fetched. Data older than a defined
+staleness budget MUST be flagged as stale and MUST NOT be presented as live.
+Rationale: catching a bus depends on accurate, current predictions; stale data
+is actively harmful and erodes trust in the dashboard.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Provider Abstraction
+Transit data sources (GTFS feeds, transit APIs) MUST be reached only through
+adaptors implementing a stable, application-defined contract. Swapping or
+adding a provider MUST NOT change the application-facing contract. Adaptors
+MUST be self-contained and independently testable. Rationale: providers and
+their formats change and fail; the module must not be coupled to any single
+source.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Test-First (NON-NEGOTIABLE)
+TDD is mandatory: tests are written, reviewed, and confirmed to fail before
+the implementation is written; Red-Green-Refactor is strictly enforced.
+Provider parsing, time/timezone conversion, and staleness logic MUST have
+dedicated tests. Rationale: transit data parsing and scheduling math are
+error-prone, and correctness is the product.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Observability & Correct Time Handling
+Every provider request, response, cache hit, and cache decision MUST be
+loggable via structured logging. All internal time handling MUST use a single
+canonical representation (UTC internally); local-time conversions MUST state
+an explicit timezone and DST policy, and MUST NOT persist local times without
+an offset. Rationale: debuggability and correct arrival times across
+timezones and DST transitions depend on disciplined time modeling.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Data & Integration Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- GTFS/transit parsing MUST validate records against schemas; unknown or
+  malformed records are skipped with a warning, never a crash.
+- Provider rate limits MUST be respected; caching MUST carry TTLs that honor
+  the staleness budget from Principle II.
+- Privacy: locations MUST be handled at a coarse, useful granularity; home
+  addresses MUST NOT be logged or persisted.
+- Failure isolation: a failing provider MUST NOT take down the API or MCP
+  server; degraded results are reported, not fatal.
+- REST (`--http`) and MCP (`--mcp`) modes MUST share the same service layer
+  and MUST NOT be split into separate packages.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow & Quality Gates
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- All gates MUST pass before commit/merge: `pnpm lint`, `pnpm format`,
+  `pnpm test`, `pnpm typecheck`, and `node scripts/scaffold.mjs --check`.
+- CI enforces the gates on every pull request; the Release workflow runs on
+  push to `main` and derives the shared version from conventional commits.
+- Living documentation: documentation updates land in the same change as the
+  code they describe.
+- Dependency hygiene: keep a single instance of each critical package; run
+  `pnpm install`/`pnpm dedupe` after dependency changes.
+- Toolchain parity: the IDE uses the workspace TypeScript; IDE errors that do
+  not reproduce in `tsc` are toolchain mismatches to fix, not to ignore.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+The constitution supersedes all other practices: any conflict is resolved in
+favor of this document. Amendments require a documented proposal with
+rationale, a semantic-version bump, and approval through review; every PR
+MUST verify compliance with these principles and call out exceptions.
+Versioning follows semantic versioning: MAJOR for incompatible principle
+removals or redefinitions, MINOR for new principles or materially expanded
+guidance, PATCH for clarifications and wording fixes. Complexity MUST be
+justified; simpler designs are preferred where they meet the principles.
+Use the Spec Kit workflow (specify → plan → tasks → implement) for feature
+work and the bug-triage extension for defect reports.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-09-23 | **Last Amended**: 2026-09-23
