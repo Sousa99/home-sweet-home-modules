@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/Sousa99/fly-over-tracker/compare/v1.3.0...v1.4.0) (2026-09-23)
+
+
+### Features
+
+* center map on selection submit (fit circle to frame) ([#8](https://github.com/Sousa99/fly-over-tracker/issues/8)) ([e59e11e](https://github.com/Sousa99/fly-over-tracker/commit/e59e11e9af3d28d6233cb21b46bc48333f20dc59))
+
 # [1.3.0](https://github.com/Sousa99/fly-over-tracker/compare/v1.2.1...v1.3.0) (2026-09-22)
 
 
