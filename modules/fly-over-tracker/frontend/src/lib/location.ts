@@ -99,6 +99,28 @@ export function bearingDegFromCenterTo(center: LatLng, to: LatLng): number {
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
+/**
+ * Axis-aligned bounding box of the great-circle circle defined by `center` and
+ * `radiusKm`, as its southwest and northeast corners. The box is built from the
+ * four cardinal extents (north at 0°, east at 90°, south at 180°, west at
+ * 270°), so every destination point at `radiusKm` from the center lies within
+ * it and the center is the box midpoint. Used to fit the map view to a
+ * selection circle.
+ */
+export function circleBounds(
+  center: LatLng,
+  radiusKm: number,
+): { southwest: LatLng; northeast: LatLng } {
+  const north = destPoint(center, radiusKm, 0);
+  const east = destPoint(center, radiusKm, 90);
+  const south = destPoint(center, radiusKm, 180);
+  const west = destPoint(center, radiusKm, 270);
+  return {
+    southwest: { lat: south.lat, lng: west.lng },
+    northeast: { lat: north.lat, lng: east.lng },
+  };
+}
+
 /** Whether two location queries describe exactly the same center and radius. */
 export function queriesEqual(a: LocationQuery, b: LocationQuery): boolean {
   return a.lat === b.lat && a.lng === b.lng && a.radiusKm === b.radiusKm;

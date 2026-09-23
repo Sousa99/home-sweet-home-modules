@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { FlyOverMap } from '../FlyOverMap';
-import { markerStore } from '../../test/react-leaflet-mock';
-import { destPoint } from '../../lib/location';
+import { mapStore, markerStore } from '../../test/react-leaflet-mock';
+import { circleBounds, destPoint } from '../../lib/location';
 import type { Aircraft } from '../../api/types';
 
 const CENTER = { lat: 48.8566, lng: 2.3522 };
@@ -207,5 +207,121 @@ describe('FlyOverMap', () => {
 
     expect(onCenterChange).not.toHaveBeenCalled();
     expect(onRadiusChange).not.toHaveBeenCalled();
+  });
+
+  describe('fit on submit', () => {
+    const fitRequest = { ...CENTER, radiusKm: 50 };
+
+    function renderMap(fitRequestOverride?: typeof fitRequest, center = CENTER, radiusKm = 50) {
+      render(
+        <FlyOverMap
+          center={center}
+          radiusKm={radiusKm}
+          fitRequest={fitRequestOverride}
+          onCenterChange={vi.fn()}
+          onRadiusChange={vi.fn()}
+        />,
+      );
+    }
+
+    it('does not fit the view when no fitRequest is provided', () => {
+      renderMap(undefined);
+      expect(mapStore.flyToBoundsCalls).toHaveLength(0);
+    });
+
+    it('fits the circle bounds once on mount when a fitRequest is present', () => {
+      renderMap(fitRequest);
+      const firstCall = mapStore.flyToBoundsCalls[0]!;
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+      expect(firstCall.options?.maxZoom).toBe(19);
+    });
+
+    it('fits with the max zoom for the smallest allowed radius', () => {
+      renderMap({ ...CENTER, radiusKm: 0.1 }, CENTER, 0.1);
+      const firstCall = mapStore.flyToBoundsCalls[0]!;
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+      expect(firstCall.options?.maxZoom).toBe(19);
+    });
+
+    it('fits padded bounds that enclose the selection circle', () => {
+      renderMap(fitRequest);
+      const box = circleBounds(CENTER, 50);
+      const pad = 0.01;
+      const dLat = (box.northeast.lat - box.southwest.lat) * pad;
+      const dLng = (box.northeast.lng - box.southwest.lng) * pad;
+      const [sw, ne] = mapStore.flyToBoundsCalls[0]!.bounds as [[number, number], [number, number]];
+      expect(sw[0]).toBeLessThanOrEqual(box.southwest.lat - dLat + 1e-9);
+      expect(sw[1]).toBeLessThanOrEqual(box.southwest.lng - dLng + 1e-9);
+      expect(ne[0]).toBeGreaterThanOrEqual(box.northeast.lat + dLat - 1e-9);
+      expect(ne[1]).toBeGreaterThanOrEqual(box.northeast.lng + dLng - 1e-9);
+    });
+
+    it('refits when the fitRequest changes', () => {
+      const { rerender } = render(
+        <FlyOverMap
+          center={CENTER}
+          radiusKm={50}
+          fitRequest={fitRequest}
+          onCenterChange={vi.fn()}
+          onRadiusChange={vi.fn()}
+        />,
+      );
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+
+      rerender(
+        <FlyOverMap
+          center={CENTER}
+          radiusKm={50}
+          fitRequest={{ lat: 49, lng: 3, radiusKm: 80 }}
+          onCenterChange={vi.fn()}
+          onRadiusChange={vi.fn()}
+        />,
+      );
+      expect(mapStore.flyToBoundsCalls).toHaveLength(2);
+    });
+
+    it('does not refit when only center/radius change (draft edits)', () => {
+      const { rerender } = render(
+        <FlyOverMap
+          center={CENTER}
+          radiusKm={50}
+          fitRequest={fitRequest}
+          onCenterChange={vi.fn()}
+          onRadiusChange={vi.fn()}
+        />,
+      );
+      rerender(
+        <FlyOverMap
+          center={{ lat: 49, lng: 3 }}
+          radiusKm={80}
+          fitRequest={fitRequest}
+          onCenterChange={vi.fn()}
+          onRadiusChange={vi.fn()}
+        />,
+      );
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+    });
+
+    it('does not refit when the fitRequest is unchanged across rerenders', () => {
+      const { rerender } = render(
+        <FlyOverMap
+          center={CENTER}
+          radiusKm={50}
+          fitRequest={fitRequest}
+          onCenterChange={vi.fn()}
+          onRadiusChange={vi.fn()}
+        />,
+      );
+      rerender(
+        <FlyOverMap
+          center={CENTER}
+          radiusKm={50}
+          fitRequest={fitRequest}
+          onCenterChange={vi.fn()}
+          onRadiusChange={vi.fn()}
+        />,
+      );
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+    });
   });
 });

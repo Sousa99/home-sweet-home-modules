@@ -70,3 +70,12 @@ export const WithAircraft: Story = {};
 export const EmptySelection: Story = {
   args: { aircraft: [] },
 };
+
+export const FitOnSubmit: Story = {
+  args: {
+    center: { lat: 48.8566, lng: 2.3522 },
+    radiusKm: 50,
+    fitRequest: { lat: 48.8566, lng: 2.3522, radiusKm: 50 },
+    aircraft: sampleAircraft,
+  },
+};

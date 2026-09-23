@@ -37,6 +37,7 @@ const App = (): JSX.Element => {
     radiusKm: DEFAULT_RADIUS_KM,
   });
   const [query, setQuery] = useState<LocationQuery | null>(null);
+  const [fittedQuery, setFittedQuery] = useState<LocationQuery | null>(null);
   const [refreshRate, setRefreshRate] = useState<RefreshRate>('off');
   const [mapFailed, setMapFailed] = useState(false);
 
@@ -75,9 +76,12 @@ const App = (): JSX.Element => {
   const handleRefresh = useCallback(() => {
     void flyOverQuery.refetch();
   }, [flyOverQuery]);
-
   const mapCenter = draft;
   const mapRadiusKm = draft.radiusKm;
+  // A fit is pending until the map has applied it (reported via onFitApplied),
+  // so a remount after a mode switch does not refit an already-fitted query,
+  // while re-submitting (a new query object) always refits.
+  const pendingFit = query !== null && query !== fittedQuery;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -168,6 +172,8 @@ const App = (): JSX.Element => {
                 <FlyOverMap
                   center={mapCenter}
                   radiusKm={mapRadiusKm}
+                  fitRequest={pendingFit ? query : null}
+                  onFitApplied={setFittedQuery}
                   aircraft={result?.aircraft ?? []}
                   onCenterChange={(nextCenter) =>
                     handleDraftChange({ ...nextCenter, radiusKm: mapRadiusKm })

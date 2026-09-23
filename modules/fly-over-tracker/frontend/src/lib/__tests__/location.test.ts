@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   bearingDegFromCenterTo,
+  circleBounds,
   clampLat,
   clampLng,
   clampRadiusKm,
@@ -127,5 +128,61 @@ describe('queriesEqual', () => {
     expect(queriesEqual(query, { ...query, lat: 40 })).toBe(false);
     expect(queriesEqual(query, { ...query, lng: 3 })).toBe(false);
     expect(queriesEqual(query, { ...query, radiusKm: 100 })).toBe(false);
+  });
+});
+
+describe('circleBounds', () => {
+  const center = { lat: 48.8566, lng: 2.3522 };
+
+  it('orders southwest below and northeast above the center', () => {
+    const box = circleBounds(center, 50);
+    expect(box.southwest.lat).toBeLessThan(center.lat);
+    expect(box.southwest.lng).toBeLessThan(center.lng);
+    expect(box.northeast.lat).toBeGreaterThan(center.lat);
+    expect(box.northeast.lng).toBeGreaterThan(center.lng);
+    expect(box.southwest.lat).toBeLessThan(box.northeast.lat);
+    expect(box.southwest.lng).toBeLessThan(box.northeast.lng);
+  });
+
+  it('keeps the center as the box midpoint', () => {
+    const box = circleBounds(center, 50);
+    expect((box.southwest.lat + box.northeast.lat) / 2).toBeCloseTo(center.lat, 6);
+    expect((box.southwest.lng + box.northeast.lng) / 2).toBeCloseTo(center.lng, 6);
+  });
+
+  it('encloses every destination point for a typical radius', () => {
+    const box = circleBounds(center, 50);
+    for (const bearing of [0, 45, 90, 135, 180, 225, 270, 315]) {
+      const point = destPoint(center, 50, bearing);
+      expect(point.lat).toBeGreaterThanOrEqual(box.southwest.lat);
+      expect(point.lat).toBeLessThanOrEqual(box.northeast.lat);
+      expect(point.lng).toBeGreaterThanOrEqual(box.southwest.lng);
+      expect(point.lng).toBeLessThanOrEqual(box.northeast.lng);
+    }
+  });
+
+  it('produces a tiny, still-ordered box for the minimum radius', () => {
+    const box = circleBounds(center, MIN_RADIUS_KM);
+    expect(box.southwest.lat).toBeLessThan(box.northeast.lat);
+    expect(box.southwest.lng).toBeLessThan(box.northeast.lng);
+    expect(box.northeast.lat - box.southwest.lat).toBeLessThan(0.01);
+    expect(box.northeast.lng - box.southwest.lng).toBeLessThan(0.01);
+  });
+
+  it('produces a valid, in-range box for the maximum radius', () => {
+    const box = circleBounds(center, MAX_RADIUS_KM);
+    expect(box.southwest.lat).toBeGreaterThanOrEqual(-90);
+    expect(box.northeast.lat).toBeLessThanOrEqual(90);
+    expect(box.southwest.lng).toBeGreaterThanOrEqual(-180);
+    expect(box.northeast.lng).toBeLessThanOrEqual(180);
+    expect(box.northeast.lat - box.southwest.lat).toBeGreaterThan(1);
+  });
+
+  it('matches a known geodesic case at the equator', () => {
+    const box = circleBounds({ lat: 0, lng: 0 }, 111.19);
+    expect(box.northeast.lat).toBeCloseTo(1.0, 3);
+    expect(box.northeast.lng).toBeCloseTo(1.0, 3);
+    expect(box.southwest.lat).toBeCloseTo(-1.0, 3);
+    expect(box.southwest.lng).toBeCloseTo(-1.0, 3);
   });
 });

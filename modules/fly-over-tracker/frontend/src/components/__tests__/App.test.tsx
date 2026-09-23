@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { FlyOverResult } from '../../api/types';
 import App from '../../App';
-import { markerStore } from '../../test/react-leaflet-mock';
+import { mapStore, markerStore } from '../../test/react-leaflet-mock';
 
 vi.mock('../../api/client', () => ({
   getFlyOvers: vi.fn(),
@@ -221,6 +221,57 @@ describe('App', () => {
 
     expect(toggle.parentElement).toHaveClass('flex', 'flex-col', 'items-center', 'gap-4');
     expect(form.parentElement).toHaveClass('w-full', 'max-w-3xl');
+  });
+
+  describe('fit on submit', () => {
+    it('fits the map once when submitting while in map mode', async () => {
+      const user = userEvent.setup();
+      mockedGetFlyOvers.mockResolvedValue(result);
+      renderApp();
+
+      await user.click(screen.getByRole('button', { name: 'Map' }));
+      await submitValidQuery(user);
+
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+    });
+
+    it('fits on first map mount when the submit happened in list mode', async () => {
+      const user = userEvent.setup();
+      mockedGetFlyOvers.mockResolvedValue(result);
+      renderApp();
+
+      await submitValidQuery(user);
+      expect(mapStore.flyToBoundsCalls).toHaveLength(0);
+
+      await user.click(screen.getByRole('button', { name: 'Map' }));
+
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+    });
+
+    it('does not refit when switching modes without a new submit', async () => {
+      const user = userEvent.setup();
+      mockedGetFlyOvers.mockResolvedValue(result);
+      renderApp();
+
+      await user.click(screen.getByRole('button', { name: 'Map' }));
+      await submitValidQuery(user);
+      await user.click(screen.getByRole('button', { name: 'List' }));
+      await user.click(screen.getByRole('button', { name: 'Map' }));
+
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+    });
+
+    it('refits when the same selection is submitted again', async () => {
+      const user = userEvent.setup();
+      mockedGetFlyOvers.mockResolvedValue(result);
+      renderApp();
+
+      await user.click(screen.getByRole('button', { name: 'Map' }));
+      await submitValidQuery(user);
+      await user.click(screen.getByRole('button', { name: 'Find aircraft' }));
+
+      expect(mapStore.flyToBoundsCalls).toHaveLength(2);
+    });
   });
 
   it('centers the selection panel in map mode', async () => {

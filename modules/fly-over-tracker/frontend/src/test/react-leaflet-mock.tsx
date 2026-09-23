@@ -28,6 +28,51 @@ export function resetMarkerStore(): void {
   markerStore.length = 0;
 }
 
+export interface MockedFlyToBoundsCall {
+  bounds: unknown;
+  options?: Record<string, unknown>;
+}
+
+export interface MockedMap {
+  flyToBounds: (bounds: unknown, options?: Record<string, unknown>) => void;
+  getSize: () => { x: number; y: number };
+  getCenter: () => { lat: number; lng: number };
+}
+
+export interface MapStore {
+  /** The shared fake map instance returned by `useMap()`. */
+  map: MockedMap;
+  /** Each `flyToBounds` invocation on the fake map, in call order. */
+  flyToBoundsCalls: MockedFlyToBoundsCall[];
+}
+
+function createMockedMap(): MockedMap {
+  return {
+    flyToBounds: (bounds, options) => {
+      mapStore.flyToBoundsCalls.push({ bounds, options });
+    },
+    getSize: () => ({ x: 800, y: 420 }),
+    getCenter: () => ({ lat: 0, lng: 0 }),
+  };
+}
+
+/** Map instance and fit calls recorded by the current test render. */
+export const mapStore: MapStore = {
+  map: createMockedMap(),
+  flyToBoundsCalls: [],
+};
+
+/** Clears `mapStore` and rebuilds a fresh fake map; call between renders. */
+export function resetMapStore(): void {
+  mapStore.flyToBoundsCalls = [];
+  mapStore.map = createMockedMap();
+}
+
+/** Returns the shared fake map instance (mirrors `react-leaflet`'s `useMap`). */
+export function useMap(): MockedMap {
+  return mapStore.map;
+}
+
 interface MockProps {
   children?: ReactNode;
   className?: string;
