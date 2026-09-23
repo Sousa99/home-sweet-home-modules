@@ -1,0 +1,65 @@
+import { Meta, Canvas, Controls, ArgTypes } from '@storybook/addon-docs/blocks';
+import * as ClosestAircraftCardStories from './ClosestAircraftCard.stories';
+
+<Meta of={ClosestAircraftCardStories} />
+
+# ClosestAircraftCard
+
+`ClosestAircraftCard` is a compact, self-sufficient dashboard card that shows the single
+aircraft nearest to a configured location within the radius, using the full aircraft
+card presentation (callsign, origin/destination, altitude, speed, heading, distance).
+
+It fills the available width and takes only the vertical space its content needs. The
+closest aircraft is selected deterministically (minimum distance, with a stable
+`icao24` tie-break). When the closest aircraft changes between refreshes, the card
+animates the new one in (a short fade + slide) instead of swapping abruptly.
+
+## Usage
+
+```tsx
+import { ClosestAircraftCard } from '@sousa99/fly-over-tracker-components';
+
+<ClosestAircraftCard location={{ lat: 48.8566, lng: 2.3522, radiusKm: 50 }} autoRefresh={10} />;
+```
+
+## Props
+
+<ArgTypes of={ClosestAircraftCardStories} />
+
+## Examples
+
+### Closest aircraft
+
+<Canvas of={ClosestAircraftCardStories.WithClosest} />
+<Controls of={ClosestAircraftCardStories.WithClosest} />
+
+### Closest aircraft changes
+
+<Canvas of={ClosestAircraftCardStories.ClosestChange} />
+
+### No aircraft in range
+
+<Canvas of={ClosestAircraftCardStories.Empty} />
+
+### Feed unavailable
+
+<Canvas of={ClosestAircraftCardStories.Error} />
+
+### Auto-refresh
+
+<Canvas of={ClosestAircraftCardStories.AutoRefresh} />
+
+## Behavior notes
+
+- **Self-sufficient data** — fetches `GET {baseUrl}/api/fly-overs` and re-fetches
+  automatically every `autoRefresh` seconds (`'off'` disables automatic refresh).
+- **Deterministic selection** — the minimum `distanceKm`, tie-broken by `icao24`, so
+  the choice is stable regardless of result ordering.
+- **Smooth transition** — the card content is keyed by the closest aircraft's `icao24`
+  and animates in on change (no abrupt replacement, no stale content).
+- **Update feedback** — a small "Updating…" indicator appears in the top corner while
+  a refresh is in flight and clears when it completes.
+- **States** — loading, empty ("No aircraft within … km"), and error states render in
+  place of the card; stale data is never presented as fresh.
+- **Requirements** — the host must provide the peer dependencies `react`, `react-dom`,
+  `leaflet`, and `react-leaflet`.

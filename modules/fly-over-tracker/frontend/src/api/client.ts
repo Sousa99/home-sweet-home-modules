@@ -28,17 +28,20 @@ export class ApiError extends Error {
  * Query the backend for the aircraft currently over a GPS point and radius.
  *
  * @param query - the location query
+ * @param baseUrl - optional base URL of the module backend; when empty the
+ * request targets the same-origin `/api/fly-overs` (the SPA default). Used by
+ * the embeddable dashboard widgets to point at a remote backend.
  * @returns the fly-over result
  * @throws {ApiError} when the request fails or the API returns an error
  */
-export async function getFlyOvers(query: LocationQuery): Promise<FlyOverResult> {
+export async function getFlyOvers(query: LocationQuery, baseUrl = ''): Promise<FlyOverResult> {
   const params = new URLSearchParams({
     lat: String(query.lat),
     lng: String(query.lng),
     radiusKm: String(query.radiusKm),
   });
 
-  const res = await fetch(`/api/fly-overs?${params.toString()}`);
+  const res = await fetch(`${baseUrl}/api/fly-overs?${params.toString()}`);
   const body = (await res.json()) as FlyOverResult | ApiErrorBody;
 
   if (!res.ok) {

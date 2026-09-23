@@ -1,51 +1,12 @@
 /**
- * fly-over-tracker components library entry.
+ * fly-over-tracker dashboard widgets library entry.
  *
- * Re-exports the fly-over components, the ui primitives, the backend API
- * client, and the shared types so external consumers can assemble the
- * fly-over experience or query the backend themselves.
+ * Publishes the two self-sufficient embeddable widgets for a dashboard —
+ * `FlyOverWidget` (map + aircraft list) and `ClosestAircraftCard` (nearest
+ * aircraft) — together with the types their public props reference. The SPA
+ * components, the UI primitives, and the backend API client are internal
+ * implementation details and are not part of the published surface.
  */
-export {
-  AircraftCard,
-  AircraftMapCard,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  FlyOverForm,
-  FlyOverList,
-  FlyOverMap,
-  Input,
-  Label,
-  PlaneGlyph,
-  RefreshRateSelect,
-  Select,
-  Textarea,
-  ViewModeToggle,
-} from './components';
-export type {
-  AircraftCardProps,
-  AircraftMapCardProps,
-  ButtonProps,
-  FlyOverFormProps,
-  FlyOverListProps,
-  FlyOverMapProps,
-  FlyOverStatus,
-  PlaneGlyphProps,
-  RefreshRate,
-  RefreshRateSelectProps,
-  ViewMode,
-  ViewModeToggleProps,
-} from './components';
-
-export { ApiError, MAX_RADIUS_KM, getFlyOvers } from './api/client';
-export type {
-  Aircraft,
-  ApiErrorBody,
-  Center,
-  FieldError,
-  FlyOverResult,
-  LocationQuery,
-} from './api/types';
+export { ClosestAircraftCard, FlyOverWidget } from './components';
+export type { ClosestAircraftCardProps, FlyOverWidgetProps, RefreshRate } from './components';
+export type { Aircraft, Center, FlyOverResult, LocationQuery } from './api/types';

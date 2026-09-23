@@ -46,6 +46,17 @@ describe('getFlyOvers', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50');
   });
 
+  it('prepends a base URL when provided', async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(result), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await getFlyOvers({ lat: 48.8566, lng: 2.3522, radiusKm: 50 }, 'https://api.example.com');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50',
+    );
+  });
+
   it('returns the parsed result on success', async () => {
     vi.stubGlobal('fetch', async () => new Response(JSON.stringify(result), { status: 200 }));
     await expect(getFlyOvers({ lat: 1, lng: 2, radiusKm: 3 })).resolves.toEqual(result);

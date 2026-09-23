@@ -4,6 +4,18 @@
   --color-primary: #d97706;
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --animate-closest-card-in: closest-card-in 250ms ease-out;
+
+  @keyframes closest-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 body {

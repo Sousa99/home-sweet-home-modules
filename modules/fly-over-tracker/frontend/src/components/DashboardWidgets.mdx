@@ -1,0 +1,53 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as FlyOverWidgetStories from './FlyOverWidget.stories';
+import * as ClosestAircraftCardStories from './ClosestAircraftCard.stories';
+
+<Meta title="DashboardWidgets/Overview" />
+
+# Dashboard widgets
+
+Two self-sufficient, embeddable widgets for a dashboard (e.g. `homesweethome`). Each
+one is configured entirely through props — a location, a radius, and an auto-refresh
+cadence — and fetches and refreshes its own data, so the host application needs no data
+wiring.
+
+## Installation
+
+```bash
+pnpm add @sousa99/fly-over-tracker-components
+```
+
+The package publishes **only these two widgets**. It relies on the peer dependencies
+`react`, `react-dom`, `leaflet`, and `react-leaflet`, and ships its own Tailwind styles:
+
+```tsx
+import '@sousa99/fly-over-tracker-components/styles.css';
+```
+
+## FlyOverWidget
+
+A map of the configured location with the aircraft in range listed beneath it (compact
+cards). Fills the available width; the map expands to the available height and the list
+takes its natural height.
+
+<Canvas of={FlyOverWidgetStories.WithAircraft} />
+
+## ClosestAircraftCard
+
+A compact card showing the single nearest aircraft within the radius, with a smooth
+transition when the closest aircraft changes.
+
+<Canvas of={ClosestAircraftCardStories.WithClosest} />
+
+## Shared configuration
+
+Both widgets take the same props:
+
+| Prop          | Type                           | Default | Description                                        |
+| ------------- | ------------------------------ | ------- | -------------------------------------------------- |
+| `location`    | `{ lat, lng, radiusKm }`       | —       | The location and radius to watch                   |
+| `autoRefresh` | `'off' \| 5 \| 10 \| 30 \| 60` | `'off'` | Seconds between automatic refreshes                |
+| `baseUrl`     | `string`                       | `''`    | Module backend base URL; `''` = same-origin `/api` |
+| `className`   | `string`                       | —       | Extra classes on the widget root                   |
+
+See each widget's page for the full props reference, live examples, and behavior notes.
