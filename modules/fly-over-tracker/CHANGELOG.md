@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/Sousa99/fly-over-tracker/compare/v1.4.0...v1.5.0) (2026-09-23)
+
+
+### Features
+
+* dashboard embed components (fly-over widget + closest-plane card) ([#9](https://github.com/Sousa99/fly-over-tracker/issues/9)) ([673cf41](https://github.com/Sousa99/fly-over-tracker/commit/673cf413d57083d2fb62a6b8436f064a52d36360))
+
 # [1.4.0](https://github.com/Sousa99/fly-over-tracker/compare/v1.3.0...v1.4.0) (2026-09-23)
 
 
