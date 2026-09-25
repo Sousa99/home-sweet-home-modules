@@ -1,11 +1,9 @@
-import { useConfig, useRefresh, useStatus, useStopTimes } from '../api/queries';
-import type { ConfigStop, Status } from '../api/types';
+import { useConfig, useRefresh, useStatus } from '../api/queries';
+import type { Status } from '../api/types';
 import { formatScheduledTime } from '../lib/time';
-import { StopTimesList } from '../components/StopTimesList';
-import { StopCoverage } from '../components/StopCoverage';
-import { Badge } from '../components/ui/badge';
+import { StopCard } from '../components/StopCard';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 
 export default function DashboardPage() {
   const config = useConfig();
@@ -36,7 +34,17 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       ) : (
-        stops.filter((item) => item.enabled).map((item) => <StopCard key={item.id} config={item} />)
+        stops
+          .filter((item) => item.enabled)
+          .map((item) => (
+            <StopCard
+              key={item.id}
+              stopId={item.stop.id}
+              stopName={item.stop.name}
+              lines={item.lineFilter}
+              missing={item.missing}
+            />
+          ))
       )}
     </div>
   );
@@ -75,46 +83,4 @@ function StatusBanner({ status }: { status: Status | undefined }) {
     );
   }
   return null;
-}
-
-function StopCard({ config }: { config: ConfigStop }) {
-  const times = useStopTimes(config.stop.id, 5, config.lineFilter, !config.missing);
-
-  if (config.missing) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{config.stop.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-amber-700">
-            This stop no longer exists in the schedule — remove it in Config.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{config.stop.name}</CardTitle>
-        {config.lineFilter.length > 0 && <Badge>{config.lineFilter.join(', ')}</Badge>}
-      </CardHeader>
-      <CardContent>
-        {times.isLoading ? (
-          <p className="text-sm text-slate-500">Loading…</p>
-        ) : times.isError ? (
-          <p className="text-sm text-red-600">Stop not found in the current schedule.</p>
-        ) : (
-          <>
-            <StopTimesList times={times.data?.times ?? []} />
-            <div className="mt-2">
-              <StopCoverage realtime={times.data?.realtime} />
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
 }

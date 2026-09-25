@@ -50,6 +50,7 @@
     "@tanstack/react-query": "^5.103.2"
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.52.0",
     "@storybook/addon-docs": "^9.1.20",
     "@storybook/react-vite": "^9.1.20",
     "@tailwindcss/cli": "^4.3.3",

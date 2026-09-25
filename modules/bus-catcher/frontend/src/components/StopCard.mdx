@@ -1,0 +1,84 @@
+import { Canvas, Controls, Meta } from '@storybook/addon-docs/blocks';
+import * as StopCardStories from './StopCard.stories';
+
+<Meta of={StopCardStories} />
+
+# StopCard
+
+A self-contained **widget** that displays the waiting times for a given stop
+and a set of buses. It fetches the times itself (polling on an interval),
+renders the card header (stop name and, when configured, the line filter
+badge), the list of next buses — each row showing the line badge, destination
+(headsign), delay, arrival time, and a **Live** / **Schedule** pill — plus a
+per-stop realtime coverage notice.
+
+This is the same widget the SPA dashboard renders for every configured stop
+and the component published through the `@sousa99/bus-catcher-components`
+package. The showcase uses the single shared implementation, so what you see
+here matches the app.
+
+## Props
+
+The widget is driven by primitive props, rendered below by Storybook from the
+component's types (name, type, and description):
+
+- **`stopId`** (required) — the stop whose waiting times to display.
+- **`stopName`** (required) — the stop display name shown in the card header.
+- **`lines`** — the set of buses (line short names) to show; empty means all
+  lines.
+- **`limit`** — max number of buses to list (default `5`).
+- **`refetchIntervalMs`** — poll interval in ms (default `15000`; `0`
+  disables polling).
+- **`fetchTimes`** — custom fetcher override; defaults to the built-in API
+  client.
+- **`missing`** — the stop no longer exists in the schedule; shows a notice
+  and skips fetching.
+
+<Controls of={StopCardStories.Default} />
+
+The widget fetches `StopTimesResponse` (the list of `Passing` rows plus
+`RealtimeInfo`) for the given stop and bus set. When `fetchTimes` is omitted
+it uses the built-in API client (`GET /api/stops/:id/times`).
+
+## States
+
+### Default
+
+Live predictions sit next to schedule-only rows; each row is labelled
+independently, and the coverage notice reports live freshness.
+
+<Canvas of={StopCardStories.Default} />
+
+### Schedule only
+
+When no realtime data is available for a stop, every row falls back to the
+timetable and is marked **Schedule**.
+
+<Canvas of={StopCardStories.ScheduleOnly} />
+
+### Empty
+
+When there are no more buses scheduled today, the list shows its empty state
+instead of a list.
+
+<Canvas of={StopCardStories.Empty} />
+
+### Loading
+
+While the widget fetches the waiting times, it shows a loading placeholder.
+
+<Canvas of={StopCardStories.Loading} />
+
+### Error
+
+When the fetch fails (for example the stop is not in the schedule), the
+widget explains it.
+
+<Canvas of={StopCardStories.Error} />
+
+### Missing
+
+When the stop no longer exists in the schedule, the widget flags it and does
+not fetch.
+
+<Canvas of={StopCardStories.Missing} />

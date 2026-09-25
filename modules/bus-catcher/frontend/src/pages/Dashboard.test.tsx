@@ -93,7 +93,8 @@ describe('DashboardPage', () => {
     renderWithQuery(<DashboardPage />);
 
     expect(await screen.findByText('Av. Teste')).toBeInTheDocument();
-    expect(screen.getByText('736')).toBeInTheDocument();
+    // the card header filter badge and the row line badge both render "736"
+    expect(screen.getAllByText('736').length).toBeGreaterThan(0);
     expect(await screen.findByText('Cais')).toBeInTheDocument();
     expect(screen.getByText(/Schedule updated/)).toBeInTheDocument();
     await waitFor(() => {
