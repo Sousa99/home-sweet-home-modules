@@ -1,11 +1,45 @@
 import { describe, expect, it } from 'vitest';
 import { getStop, listLines, nextTimes, resolveActiveServiceIds, searchStops } from './queries';
 import { createTestDb, seedTestFeed } from '../../test-utils/db';
+import * as schema from '../../db/schema';
 
 function setup() {
   const testDb = createTestDb();
   seedTestFeed(testDb);
   return testDb;
+}
+
+/** Add a reverse-direction trip of line 736 at stop S1 (direction 1). */
+function seedReverseDirection(db: ReturnType<typeof createTestDb>['db']): void {
+  db.insert(schema.lines)
+    .values({
+      id: 'L1B',
+      shortName: '736',
+      longName: 'Cais do Sodré',
+      routeType: 3,
+      agencyId: 'A1',
+    })
+    .run();
+  db.insert(schema.trips)
+    .values({
+      id: 'T5',
+      lineId: 'L1B',
+      serviceId: 'WD',
+      headsign: 'Outurela',
+      directionId: 1,
+    })
+    .run();
+  db.insert(schema.stopTimes)
+    .values({
+      tripId: 'T5',
+      stopSequence: 1,
+      stopId: 'S1',
+      arrivalMin: 760,
+      departureMin: 760,
+      pickupType: 0,
+      dropOffType: 0,
+    })
+    .run();
 }
 
 describe('resolveActiveServiceIds', () => {
@@ -57,6 +91,18 @@ describe('getStop', () => {
     expect(stop?.lines.map((l) => l.id).sort()).toEqual(['L1', 'L2']);
   });
 
+  it('exposes one option per direction (bidirectional stops)', () => {
+    const { db } = setup();
+    seedReverseDirection(db);
+
+    const stop = getStop(db, 'S1');
+    expect(stop?.lines.map((l) => `${l.shortName}:${l.directionId}`).sort()).toEqual([
+      '706:0',
+      '736:0',
+      '736:1',
+    ]);
+  });
+
   it('returns null for an unknown stop', () => {
     const { db } = setup();
     expect(getStop(db, 'NOPE')).toBeNull();
@@ -79,6 +125,30 @@ describe('nextTimes', () => {
     const now = new Date('2026-06-15T10:30:00Z');
     expect(nextTimes(db, 'S1', { now, lines: ['706'] })).toEqual([]);
     expect(nextTimes(db, 'S1', { now, lines: ['736'] }).length).toBe(2);
+  });
+
+  it('filters by direction with directional tokens', () => {
+    const { db } = setup();
+    seedReverseDirection(db);
+    const now = new Date('2026-06-15T10:30:00Z'); // Mon 11:30 local
+
+    const dir0 = nextTimes(db, 'S1', { now, lines: ['736:0'] });
+    expect(dir0.length).toBe(2); // T2, T4 — direction 0
+    expect(dir0.every((t) => t.directionId === 0)).toBe(true);
+
+    const dir1 = nextTimes(db, 'S1', { now, lines: ['736:1'] });
+    expect(dir1).toHaveLength(1);
+    expect(dir1[0]?.directionId).toBe(1);
+    expect(dir1[0]?.headsign).toBe('Outurela');
+
+    // A plain shortName token means any direction.
+    expect(nextTimes(db, 'S1', { now, lines: ['736'] }).length).toBe(3);
+  });
+
+  it('returns nothing for an unknown direction token', () => {
+    const { db } = setup();
+    const now = new Date('2026-06-15T10:30:00Z');
+    expect(nextTimes(db, 'S1', { now, lines: ['736:9'] })).toEqual([]);
   });
 
   it('returns weekend buses on a Sunday with a line filter', () => {

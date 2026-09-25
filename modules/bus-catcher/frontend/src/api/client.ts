@@ -1,4 +1,4 @@
-import type { ConfigStop, Line, Passing, Status, Stop, StopWithLines } from './types';
+import type { ConfigStop, Line, Status, Stop, StopTimesResponse, StopWithLines } from './types';
 
 export class ApiError extends Error {
   constructor(
@@ -58,7 +58,7 @@ export const api = {
   getStopTimes: (stopId: string, limit = 5, lines?: string[]) => {
     const params = new URLSearchParams({ limit: String(limit) });
     for (const line of lines ?? []) params.append('line', line);
-    return request<{ stopId: string; times: Passing[] }>(
+    return request<StopTimesResponse>(
       `/stops/${encodeURIComponent(stopId)}/times?${params.toString()}`,
     );
   },

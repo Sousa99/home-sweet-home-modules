@@ -47,7 +47,7 @@ export function useStopTimes(stopId: string, limit = 5, lines?: string[], enable
     queryKey: ['stop-times', stopId, limit, lines?.join(',') ?? ''],
     queryFn: () => api.getStopTimes(stopId, limit, lines),
     enabled,
-    refetchInterval: enabled ? 60_000 : false,
+    refetchInterval: enabled ? 15_000 : false,
   });
 }
 
@@ -55,7 +55,7 @@ export function useStatus() {
   return useQuery({
     queryKey: ['status'],
     queryFn: api.getStatus,
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
   });
 }
 

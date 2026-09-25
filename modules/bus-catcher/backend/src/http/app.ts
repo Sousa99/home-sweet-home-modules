@@ -67,11 +67,11 @@ export function createApp(deps: AppDeps): Hono {
       return c.json({ error: 'invalid_query', detail: parsed.error.issues }, 400);
     }
     try {
-      const times = await deps.schedule.getStopTimes(stopId, {
+      const result = await deps.schedule.getStopTimes(stopId, {
         limit: parsed.data.limit,
         lines: parsed.data.line,
       });
-      return c.json({ stopId, times });
+      return c.json({ stopId, times: result.times, realtime: result.realtime });
     } catch (err) {
       if (err instanceof AppError) {
         return c.json({ error: err.code, detail: err.detail }, err.status as ContentfulStatusCode);

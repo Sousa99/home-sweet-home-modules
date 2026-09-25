@@ -3,10 +3,23 @@ import { inArray } from 'drizzle-orm';
 import type { DB } from '../db/client';
 import * as schema from '../db/schema';
 import { AppError } from '../lib/errors';
+import { parseLineToken } from '../providers/carris-metropolitana/queries';
 import type { ConfigStop, CreateConfigStopBody, Stop, UpdateConfigStopBody } from '../lib/schemas';
 
-function toStop(row: { id: string; name: string; lat: number | null; lon: number | null }): Stop {
-  return { id: row.id, name: row.name, lat: row.lat ?? 0, lon: row.lon ?? 0 };
+function toStop(row: {
+  id: string;
+  name: string;
+  lat: number | null;
+  lon: number | null;
+  realtimeId: string | null;
+}): Stop {
+  return {
+    id: row.id,
+    name: row.name,
+    lat: row.lat ?? 0,
+    lon: row.lon ?? 0,
+    realtimeId: row.realtimeId,
+  };
 }
 
 function readLineFilter(raw: string | null): string[] {
@@ -28,7 +41,13 @@ function toConfigStop(
     displayOrder: number;
     enabled: number;
   },
-  stopRow: { id: string; name: string; lat: number | null; lon: number | null } | null,
+  stopRow: {
+    id: string;
+    name: string;
+    lat: number | null;
+    lon: number | null;
+    realtimeId: string | null;
+  } | null,
 ): ConfigStop {
   const base = {
     id: row.id,
@@ -52,6 +71,7 @@ function loadStop(
   name: string;
   lat: number | null;
   lon: number | null;
+  realtimeId: string | null;
 } | null {
   const row = db
     .select({
@@ -59,6 +79,7 @@ function loadStop(
       name: schema.stops.name,
       lat: schema.stops.lat,
       lon: schema.stops.lon,
+      realtimeId: schema.stops.realtimeId,
     })
     .from(schema.stops)
     .where(eq(schema.stops.id, stopId))
@@ -66,17 +87,41 @@ function loadStop(
   return row ?? null;
 }
 
+/**
+ * Validate a line-filter token list. A token is `shortName` (any direction)
+ * or `shortName:directionId` (e.g. `736:0`). Directional tokens must resolve
+ * to an existing trip of that line in that direction.
+ */
 function validateLineFilter(db: DB, lineFilter: string[]): void {
   if (lineFilter.length === 0) return;
+  const tokens = lineFilter.map(parseLineToken);
+  const names = [...new Set(tokens.map((t) => t.shortName))];
   const rows = db
     .select({ shortName: schema.lines.shortName })
     .from(schema.lines)
-    .where(inArray(schema.lines.shortName, lineFilter))
+    .where(inArray(schema.lines.shortName, names))
     .all();
   const found = new Set(rows.map((r) => r.shortName));
-  const missing = lineFilter.filter((line) => !found.has(line));
+  const missing = names.filter((name) => !found.has(name));
   if (missing.length > 0) {
     throw new AppError(400, 'unknown_line', undefined, missing);
+  }
+
+  const directional = tokens.filter((t) => t.directionId !== null);
+  if (directional.length === 0) return;
+  const dirNames = [...new Set(directional.map((t) => t.shortName))];
+  const tripRows = db
+    .select({ shortName: schema.lines.shortName, directionId: schema.trips.directionId })
+    .from(schema.trips)
+    .innerJoin(schema.lines, eq(schema.trips.lineId, schema.lines.id))
+    .where(inArray(schema.lines.shortName, dirNames))
+    .all();
+  const validDirs = new Set(tripRows.map((r) => `${r.shortName}:${r.directionId}`));
+  const missingDirs = directional
+    .filter((t) => !validDirs.has(`${t.shortName}:${t.directionId}`))
+    .map((t) => `${t.shortName}:${t.directionId}`);
+  if (missingDirs.length > 0) {
+    throw new AppError(400, 'unknown_line', undefined, missingDirs);
   }
 }
 
@@ -117,6 +162,7 @@ export function listConfig(db: DB): ConfigStop[] {
         name: schema.stops.name,
         lat: schema.stops.lat,
         lon: schema.stops.lon,
+        realtimeId: schema.stops.realtimeId,
       })
       .from(schema.stops)
       .all()

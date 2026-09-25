@@ -122,11 +122,11 @@ function registerTools(server: McpServer, deps: BackendDeps): void {
     },
     async ({ stopId, limit, lines }) => {
       try {
-        const times = await deps.schedule.getStopTimes(stopId, {
+        const result = await deps.schedule.getStopTimes(stopId, {
           limit: limit ?? 5,
           lines,
         });
-        return ok({ stopId, times });
+        return ok({ stopId, times: result.times, realtime: result.realtime });
       } catch (err) {
         return fail(err);
       }

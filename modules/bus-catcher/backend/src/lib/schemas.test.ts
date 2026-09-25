@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   createConfigStopBodySchema,
+  lineOptionSchema,
   lineSchema,
   nextTimesQuerySchema,
   passingSchema,
+  realtimeInfoSchema,
   searchStopsQuerySchema,
   statusSchema,
+  stopTimesResponseSchema,
   updateConfigStopBodySchema,
 } from './schemas';
 
@@ -22,6 +25,19 @@ describe('line schema', () => {
   it('rejects a line missing shortName', () => {
     const parsed = lineSchema.safeParse({ id: '736', longName: 'Cais' });
     expect(parsed.success).toBe(false);
+  });
+});
+
+describe('lineOptionSchema', () => {
+  it('accepts a per-direction line option', () => {
+    const parsed = lineOptionSchema.safeParse({
+      id: '736_0',
+      shortName: '736',
+      longName: 'Cais do Sodré',
+      directionId: 0,
+      headsign: 'Cais',
+    });
+    expect(parsed.success).toBe(true);
   });
 });
 
@@ -47,6 +63,44 @@ describe('passing schema', () => {
     });
     expect(parsed.success).toBe(false);
   });
+
+  it('accepts a live passing with source, predictedAt and delayMinutes', () => {
+    const parsed = passingSchema.safeParse({
+      lineId: '736',
+      lineShortName: '736',
+      headsign: 'Cais',
+      scheduledAt: '2026-06-15T10:00:00.000Z',
+      minutesUntil: 10,
+      source: 'live',
+      predictedAt: '2026-06-15T09:57:00.000Z',
+      delayMinutes: -3,
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('rejects an unknown source value', () => {
+    const parsed = passingSchema.safeParse({
+      lineId: '736',
+      lineShortName: '736',
+      headsign: 'Cais',
+      scheduledAt: '2026-06-15T10:00:00.000Z',
+      minutesUntil: 10,
+      source: 'estimated',
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('accepts 001-only payloads unchanged (backward compatibility)', () => {
+    const parsed = passingSchema.safeParse({
+      lineId: '736',
+      lineShortName: '736',
+      headsign: 'Cais',
+      scheduledAt: '2026-06-15T10:00:00.000Z',
+      minutesUntil: 10,
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.source).toBeUndefined();
+  });
 });
 
 describe('status schema', () => {
@@ -57,6 +111,66 @@ describe('status schema', () => {
         feedVersion: null,
         stale: false,
         refreshing: false,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('accepts the optional realtime fields', () => {
+    const parsed = statusSchema.safeParse({
+      lastRefresh: null,
+      feedVersion: null,
+      stale: false,
+      refreshing: false,
+      realtimeLastUpdate: '2026-06-15T10:30:00.000Z',
+      realtimeAvailable: true,
+      realtimeStale: false,
+    });
+    expect(parsed.success).toBe(true);
+  });
+});
+
+describe('realtimeInfoSchema', () => {
+  it('accepts a valid coverage block', () => {
+    expect(
+      realtimeInfoSchema.safeParse({
+        available: true,
+        lastUpdate: '2026-06-15T10:30:00.000Z',
+        liveCount: 3,
+        totalCount: 5,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('accepts an unavailable block', () => {
+    expect(
+      realtimeInfoSchema.safeParse({
+        available: false,
+        lastUpdate: null,
+        liveCount: 0,
+        totalCount: 5,
+      }).success,
+    ).toBe(true);
+  });
+});
+
+describe('stopTimesResponseSchema', () => {
+  it('accepts a times response with a realtime block', () => {
+    expect(
+      stopTimesResponseSchema.safeParse({
+        stopId: 'S1',
+        times: [
+          {
+            lineId: 'L1',
+            lineShortName: '736',
+            headsign: 'Cais',
+            scheduledAt: '2026-06-15T10:00:00.000Z',
+            minutesUntil: 10,
+            source: 'live',
+            predictedAt: '2026-06-15T09:57:00.000Z',
+            delayMinutes: -3,
+          },
+        ],
+        realtime: { available: true, lastUpdate: null, liveCount: 1, totalCount: 1 },
       }).success,
     ).toBe(true);
   });

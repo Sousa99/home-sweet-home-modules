@@ -25,8 +25,11 @@ exact SQLite types and drizzle columns are defined during implementation.
 | `id` (stop_id) | string | PK, from GTFS `stops.txt` |
 | `name` | string | stop name |
 | `lat` / `lon` | float | coordinates |
+| `realtime_id` | string \| null | **added by 002** — the id the realtime feed keys this stop by (from GTFS `legacy_ids`; the static feed renumbered some stops, e.g. `360322` ↔ realtime `060322`). Null when the feed uses the same id. |
 
-- **Source**: GTFS `stops.txt`. ~2,344 stops in the feed.
+- **Source**: GTFS `stops.txt`. ~12.7k stops in the feed.
+- **Realtime lookup**: the realtime client must fetch arrivals with `realtime_id`
+  (falling back to `id`), or renumbered stops return no live data.
 
 ## 3. `trips`
 

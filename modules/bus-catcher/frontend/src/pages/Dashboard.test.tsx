@@ -78,7 +78,11 @@ describe('DashboardPage', () => {
       },
     ];
     mockedGetConfig.mockResolvedValue({ stops: [stop] });
-    mockedGetStopTimes.mockResolvedValue({ stopId: 'S1', times });
+    mockedGetStopTimes.mockResolvedValue({
+      stopId: 'S1',
+      times,
+      realtime: { available: false, lastUpdate: null, liveCount: 0, totalCount: times.length },
+    });
     mockedGetStatus.mockResolvedValue({
       lastRefresh: '2026-09-25T08:00:00.000Z',
       feedVersion: 'abc',
@@ -95,6 +99,53 @@ describe('DashboardPage', () => {
     await waitFor(() => {
       expect(mockedGetStopTimes).toHaveBeenCalled();
     });
+  });
+
+  it('shows the per-stop schedule-only notice when live times are unavailable', async () => {
+    const stop: ConfigStop = {
+      id: 1,
+      stop: { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0 },
+      lineFilter: [],
+      displayOrder: 0,
+      enabled: true,
+    };
+    mockedGetConfig.mockResolvedValue({ stops: [stop] });
+    mockedGetStopTimes.mockResolvedValue({
+      stopId: 'S1',
+      times: [],
+      realtime: { available: false, lastUpdate: null, liveCount: 0, totalCount: 0 },
+    });
+    mockedGetStatus.mockResolvedValue({
+      lastRefresh: null,
+      feedVersion: null,
+      stale: false,
+      refreshing: false,
+    });
+
+    renderWithQuery(<DashboardPage />);
+
+    expect(
+      await screen.findByText('Live times unavailable — showing schedule.'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows a global banner when the realtime feed went down', async () => {
+    mockedGetConfig.mockResolvedValue({ stops: [] });
+    mockedGetStatus.mockResolvedValue({
+      lastRefresh: '2026-09-25T08:00:00.000Z',
+      feedVersion: 'abc',
+      stale: false,
+      refreshing: false,
+      realtimeLastUpdate: '2026-09-25T08:00:00.000Z',
+      realtimeAvailable: false,
+      realtimeStale: true,
+    });
+
+    renderWithQuery(<DashboardPage />);
+
+    expect(
+      await screen.findByText('Live ETA is unavailable right now — showing scheduled times.'),
+    ).toBeInTheDocument();
   });
 
   it('triggers a refresh from the button', async () => {

@@ -7,12 +7,31 @@ import {
   useStop,
   useUpdateStop,
 } from '../api/queries';
-import type { ConfigStop, Stop } from '../api/types';
+import type { ConfigStop, LineOption, Stop } from '../api/types';
 import { cn } from '../lib/utils';
 import { StopSearch } from './StopSearch';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+
+/** A line-filter token: `shortName` (any direction) or `shortName:directionId`. */
+function lineToken(line: LineOption): string {
+  return line.directionId === null || line.directionId === undefined
+    ? line.shortName
+    : `${line.shortName}:${line.directionId}`;
+}
+
+function lineLabel(line: LineOption): string {
+  return line.headsign ? `${line.shortName} → ${line.headsign}` : line.shortName;
+}
+
+function mutationError(err: unknown): string {
+  const code = err && typeof err === 'object' ? (err as { code?: unknown }).code : undefined;
+  if (code === 'duplicate_stop') return 'This stop is already configured.';
+  if (code === 'unknown_line') return 'Some selected lines no longer exist.';
+  if (typeof code === 'string') return `Could not save: ${code}`;
+  return 'Something went wrong. Please try again.';
+}
 
 export function ConfigPanel() {
   const config = useConfig();
@@ -24,9 +43,9 @@ export function ConfigPanel() {
 
   const servingLines = stopQuery.data?.stop.lines ?? [];
 
-  function toggleLine(line: string) {
+  function toggleLine(token: string) {
     setLineFilter((prev) =>
-      prev.includes(line) ? prev.filter((l) => l !== line) : [...prev, line],
+      prev.includes(token) ? prev.filter((l) => l !== token) : [...prev, token],
     );
   }
 
@@ -37,9 +56,13 @@ export function ConfigPanel() {
 
   async function save() {
     if (!selected) return;
-    await addStop.mutateAsync({ stopId: selected.id, lineFilter });
-    setSelected(null);
-    setLineFilter([]);
+    try {
+      await addStop.mutateAsync({ stopId: selected.id, lineFilter });
+      setSelected(null);
+      setLineFilter([]);
+    } catch {
+      // error is surfaced inline below; keep the selection so the user can retry
+    }
   }
 
   return (
@@ -55,24 +78,29 @@ export function ConfigPanel() {
               <p className="text-sm font-medium text-slate-700">{selected.name}</p>
               {servingLines.length > 0 && (
                 <div className="mt-2">
-                  <p className="text-xs text-slate-500">Filter by line (optional)</p>
+                  <p className="text-xs text-slate-500">Filter by line and direction (optional)</p>
                   <div className="mt-1 flex flex-wrap gap-1.5">
                     {servingLines.map((line) => (
                       <Button
-                        key={line.id}
+                        key={`${line.shortName}:${line.directionId ?? 'any'}`}
                         size="sm"
-                        variant={lineFilter.includes(line.shortName) ? 'default' : 'secondary'}
-                        onClick={() => toggleLine(line.shortName)}
+                        variant={lineFilter.includes(lineToken(line)) ? 'default' : 'secondary'}
+                        onClick={() => toggleLine(lineToken(line))}
                       >
-                        {line.shortName}
+                        {lineLabel(line)}
                       </Button>
                     ))}
                   </div>
                 </div>
               )}
               <Button className="mt-3" onClick={save} disabled={addStop.isPending}>
-                Save stop
+                {addStop.isPending ? 'Saving…' : 'Save stop'}
               </Button>
+              {addStop.isError && (
+                <p className="mt-2 text-sm text-red-600" role="alert">
+                  {mutationError(addStop.error)}
+                </p>
+              )}
             </div>
           )}
         </CardContent>
@@ -114,7 +142,7 @@ function ConfigStopRow({
   const [editing, setEditing] = useState(false);
 
   const knownLines = new Set((lines.data?.lines ?? []).map((l) => l.shortName));
-  const missingLines = item.lineFilter.filter((line) => !knownLines.has(line));
+  const missingLines = item.lineFilter.filter((token) => !knownLines.has(token.split(':')[0]!));
 
   async function move(dir: -1 | 1) {
     const other = stops[index + dir];
@@ -201,13 +229,19 @@ function EditFilter({ item, onDone }: { item: ConfigStop; onDone: () => void }) 
   const [filter, setFilter] = useState(item.lineFilter);
   const servingLines = stopQuery.data?.stop.lines ?? [];
 
-  function toggle(line: string) {
-    setFilter((prev) => (prev.includes(line) ? prev.filter((l) => l !== line) : [...prev, line]));
+  function toggle(token: string) {
+    setFilter((prev) =>
+      prev.includes(token) ? prev.filter((l) => l !== token) : [...prev, token],
+    );
   }
 
   async function save() {
-    await update.mutateAsync({ id: item.id, body: { lineFilter: filter } });
-    onDone();
+    try {
+      await update.mutateAsync({ id: item.id, body: { lineFilter: filter } });
+      onDone();
+    } catch {
+      // error is surfaced inline below; keep the panel open so the user can retry
+    }
   }
 
   return (
@@ -219,24 +253,29 @@ function EditFilter({ item, onDone }: { item: ConfigStop; onDone: () => void }) 
         <div className="mt-1 flex flex-wrap gap-1.5">
           {servingLines.map((line) => (
             <Button
-              key={line.id}
+              key={`${line.shortName}:${line.directionId ?? 'any'}`}
               size="sm"
-              variant={filter.includes(line.shortName) ? 'default' : 'secondary'}
-              onClick={() => toggle(line.shortName)}
+              variant={filter.includes(lineToken(line)) ? 'default' : 'secondary'}
+              onClick={() => toggle(lineToken(line))}
             >
-              {line.shortName}
+              {lineLabel(line)}
             </Button>
           ))}
         </div>
       )}
       <div className="mt-2 flex gap-2">
         <Button size="sm" onClick={() => void save()} disabled={update.isPending}>
-          Save
+          {update.isPending ? 'Saving…' : 'Save'}
         </Button>
         <Button size="sm" variant="ghost" onClick={onDone}>
           Cancel
         </Button>
       </div>
+      {update.isError && (
+        <p className="mt-2 text-sm text-red-600" role="alert">
+          {mutationError(update.error)}
+        </p>
+      )}
     </div>
   );
 }

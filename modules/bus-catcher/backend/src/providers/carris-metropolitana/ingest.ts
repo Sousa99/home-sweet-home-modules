@@ -104,8 +104,8 @@ export async function ingestGtfsZip(
     insertChunked(
       sqlite,
       'stops',
-      ['id', 'name', 'lat', 'lon'],
-      meta.stops.map((s) => [s.id, s.name, s.lat, s.lon]),
+      ['id', 'name', 'lat', 'lon', 'realtime_id'],
+      meta.stops.map((s) => [s.id, s.name, s.lat, s.lon, s.realtimeId]),
     );
     insertChunked(
       sqlite,

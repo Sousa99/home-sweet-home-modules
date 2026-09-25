@@ -65,14 +65,22 @@ describe('ConfigPanel', () => {
     mockedGetStop.mockResolvedValue({
       stop: {
         ...stop,
-        lines: [{ id: 'L1', shortName: '736', longName: 'Cais do Sodré' }],
+        lines: [
+          {
+            id: 'L1',
+            shortName: '736',
+            longName: 'Cais do Sodré',
+            directionId: 0,
+            headsign: 'Cais',
+          },
+        ],
       },
     });
     mockedGetConfig.mockResolvedValue({ stops: [] });
     const created: ConfigStop = {
       id: 1,
       stop,
-      lineFilter: ['736'],
+      lineFilter: ['736:0'],
       displayOrder: 0,
       enabled: true,
     };
@@ -87,18 +95,84 @@ describe('ConfigPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Av. Teste' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: '736' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '736 → Cais' })).toBeInTheDocument();
     });
-    await userEvent.click(screen.getByRole('button', { name: '736' }));
+    await userEvent.click(screen.getByRole('button', { name: '736 → Cais' }));
 
     await userEvent.click(screen.getByRole('button', { name: 'Save stop' }));
 
     await waitFor(() => {
       expect(mockedAdd.mock.calls[0]?.[0]).toEqual({
         stopId: 'S1',
-        lineFilter: ['736'],
+        lineFilter: ['736:0'],
       });
     });
+  });
+
+  it('offers one selectable option per direction (bidirectional stops)', async () => {
+    const stop: Stop = { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0 };
+    mockedSearch.mockResolvedValue({ stops: [stop] });
+    mockedGetStop.mockResolvedValue({
+      stop: {
+        ...stop,
+        lines: [
+          { id: 'L1A', shortName: '736', longName: 'Cais', directionId: 0, headsign: 'Cais' },
+          { id: 'L1B', shortName: '736', longName: 'Cais', directionId: 1, headsign: 'Outurela' },
+          {
+            id: 'L2',
+            shortName: '706',
+            longName: 'Campo de Ourique',
+            directionId: 0,
+            headsign: 'Campo de Ourique',
+          },
+        ],
+      },
+    });
+    mockedGetConfig.mockResolvedValue({ stops: [] });
+    mockedAdd.mockResolvedValue({
+      stop: { id: 1, stop, lineFilter: ['736:0', '736:1'], displayOrder: 0, enabled: true },
+    });
+
+    renderWithQuery(<ConfigPanel />);
+
+    await userEvent.type(screen.getByLabelText('Search stops'), 'teste');
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Av. Teste' })).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Av. Teste' }));
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: /^736 →/ })).toHaveLength(2);
+    });
+    await userEvent.click(screen.getByRole('button', { name: '736 → Cais' }));
+    await userEvent.click(screen.getByRole('button', { name: '736 → Outurela' }));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save stop' }));
+    await waitFor(() => {
+      expect(mockedAdd.mock.calls[0]?.[0]).toEqual({
+        stopId: 'S1',
+        lineFilter: ['736:0', '736:1'],
+      });
+    });
+  });
+
+  it('shows an inline error when saving a duplicate stop fails', async () => {
+    const stop: Stop = { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0 };
+    mockedSearch.mockResolvedValue({ stops: [stop] });
+    mockedGetStop.mockResolvedValue({ stop: { ...stop, lines: [] } });
+    mockedGetConfig.mockResolvedValue({ stops: [] });
+    mockedAdd.mockRejectedValue({ code: 'duplicate_stop' });
+
+    renderWithQuery(<ConfigPanel />);
+
+    await userEvent.type(screen.getByLabelText('Search stops'), 'teste');
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Av. Teste' })).toBeInTheDocument();
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Av. Teste' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save stop' }));
+
+    expect(await screen.findByText('This stop is already configured.')).toBeInTheDocument();
   });
 
   it('removes a configured stop', async () => {
@@ -165,21 +239,21 @@ describe('ConfigPanel', () => {
     mockedGetStop.mockResolvedValue({
       stop: {
         ...stop.stop,
-        lines: [{ id: 'L1', shortName: '736', longName: 'Cais' }],
+        lines: [{ id: 'L1', shortName: '736', longName: 'Cais', directionId: 0, headsign: 'Cais' }],
       },
     });
     mockedUpdate.mockResolvedValue({
-      stop: { ...stop, lineFilter: ['736'] },
+      stop: { ...stop, lineFilter: ['736:0'] },
     });
 
     renderWithQuery(<ConfigPanel />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Edit' }));
-    await userEvent.click(await screen.findByRole('button', { name: '736' }));
+    await userEvent.click(await screen.findByRole('button', { name: '736 → Cais' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
-      expect(mockedUpdate.mock.calls[0]).toEqual([1, { lineFilter: ['736'] }]);
+      expect(mockedUpdate.mock.calls[0]).toEqual([1, { lineFilter: ['736:0'] }]);
     });
   });
 

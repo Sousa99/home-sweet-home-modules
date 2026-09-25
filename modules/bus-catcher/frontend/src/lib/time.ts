@@ -19,3 +19,15 @@ export function countdownLabel(iso: string): string {
   const rest = minutes % 60;
   return rest === 0 ? `in ${hours}h` : `in ${hours}h ${rest}m`;
 }
+
+/**
+ * Human label for a live prediction's deviation from the schedule.
+ * Positive = late, negative = early; zero is "on time".
+ */
+export function formatDelay(delayMinutes: number | null | undefined): string | null {
+  if (delayMinutes === null || delayMinutes === undefined) return null;
+  const rounded = Math.round(delayMinutes);
+  if (rounded === 0) return 'on time';
+  const sign = rounded > 0 ? '+' : '-';
+  return `${sign}${Math.abs(rounded)} min`;
+}

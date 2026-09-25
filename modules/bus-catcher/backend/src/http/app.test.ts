@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { createTestBackend, seedTestFeed } from '../test-utils/db';
 import { createScheduleService } from '../services/schedule';
 import type { RefreshService } from '../services/refresh';
+import type { LiveEtaProvider, RealtimeSnapshot } from '../providers/types';
+import { dateToServiceDay, minutesToDate } from '../lib/time';
 import { createApp } from './app';
 
 const refreshStub: RefreshService = {
@@ -10,6 +12,20 @@ const refreshStub: RefreshService = {
   whenIdle: async () => {},
 };
 
+function stubRealtime(
+  snapshot: RealtimeSnapshot,
+  status: { lastUpdate: string | null; available: boolean; stale: boolean } = {
+    lastUpdate: null,
+    available: false,
+    stale: false,
+  },
+): LiveEtaProvider {
+  return {
+    getStopArrivals: async () => snapshot,
+    getStatus: async () => status,
+  };
+}
+
 function setup() {
   const backend = createTestBackend();
   seedTestFeed(backend);
@@ -17,6 +33,18 @@ function setup() {
     provider: backend.provider,
     config: backend.config,
     schedule: createScheduleService(backend.provider),
+    refresh: refreshStub,
+  });
+  return { app, backend };
+}
+
+function setupWithRealtime(snapshot: RealtimeSnapshot) {
+  const backend = createTestBackend();
+  seedTestFeed(backend);
+  const app = createApp({
+    provider: backend.provider,
+    config: backend.config,
+    schedule: createScheduleService(backend.provider, undefined, stubRealtime(snapshot)),
     refresh: refreshStub,
   });
   return { app, backend };
@@ -263,5 +291,90 @@ describe('US1 REST contract', () => {
     expect(body.stops).toHaveLength(1);
     expect(body.stops[0]!.missing).toBe(true);
     expect(body.stops[0]!.stop.id).toBe('S1');
+  });
+});
+
+describe('US1/US2/US4 realtime REST contract', () => {
+  it('GET /api/stops/S1/times returns enriched live rows and a realtime block', async () => {
+    // The route always evaluates against wall-clock now, so predict the one
+    // fixture trip that is always upcoming regardless of when tests run: T4
+    // (~01:00 the following service day).
+    const now = new Date();
+    const serviceDay = dateToServiceDay(now);
+    const t4Scheduled = minutesToDate(1500, serviceDay);
+    const t4Predicted = new Date(t4Scheduled.getTime() + 4 * 60_000);
+
+    const { app } = setupWithRealtime({
+      arrivals: [
+        {
+          tripId: 'rt-T4',
+          stopId: 'S1',
+          lineId: '736',
+          headsign: 'Cais',
+          directionId: 0,
+          estimatedAt: t4Predicted.getTime(),
+          scheduledAt: t4Scheduled.getTime(),
+          fetchedAt: 0,
+        },
+      ],
+      fetchedAt: now.getTime(),
+      available: true,
+    });
+    const res = await app.request('/api/stops/S1/times?limit=2');
+    expect(res.status).toBe(200);
+    const body = await json<{
+      times: Array<{ source?: string; delayMinutes?: number | null }>;
+      realtime: { available: boolean; liveCount: number; totalCount: number };
+    }>(res);
+    const live = body.times.find((t) => t.source === 'live');
+    expect(live).toBeDefined();
+    expect(live?.delayMinutes).toBe(4);
+    expect(body.realtime.available).toBe(true);
+    expect(body.realtime.liveCount).toBe(1);
+    expect(body.realtime.totalCount).toBe(body.times.length);
+  });
+
+  it('GET /api/stops/S1/times degrades to schedule-only when the feed is down (no 5xx)', async () => {
+    const { app } = setupWithRealtime({
+      arrivals: [],
+      fetchedAt: Date.parse('2026-06-15T10:30:00.000Z'),
+      available: false,
+    });
+    const res = await app.request('/api/stops/S1/times?limit=2');
+    expect(res.status).toBe(200);
+    const body = await json<{
+      times: Array<{ source?: string }>;
+      realtime: { available: boolean; liveCount: number };
+    }>(res);
+    expect(body.realtime.available).toBe(false);
+    for (const t of body.times) expect(t.source).toBeUndefined();
+  });
+
+  it('GET /api/status returns realtime freshness fields', async () => {
+    const backend = createTestBackend();
+    seedTestFeed(backend);
+    const app = createApp({
+      provider: backend.provider,
+      config: backend.config,
+      schedule: createScheduleService(
+        backend.provider,
+        undefined,
+        stubRealtime(
+          { arrivals: [], fetchedAt: 0, available: true },
+          { lastUpdate: '2026-06-15T10:30:00.000Z', available: true, stale: false },
+        ),
+      ),
+      refresh: refreshStub,
+    });
+    const res = await app.request('/api/status');
+    expect(res.status).toBe(200);
+    const body = await json<{
+      realtimeLastUpdate?: string | null;
+      realtimeAvailable?: boolean;
+      realtimeStale?: boolean;
+    }>(res);
+    expect(body.realtimeLastUpdate).toBe('2026-06-15T10:30:00.000Z');
+    expect(body.realtimeAvailable).toBe(true);
+    expect(body.realtimeStale).toBe(false);
   });
 });

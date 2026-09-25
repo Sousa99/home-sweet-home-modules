@@ -9,9 +9,9 @@ const routes = [
 ].join('\n');
 
 const stops = [
-  'stop_id,stop_name,stop_lat,stop_lon',
-  'S1,Av. Teste,38.7,-9.1',
-  'S2,Bad Row,abc,xyz',
+  'stop_id,stop_name,stop_lat,stop_lon,legacy_ids',
+  'S1,Av. Teste,38.7,-9.1,LA77N-0001|BNA17-0001',
+  'S2,Bad Row,abc,xyz,',
 ].join('\n');
 
 const trips = ['trip_id,route_id,service_id,trip_headsign,direction_id', 'T1,R1,WK,Cais,0'].join(
@@ -57,7 +57,13 @@ describe('parseGtfsFiles', () => {
 
   it('parses stops and skips malformed rows with a warning', () => {
     expect(parsed.stops).toHaveLength(1);
-    expect(parsed.stops[0]!).toMatchObject({ id: 'S1', name: 'Av. Teste', lat: 38.7, lon: -9.1 });
+    expect(parsed.stops[0]!).toMatchObject({
+      id: 'S1',
+      name: 'Av. Teste',
+      lat: 38.7,
+      lon: -9.1,
+      realtimeId: '0001',
+    });
     expect(parsed.warnings.some((w) => w.includes('stops.txt'))).toBe(true);
   });
 

@@ -2,6 +2,7 @@ import { useConfig, useRefresh, useStatus, useStopTimes } from '../api/queries';
 import type { ConfigStop, Status } from '../api/types';
 import { formatScheduledTime } from '../lib/time';
 import { StopTimesList } from '../components/StopTimesList';
+import { StopCoverage } from '../components/StopCoverage';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -47,6 +48,13 @@ function StatusBanner({ status }: { status: Status | undefined }) {
     return (
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
         Refreshing the schedule — times may be temporarily out of date.
+      </div>
+    );
+  }
+  if (status.realtimeAvailable === false && status.realtimeLastUpdate !== null) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+        Live ETA is unavailable right now — showing scheduled times.
       </div>
     );
   }
@@ -99,7 +107,12 @@ function StopCard({ config }: { config: ConfigStop }) {
         ) : times.isError ? (
           <p className="text-sm text-red-600">Stop not found in the current schedule.</p>
         ) : (
-          <StopTimesList times={times.data?.times ?? []} />
+          <>
+            <StopTimesList times={times.data?.times ?? []} />
+            <div className="mt-2">
+              <StopCoverage realtime={times.data?.realtime} />
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

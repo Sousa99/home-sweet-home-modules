@@ -13,6 +13,9 @@ export const stops = sqliteTable('stops', {
   name: text('name').notNull(),
   lat: real('lat'),
   lon: real('lon'),
+  // The id the realtime feed knows this stop by (from GTFS legacy_ids).
+  // Differs from `id` when the static feed renumbers stops.
+  realtimeId: text('realtime_id'),
 });
 
 export const trips = sqliteTable(

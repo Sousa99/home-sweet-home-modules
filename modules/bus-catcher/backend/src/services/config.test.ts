@@ -50,6 +50,24 @@ describe('config service', () => {
     );
   });
 
+  it('accepts directional line tokens', () => {
+    const backend = setup();
+    const stop = backend.config.addConfigStop({
+      stopId: 'S1',
+      lineFilter: ['736:0'],
+    });
+    expect(stop.lineFilter).toEqual(['736:0']);
+  });
+
+  it('rejects a directional token whose direction does not exist', () => {
+    const backend = setup();
+    expectAppError(
+      () => backend.config.addConfigStop({ stopId: 'S1', lineFilter: ['736:1'] }),
+      400,
+      'unknown_line',
+    );
+  });
+
   it('rejects a duplicate stop', () => {
     const backend = setup();
     backend.config.addConfigStop({ stopId: 'S1' });

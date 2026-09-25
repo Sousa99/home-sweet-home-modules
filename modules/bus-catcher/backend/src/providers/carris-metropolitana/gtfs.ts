@@ -14,6 +14,8 @@ export interface GtfsStop {
   name: string;
   lat: number | null;
   lon: number | null;
+  /** The id the realtime feed knows this stop by (legacy id suffix), if any. */
+  realtimeId: string | null;
 }
 
 export interface GtfsTrip {
@@ -182,7 +184,21 @@ const stopSchema = z.object({
   stop_name: z.string().optional(),
   stop_lat: z.coerce.number().optional(),
   stop_lon: z.coerce.number().optional(),
+  legacy_ids: z.string().optional(),
 });
+
+/**
+ * The realtime feed keys stops by the legacy id (e.g. GTFS `360322` ↔ realtime
+ * `060322`). legacy_ids looks like `LA77N-060322|BNA17-060322|...`; the realtime
+ * id is the suffix after the last `-`.
+ */
+function realtimeIdFromLegacy(legacyIds: string | undefined): string | null {
+  if (!legacyIds) return null;
+  const first = legacyIds.split('|')[0];
+  if (!first) return null;
+  const suffix = first.split('-').pop();
+  return suffix && suffix.length > 0 ? suffix : null;
+}
 
 const tripSchema = z.object({
   trip_id: z.string().min(1),
@@ -280,6 +296,7 @@ export function parseGtfsMeta(files: Record<string, string>): Omit<ParsedGtfs, '
         name: r.stop_name ?? r.stop_id,
         lat: r.stop_lat ?? null,
         lon: r.stop_lon ?? null,
+        realtimeId: realtimeIdFromLegacy(r.legacy_ids),
       };
     },
     warnings,

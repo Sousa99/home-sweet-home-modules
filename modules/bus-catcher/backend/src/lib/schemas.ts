@@ -12,22 +12,56 @@ export const stopSchema = z.object({
   name: z.string(),
   lat: z.number(),
   lon: z.number(),
+  realtimeId: z.string().nullable().optional(),
 });
 export type Stop = z.infer<typeof stopSchema>;
 
+/**
+ * A line option at a stop, resolved per direction so a bidirectional stop
+ * yields one entry per direction (e.g. "736 → Cais" and "736 → Outurela").
+ */
+export const lineOptionSchema = z.object({
+  id: z.string(),
+  shortName: z.string(),
+  longName: z.string(),
+  directionId: z.number().nullable(),
+  headsign: z.string(),
+});
+export type LineOption = z.infer<typeof lineOptionSchema>;
+
 export const stopWithLinesSchema = stopSchema.extend({
-  lines: z.array(lineSchema),
+  lines: z.array(lineOptionSchema),
 });
 export type StopWithLines = z.infer<typeof stopWithLinesSchema>;
 
 export const passingSchema = z.object({
+  tripId: z.string().optional(),
   lineId: z.string(),
   lineShortName: z.string(),
   headsign: z.string(),
+  directionId: z.number().nullable().optional(),
   scheduledAt: z.string().datetime(),
   minutesUntil: z.number(),
+  source: z.enum(['live', 'scheduled']).optional(),
+  predictedAt: z.string().datetime().nullable().optional(),
+  delayMinutes: z.number().nullable().optional(),
 });
 export type Passing = z.infer<typeof passingSchema>;
+
+export const realtimeInfoSchema = z.object({
+  available: z.boolean(),
+  lastUpdate: z.string().nullable(),
+  liveCount: z.number(),
+  totalCount: z.number(),
+});
+export type RealtimeInfo = z.infer<typeof realtimeInfoSchema>;
+
+export const stopTimesResponseSchema = z.object({
+  stopId: z.string(),
+  times: z.array(passingSchema),
+  realtime: realtimeInfoSchema,
+});
+export type StopTimesResponse = z.infer<typeof stopTimesResponseSchema>;
 
 export const configStopSchema = z.object({
   id: z.number(),
@@ -44,6 +78,9 @@ export const statusSchema = z.object({
   feedVersion: z.string().nullable(),
   stale: z.boolean(),
   refreshing: z.boolean(),
+  realtimeLastUpdate: z.string().nullable().optional(),
+  realtimeAvailable: z.boolean().optional(),
+  realtimeStale: z.boolean().optional(),
 });
 export type Status = z.infer<typeof statusSchema>;
 
