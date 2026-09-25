@@ -46,7 +46,9 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@tanstack/react-query": "^5.103.2"
+  },
   "devDependencies": {
     "@storybook/addon-docs": "^9.1.20",
     "@storybook/react-vite": "^9.1.20",

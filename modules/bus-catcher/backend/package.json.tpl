@@ -11,15 +11,28 @@
     "dev:mcp": "tsx watch src/index.ts --mcp",
     "start": "tsx src/index.ts --http",
     "start:mcp": "tsx src/index.ts --mcp",
-    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/index.js",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/index.js && esbuild src/db/migrate.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/migrate.js && esbuild src/services/refresh-worker.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/refresh-worker.js",
+    "ingest": "tsx src/cli/ingest.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "dotenv": "^16.4.0"
+    "@hono/node-server": "^2.1.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^16.4.0",
+    "drizzle-orm": "^0.45.3",
+    "fflate": "^0.8.3",
+    "hono": "^4.13.8",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.2",
+    "drizzle-kit": "^0.31.11",
     "esbuild": "^0.28.2",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",

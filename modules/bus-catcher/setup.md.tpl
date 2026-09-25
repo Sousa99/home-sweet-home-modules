@@ -45,6 +45,9 @@ pnpm --filter ./backend dev          # REST API ({{HTTP_ENTRY}}), tsx watch
 pnpm --filter ./backend dev:mcp      # MCP server ({{MCP_ENTRY}}), tsx watch
 pnpm --filter ./backend start        # REST API ({{HTTP_ENTRY}})
 pnpm --filter ./backend start:mcp    # MCP server ({{MCP_ENTRY}})
+pnpm --filter ./backend ingest       # download + ingest the GTFS schedule feed
+pnpm --filter ./backend db:generate  # generate SQL migration from the schema
+pnpm --filter ./backend db:migrate   # apply migrations
 pnpm --filter ./backend build        # esbuild bundle → dist/
 pnpm --filter ./backend test         # Vitest
 pnpm --filter ./backend typecheck    # tsc --noEmit
