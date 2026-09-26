@@ -33,12 +33,72 @@ component's types (name, type, and description):
   client.
 - **`missing`** — the stop no longer exists in the schedule; shows a notice
   and skips fetching.
+- **`thresholds`** — per-stop departure thresholds (`headsUpMinutes`,
+  `leaveNowMinutes`, `missedMinutes`, minutes before the bus arrives).
+  Optional; when omitted (or partially set) the documented defaults
+  `10 / 5 / 1` apply.
 
 <Controls of={StopCardStories.Default} />
 
 The widget fetches `StopTimesResponse` (the list of `Passing` rows plus
 `RealtimeInfo`) for the given stop and bus set. When `fetchTimes` is omitted
 it uses the built-in API client (`GET /api/stops/:id/times`).
+
+## Urgency levels
+
+Each bus row carries a small **colored dot** (no text label) derived from the
+bus's remaining minutes and the stop's thresholds — the sole indicator of how
+much time you still have. Strictest-first, at-or-below the threshold:
+
+<table>
+  <thead>
+    <tr>
+      <th align="left">Remaining minutes</th>
+      <th align="left">Level</th>
+      <th align="left">Dot</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        above <code>headsUpMinutes</code>
+      </td>
+      <td>Relaxed — plenty of time</td>
+      <td>green</td>
+    </tr>
+    <tr>
+      <td>
+        at or below <code>headsUpMinutes</code>
+      </td>
+      <td>Heads-up — start thinking about leaving</td>
+      <td>amber</td>
+    </tr>
+    <tr>
+      <td>
+        at or below <code>leaveNowMinutes</code>
+      </td>
+      <td>Leave now — you should already be heading to the stop</td>
+      <td>orange</td>
+    </tr>
+    <tr>
+      <td>
+        at or below <code>missedMinutes</code> (incl. 0)
+      </td>
+      <td>Missed — too late to catch this bus</td>
+      <td>dark slate</td>
+    </tr>
+  </tbody>
+</table>
+
+<Canvas of={StopCardStories.Relaxed} />
+<Canvas of={StopCardStories.HeadsUp} />
+<Canvas of={StopCardStories.LeaveNow} />
+<Canvas of={StopCardStories.Missed} />
+
+When a stop has custom thresholds configured, the same rules apply with the
+provided values:
+
+<Canvas of={StopCardStories.CustomThresholds} />
 
 ## States
 

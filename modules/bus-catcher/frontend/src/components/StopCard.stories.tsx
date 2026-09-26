@@ -59,6 +59,23 @@ const emptyResponse: StopTimesResponse = {
   realtime: { available: false, lastUpdate: null, liveCount: 0, totalCount: 0 },
 };
 
+const levelResponse = (minutes: number[]): StopTimesResponse => ({
+  stopId: 'S1',
+  times: minutes.map((m, i) => ({
+    lineId: 'L1',
+    lineShortName: '736',
+    headsign: 'Cais',
+    scheduledAt: `2026-06-15T${String(8 + i).padStart(2, '0')}:00:00.000Z`,
+    minutesUntil: m,
+  })),
+  realtime: { available: false, lastUpdate: null, liveCount: 0, totalCount: minutes.length },
+});
+
+const fetchLevel =
+  (minutes: number[]): FetchStopTimes =>
+  ({ stopId }) =>
+    Promise.resolve({ ...levelResponse(minutes), stopId });
+
 const fetchMixed: FetchStopTimes = ({ stopId }) => Promise.resolve({ ...mixedResponse, stopId });
 const fetchScheduleOnly: FetchStopTimes = ({ stopId }) =>
   Promise.resolve({ ...scheduleOnlyResponse, stopId });
@@ -119,5 +136,36 @@ export const Error: Story = {
 export const Missing: Story = {
   args: {
     missing: true,
+  },
+};
+
+export const Relaxed: Story = {
+  args: {
+    fetchTimes: fetchLevel([25]),
+  },
+};
+
+export const HeadsUp: Story = {
+  args: {
+    fetchTimes: fetchLevel([10]),
+  },
+};
+
+export const LeaveNow: Story = {
+  args: {
+    fetchTimes: fetchLevel([5]),
+  },
+};
+
+export const Missed: Story = {
+  args: {
+    fetchTimes: fetchLevel([1, 0]),
+  },
+};
+
+export const CustomThresholds: Story = {
+  args: {
+    thresholds: { headsUpMinutes: 20, leaveNowMinutes: 10, missedMinutes: 5 },
+    fetchTimes: fetchLevel([15, 8, 3]),
   },
 };

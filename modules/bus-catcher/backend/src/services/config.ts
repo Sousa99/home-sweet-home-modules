@@ -4,7 +4,55 @@ import type { DB } from '../db/client';
 import * as schema from '../db/schema';
 import { AppError } from '../lib/errors';
 import { parseLineToken } from '../providers/carris-metropolitana/queries';
-import type { ConfigStop, CreateConfigStopBody, Stop, UpdateConfigStopBody } from '../lib/schemas';
+import type {
+  ConfigStop,
+  CreateConfigStopBody,
+  DepartureThresholds,
+  Stop,
+  UpdateConfigStopBody,
+} from '../lib/schemas';
+
+/** Documented default thresholds (minutes before arrival) when a stop has no
+ * explicit values. Single source of truth for the API's resolved response. */
+export const DEFAULT_THRESHOLDS: DepartureThresholds = {
+  headsUpMinutes: 10,
+  leaveNowMinutes: 5,
+  missedMinutes: 1,
+};
+
+interface ThresholdColumns {
+  headsUpMin: number | null;
+  leaveNowMin: number | null;
+  missedMin: number | null;
+}
+
+function toThresholds(row: ThresholdColumns): DepartureThresholds {
+  return {
+    headsUpMinutes: row.headsUpMin ?? DEFAULT_THRESHOLDS.headsUpMinutes,
+    leaveNowMinutes: row.leaveNowMin ?? DEFAULT_THRESHOLDS.leaveNowMinutes,
+    missedMinutes: row.missedMin ?? DEFAULT_THRESHOLDS.missedMinutes,
+  };
+}
+
+/** Validate a merged (fully resolved) threshold set: non-negative integers,
+ * ordered headsUp >= leaveNow >= missed. */
+function validateThresholds(thresholds: DepartureThresholds): void {
+  const values = [thresholds.headsUpMinutes, thresholds.leaveNowMinutes, thresholds.missedMinutes];
+  if (values.some((v) => !Number.isInteger(v) || v < 0)) {
+    throw new AppError(400, 'invalid_body', undefined, 'thresholds must be non-negative integers');
+  }
+  if (
+    thresholds.headsUpMinutes < thresholds.leaveNowMinutes ||
+    thresholds.leaveNowMinutes < thresholds.missedMinutes
+  ) {
+    throw new AppError(
+      400,
+      'invalid_body',
+      undefined,
+      'thresholds must satisfy headsUp >= leaveNow >= missed',
+    );
+  }
+}
 
 function toStop(row: {
   id: string;
@@ -40,6 +88,9 @@ function toConfigStop(
     lineFilter: string | null;
     displayOrder: number;
     enabled: number;
+    headsUpMin: number | null;
+    leaveNowMin: number | null;
+    missedMin: number | null;
   },
   stopRow: {
     id: string;
@@ -54,6 +105,7 @@ function toConfigStop(
     lineFilter: readLineFilter(row.lineFilter),
     displayOrder: row.displayOrder,
     enabled: row.enabled === 1,
+    thresholds: toThresholds(row),
   };
   if (!stopRow) {
     // The stop vanished from a refreshed feed; keep the row so the user can
@@ -133,6 +185,9 @@ function loadConfigStop(db: DB, id: number): ConfigStop | null {
       lineFilter: schema.configuredStops.lineFilter,
       displayOrder: schema.configuredStops.displayOrder,
       enabled: schema.configuredStops.enabled,
+      headsUpMin: schema.configuredStops.headsUpMin,
+      leaveNowMin: schema.configuredStops.leaveNowMin,
+      missedMin: schema.configuredStops.missedMin,
     })
     .from(schema.configuredStops)
     .where(eq(schema.configuredStops.id, id))
@@ -150,6 +205,9 @@ export function listConfig(db: DB): ConfigStop[] {
       lineFilter: schema.configuredStops.lineFilter,
       displayOrder: schema.configuredStops.displayOrder,
       enabled: schema.configuredStops.enabled,
+      headsUpMin: schema.configuredStops.headsUpMin,
+      leaveNowMin: schema.configuredStops.leaveNowMin,
+      missedMin: schema.configuredStops.missedMin,
     })
     .from(schema.configuredStops)
     .orderBy(schema.configuredStops.displayOrder)
@@ -203,14 +261,22 @@ export function addConfigStop(db: DB, body: CreateConfigStopBody): ConfigStop {
     (maxRow?.value === null || maxRow?.value === undefined ? 0 : maxRow.value + 1);
   const enabled = body.enabled ?? true;
 
+  const partial = body.thresholds ?? {};
+  validateThresholds({ ...DEFAULT_THRESHOLDS, ...partial });
+
+  const values: typeof schema.configuredStops.$inferInsert = {
+    stopId: body.stopId,
+    lineFilter: JSON.stringify(lineFilter),
+    displayOrder,
+    enabled: enabled ? 1 : 0,
+  };
+  if (partial.headsUpMinutes !== undefined) values.headsUpMin = partial.headsUpMinutes;
+  if (partial.leaveNowMinutes !== undefined) values.leaveNowMin = partial.leaveNowMinutes;
+  if (partial.missedMinutes !== undefined) values.missedMin = partial.missedMinutes;
+
   const inserted = db
     .insert(schema.configuredStops)
-    .values({
-      stopId: body.stopId,
-      lineFilter: JSON.stringify(lineFilter),
-      displayOrder,
-      enabled: enabled ? 1 : 0,
-    })
+    .values(values)
     .returning({ id: schema.configuredStops.id })
     .get();
 
@@ -220,6 +286,9 @@ export function addConfigStop(db: DB, body: CreateConfigStopBody): ConfigStop {
     lineFilter: JSON.stringify(lineFilter),
     displayOrder,
     enabled: enabled ? 1 : 0,
+    headsUpMin: values.headsUpMin ?? null,
+    leaveNowMin: values.leaveNowMin ?? null,
+    missedMin: values.missedMin ?? null,
   };
   return toConfigStop(row, stopRow);
 }
@@ -233,12 +302,20 @@ export function updateConfigStop(db: DB, id: number, body: UpdateConfigStopBody)
   const lineFilter = body.lineFilter ?? existing.lineFilter;
   validateLineFilter(db, lineFilter);
 
+  const partial = body.thresholds ?? {};
+  validateThresholds({ ...existing.thresholds, ...partial });
+
+  const set: Partial<typeof schema.configuredStops.$inferInsert> = {
+    lineFilter: JSON.stringify(lineFilter),
+    displayOrder: body.displayOrder ?? existing.displayOrder,
+    enabled: (body.enabled ?? existing.enabled) ? 1 : 0,
+  };
+  if (partial.headsUpMinutes !== undefined) set.headsUpMin = partial.headsUpMinutes;
+  if (partial.leaveNowMinutes !== undefined) set.leaveNowMin = partial.leaveNowMinutes;
+  if (partial.missedMinutes !== undefined) set.missedMin = partial.missedMinutes;
+
   db.update(schema.configuredStops)
-    .set({
-      lineFilter: JSON.stringify(lineFilter),
-      displayOrder: body.displayOrder ?? existing.displayOrder,
-      enabled: (body.enabled ?? existing.enabled) ? 1 : 0,
-    })
+    .set(set)
     .where(and(eq(schema.configuredStops.id, id)))
     .run();
 

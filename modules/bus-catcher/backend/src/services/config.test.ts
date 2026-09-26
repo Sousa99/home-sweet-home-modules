@@ -167,4 +167,92 @@ describe('config service', () => {
     backend.config.removeConfigStop(added.id);
     expect(backend.config.listConfig()).toEqual([]);
   });
+
+  it('resolves default thresholds (10/5/1) when none are set', () => {
+    const backend = setup();
+    const stop = backend.config.addConfigStop({ stopId: 'S1' });
+    expect(stop.thresholds).toEqual({
+      headsUpMinutes: 10,
+      leaveNowMinutes: 5,
+      missedMinutes: 1,
+    });
+  });
+
+  it('persists explicit thresholds on create and returns them on read', () => {
+    const backend = setup();
+    const added = backend.config.addConfigStop({
+      stopId: 'S2',
+      thresholds: { headsUpMinutes: 12, leaveNowMinutes: 6, missedMinutes: 2 },
+    });
+    expect(added.thresholds).toEqual({
+      headsUpMinutes: 12,
+      leaveNowMinutes: 6,
+      missedMinutes: 2,
+    });
+
+    const listed = backend.config.listConfig().find((s) => s.stop.id === 'S2');
+    expect(listed?.thresholds).toEqual({
+      headsUpMinutes: 12,
+      leaveNowMinutes: 6,
+      missedMinutes: 2,
+    });
+  });
+
+  it('updates a single threshold field while keeping the others', () => {
+    const backend = setup();
+    const added = backend.config.addConfigStop({
+      stopId: 'S1',
+      thresholds: { headsUpMinutes: 12, leaveNowMinutes: 6, missedMinutes: 2 },
+    });
+    const updated = backend.config.updateConfigStop(added.id, {
+      thresholds: { missedMinutes: 3 },
+    });
+    expect(updated.thresholds).toEqual({
+      headsUpMinutes: 12,
+      leaveNowMinutes: 6,
+      missedMinutes: 3,
+    });
+  });
+
+  it('rejects negative threshold values on create', () => {
+    const backend = setup();
+    expectAppError(
+      () =>
+        backend.config.addConfigStop({
+          stopId: 'S1',
+          thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: -1 },
+        }),
+      400,
+      'invalid_body',
+    );
+  });
+
+  it('rejects out-of-order threshold values on create', () => {
+    const backend = setup();
+    expectAppError(
+      () =>
+        backend.config.addConfigStop({
+          stopId: 'S1',
+          thresholds: { headsUpMinutes: 3, leaveNowMinutes: 6, missedMinutes: 2 },
+        }),
+      400,
+      'invalid_body',
+    );
+  });
+
+  it('rejects an update whose thresholds break ordering against stored values', () => {
+    const backend = setup();
+    const added = backend.config.addConfigStop({
+      stopId: 'S1',
+      thresholds: { headsUpMinutes: 12, leaveNowMinutes: 6, missedMinutes: 2 },
+    });
+    expectAppError(
+      () =>
+        backend.config.updateConfigStop(added.id, {
+          thresholds: { headsUpMinutes: 3 },
+        }),
+      400,
+      'invalid_body',
+    );
+  });
 });

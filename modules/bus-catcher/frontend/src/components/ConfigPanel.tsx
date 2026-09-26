@@ -7,12 +7,13 @@ import {
   useStop,
   useUpdateStop,
 } from '../api/queries';
-import type { ConfigStop, LineOption, Stop } from '../api/types';
+import type { ConfigStop, DepartureThresholds, LineOption, Stop } from '../api/types';
 import { cn } from '../lib/utils';
 import { StopSearch } from './StopSearch';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Input, Label } from './ui/input';
 
 /** A line-filter token: `shortName` (any direction) or `shortName:directionId`. */
 function lineToken(line: LineOption): string {
@@ -227,6 +228,8 @@ function EditFilter({ item, onDone }: { item: ConfigStop; onDone: () => void }) 
   const stopQuery = useStop(item.stop.id);
   const update = useUpdateStop();
   const [filter, setFilter] = useState(item.lineFilter);
+  const [thresholds, setThresholds] = useState<DepartureThresholds>(item.thresholds);
+  const [error, setError] = useState<string | null>(null);
   const servingLines = stopQuery.data?.stop.lines ?? [];
 
   function toggle(token: string) {
@@ -235,12 +238,39 @@ function EditFilter({ item, onDone }: { item: ConfigStop; onDone: () => void }) 
     );
   }
 
+  function setThreshold(field: keyof DepartureThresholds, value: string) {
+    setThresholds((prev) => ({ ...prev, [field]: value === '' ? NaN : Number(value) }));
+    setError(null);
+  }
+
+  function validateThresholds(values: DepartureThresholds): string | null {
+    const all = [values.headsUpMinutes, values.leaveNowMinutes, values.missedMinutes];
+    if (all.some((v) => !Number.isInteger(v) || v < 0)) {
+      return 'Thresholds must be non-negative whole minutes.';
+    }
+    if (
+      values.headsUpMinutes < values.leaveNowMinutes ||
+      values.leaveNowMinutes < values.missedMinutes
+    ) {
+      return 'Heads-up must be greater than or equal to Leave now, and Leave now must be greater than or equal to Missed.';
+    }
+    return null;
+  }
+
   async function save() {
+    const err = validateThresholds(thresholds);
+    if (err) {
+      setError(err);
+      return;
+    }
     try {
-      await update.mutateAsync({ id: item.id, body: { lineFilter: filter } });
+      await update.mutateAsync({
+        id: item.id,
+        body: { lineFilter: filter, thresholds },
+      });
       onDone();
     } catch {
-      // error is surfaced inline below; keep the panel open so the user can retry
+      setError(mutationError(update.error));
     }
   }
 
@@ -263,6 +293,43 @@ function EditFilter({ item, onDone }: { item: ConfigStop; onDone: () => void }) 
           ))}
         </div>
       )}
+      <div className="mt-3">
+        <p className="text-xs text-slate-500">
+          Departure thresholds (minutes before the bus arrives)
+        </p>
+        <div className="mt-1 grid grid-cols-3 gap-2">
+          <div>
+            <Label htmlFor={`heads-up-${item.id}`}>Heads-up (min)</Label>
+            <Input
+              id={`heads-up-${item.id}`}
+              type="number"
+              min={0}
+              value={Number.isNaN(thresholds.headsUpMinutes) ? '' : thresholds.headsUpMinutes}
+              onChange={(e) => setThreshold('headsUpMinutes', e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor={`leave-now-${item.id}`}>Leave now (min)</Label>
+            <Input
+              id={`leave-now-${item.id}`}
+              type="number"
+              min={0}
+              value={Number.isNaN(thresholds.leaveNowMinutes) ? '' : thresholds.leaveNowMinutes}
+              onChange={(e) => setThreshold('leaveNowMinutes', e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor={`missed-${item.id}`}>Missed (min)</Label>
+            <Input
+              id={`missed-${item.id}`}
+              type="number"
+              min={0}
+              value={Number.isNaN(thresholds.missedMinutes) ? '' : thresholds.missedMinutes}
+              onChange={(e) => setThreshold('missedMinutes', e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
       <div className="mt-2 flex gap-2">
         <Button size="sm" onClick={() => void save()} disabled={update.isPending}>
           {update.isPending ? 'Saving…' : 'Save'}
@@ -271,9 +338,9 @@ function EditFilter({ item, onDone }: { item: ConfigStop; onDone: () => void }) 
           Cancel
         </Button>
       </div>
-      {update.isError && (
+      {error && (
         <p className="mt-2 text-sm text-red-600" role="alert">
-          {mutationError(update.error)}
+          {error}
         </p>
       )}
     </div>

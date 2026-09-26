@@ -110,4 +110,29 @@ describe('StopCard widget', () => {
     await vi.advanceTimersByTimeAsync(1000);
     expect(mockedGetStopTimes).toHaveBeenCalledTimes(3);
   });
+
+  it('uses default thresholds when none are provided', async () => {
+    mockedGetStopTimes.mockResolvedValue(response); // minutesUntil: 10
+    const { container } = render(
+      <StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />,
+    );
+    await waitFor(() => expect(mockedGetStopTimes).toHaveBeenCalled());
+    const dot = container.querySelector('[data-testid="urgency-dot"]');
+    expect(dot?.className).toContain('bg-amber-500');
+  });
+
+  it('applies custom thresholds from the prop', async () => {
+    mockedGetStopTimes.mockResolvedValue(response); // minutesUntil: 10
+    const { container } = render(
+      <StopCard
+        stopId="S1"
+        stopName="Sete Rios"
+        refetchIntervalMs={0}
+        thresholds={{ headsUpMinutes: 20, leaveNowMinutes: 10, missedMinutes: 5 }}
+      />,
+    );
+    await waitFor(() => expect(mockedGetStopTimes).toHaveBeenCalled());
+    const dot = container.querySelector('[data-testid="urgency-dot"]');
+    expect(dot?.className).toContain('bg-orange-500');
+  });
 });

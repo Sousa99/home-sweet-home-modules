@@ -67,6 +67,7 @@ describe('DashboardPage', () => {
       lineFilter: ['736'],
       displayOrder: 0,
       enabled: true,
+      thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
     };
     const times: Passing[] = [
       {
@@ -109,6 +110,7 @@ describe('DashboardPage', () => {
       lineFilter: [],
       displayOrder: 0,
       enabled: true,
+      thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
     };
     mockedGetConfig.mockResolvedValue({ stops: [stop] });
     mockedGetStopTimes.mockResolvedValue({
@@ -191,6 +193,7 @@ describe('DashboardPage', () => {
           displayOrder: 0,
           enabled: true,
           missing: true,
+          thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
         },
       ],
     });

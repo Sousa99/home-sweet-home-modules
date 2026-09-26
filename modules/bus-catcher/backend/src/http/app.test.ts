@@ -220,6 +220,89 @@ describe('US1 REST contract', () => {
     expect(body.stop.lineFilter).toEqual(['736']);
   });
 
+  it('POST /api/config/stops with thresholds → 201 and persists resolved values', async () => {
+    const { app } = setup();
+    const res = await app.request('/api/config/stops', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        stopId: 'S1',
+        thresholds: { headsUpMinutes: 12, leaveNowMinutes: 6, missedMinutes: 2 },
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await json<{ stop: { thresholds: unknown } }>(res);
+    expect(body.stop.thresholds).toEqual({
+      headsUpMinutes: 12,
+      leaveNowMinutes: 6,
+      missedMinutes: 2,
+    });
+    const list = await json<{ stops: Array<{ thresholds: unknown }> }>(
+      await app.request('/api/config'),
+    );
+    expect(list.stops[0]?.thresholds).toEqual({
+      headsUpMinutes: 12,
+      leaveNowMinutes: 6,
+      missedMinutes: 2,
+    });
+  });
+
+  it('GET /api/config resolves default thresholds when none are set', async () => {
+    const { app } = setup();
+    await app.request('/api/config/stops', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ stopId: 'S1' }),
+    });
+    const list = await json<{ stops: Array<{ thresholds: unknown }> }>(
+      await app.request('/api/config'),
+    );
+    expect(list.stops[0]?.thresholds).toEqual({
+      headsUpMinutes: 10,
+      leaveNowMinutes: 5,
+      missedMinutes: 1,
+    });
+  });
+
+  it('PUT /api/config/stops/:id updates a single threshold field', async () => {
+    const { app } = setup();
+    await app.request('/api/config/stops', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        stopId: 'S1',
+        thresholds: { headsUpMinutes: 12, leaveNowMinutes: 6, missedMinutes: 2 },
+      }),
+    });
+    const res = await app.request('/api/config/stops/1', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ thresholds: { missedMinutes: 3 } }),
+    });
+    expect(res.status).toBe(200);
+    const body = await json<{ stop: { thresholds: unknown } }>(res);
+    expect(body.stop.thresholds).toEqual({
+      headsUpMinutes: 12,
+      leaveNowMinutes: 6,
+      missedMinutes: 3,
+    });
+  });
+
+  it('PUT /api/config/stops/:id out-of-order thresholds → 400', async () => {
+    const { app } = setup();
+    await app.request('/api/config/stops', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ stopId: 'S1' }),
+    });
+    const res = await app.request('/api/config/stops/1', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ thresholds: { headsUpMinutes: 3, leaveNowMinutes: 6 } }),
+    });
+    expect(res.status).toBe(400);
+  });
+
   it('PUT /api/config/stops/:id invalid body → 400', async () => {
     const { app } = setup();
     const res = await app.request('/api/config/stops/1', {

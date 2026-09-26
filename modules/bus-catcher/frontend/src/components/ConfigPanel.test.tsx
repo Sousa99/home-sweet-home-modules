@@ -83,6 +83,7 @@ describe('ConfigPanel', () => {
       lineFilter: ['736:0'],
       displayOrder: 0,
       enabled: true,
+      thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
     };
     mockedAdd.mockResolvedValue({ stop: created });
 
@@ -130,7 +131,14 @@ describe('ConfigPanel', () => {
     });
     mockedGetConfig.mockResolvedValue({ stops: [] });
     mockedAdd.mockResolvedValue({
-      stop: { id: 1, stop, lineFilter: ['736:0', '736:1'], displayOrder: 0, enabled: true },
+      stop: {
+        id: 1,
+        stop,
+        lineFilter: ['736:0', '736:1'],
+        displayOrder: 0,
+        enabled: true,
+        thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
+      },
     });
 
     renderWithQuery(<ConfigPanel />);
@@ -184,6 +192,7 @@ describe('ConfigPanel', () => {
           lineFilter: [],
           displayOrder: 0,
           enabled: true,
+          thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
         },
       ],
     });
@@ -206,6 +215,7 @@ describe('ConfigPanel', () => {
           lineFilter: [],
           displayOrder: 0,
           enabled: true,
+          thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
         },
       ],
     });
@@ -216,6 +226,7 @@ describe('ConfigPanel', () => {
         lineFilter: [],
         displayOrder: 0,
         enabled: false,
+        thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
       },
     });
 
@@ -234,6 +245,7 @@ describe('ConfigPanel', () => {
       lineFilter: [],
       displayOrder: 0,
       enabled: true,
+      thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
     };
     mockedGetConfig.mockResolvedValue({ stops: [stop] });
     mockedGetStop.mockResolvedValue({
@@ -253,7 +265,13 @@ describe('ConfigPanel', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
-      expect(mockedUpdate.mock.calls[0]).toEqual([1, { lineFilter: ['736:0'] }]);
+      expect(mockedUpdate.mock.calls[0]).toEqual([
+        1,
+        {
+          lineFilter: ['736:0'],
+          thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
+        },
+      ]);
     });
   });
 
@@ -264,6 +282,7 @@ describe('ConfigPanel', () => {
       lineFilter: [],
       displayOrder: 0,
       enabled: true,
+      thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
     };
     const second: ConfigStop = {
       id: 2,
@@ -271,6 +290,7 @@ describe('ConfigPanel', () => {
       lineFilter: [],
       displayOrder: 1,
       enabled: true,
+      thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
     };
     mockedGetConfig.mockResolvedValue({ stops: [first, second] });
     mockedUpdate.mockResolvedValue({ stop: first });
@@ -296,6 +316,7 @@ describe('ConfigPanel', () => {
           displayOrder: 0,
           enabled: true,
           missing: true,
+          thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
         },
       ],
     });
@@ -314,6 +335,7 @@ describe('ConfigPanel', () => {
           lineFilter: ['999'],
           displayOrder: 0,
           enabled: true,
+          thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
         },
       ],
     });
@@ -321,5 +343,118 @@ describe('ConfigPanel', () => {
     renderWithQuery(<ConfigPanel />);
 
     expect(await screen.findByText('lines 999 no longer exist')).toBeInTheDocument();
+  });
+
+  it('shows the three threshold inputs when editing a stop', async () => {
+    mockedGetConfig.mockResolvedValue({
+      stops: [
+        {
+          id: 1,
+          stop: { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0 },
+          lineFilter: [],
+          displayOrder: 0,
+          enabled: true,
+          thresholds: { headsUpMinutes: 12, leaveNowMinutes: 6, missedMinutes: 2 },
+        },
+      ],
+    });
+    mockedGetStop.mockResolvedValue({
+      stop: { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0, lines: [] },
+    });
+
+    renderWithQuery(<ConfigPanel />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit' }));
+
+    expect(await screen.findByLabelText('Heads-up (min)')).toHaveValue(12);
+    expect(screen.getByLabelText('Leave now (min)')).toHaveValue(6);
+    expect(screen.getByLabelText('Missed (min)')).toHaveValue(2);
+  });
+
+  it('saves edited threshold values for a stop', async () => {
+    mockedGetConfig.mockResolvedValue({
+      stops: [
+        {
+          id: 1,
+          stop: { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0 },
+          lineFilter: [],
+          displayOrder: 0,
+          enabled: true,
+          thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
+        },
+      ],
+    });
+    mockedGetStop.mockResolvedValue({
+      stop: { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0, lines: [] },
+    });
+    mockedUpdate.mockResolvedValue({
+      stop: {
+        id: 1,
+        stop: { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0 },
+        lineFilter: [],
+        displayOrder: 0,
+        enabled: true,
+        thresholds: { headsUpMinutes: 12, leaveNowMinutes: 6, missedMinutes: 2 },
+      },
+    });
+
+    renderWithQuery(<ConfigPanel />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit' }));
+
+    const headsUp = await screen.findByLabelText('Heads-up (min)');
+    const leaveNow = screen.getByLabelText('Leave now (min)');
+    const missed = screen.getByLabelText('Missed (min)');
+    await userEvent.clear(headsUp);
+    await userEvent.type(headsUp, '12');
+    await userEvent.clear(leaveNow);
+    await userEvent.type(leaveNow, '6');
+    await userEvent.clear(missed);
+    await userEvent.type(missed, '2');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      expect(mockedUpdate.mock.calls[0]).toEqual([
+        1,
+        {
+          lineFilter: [],
+          thresholds: { headsUpMinutes: 12, leaveNowMinutes: 6, missedMinutes: 2 },
+        },
+      ]);
+    });
+  });
+
+  it('shows an inline error for out-of-order thresholds and does not save', async () => {
+    mockedGetConfig.mockResolvedValue({
+      stops: [
+        {
+          id: 1,
+          stop: { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0 },
+          lineFilter: [],
+          displayOrder: 0,
+          enabled: true,
+          thresholds: { headsUpMinutes: 10, leaveNowMinutes: 5, missedMinutes: 1 },
+        },
+      ],
+    });
+    mockedGetStop.mockResolvedValue({
+      stop: { id: 'S1', name: 'Av. Teste', lat: 0, lon: 0, lines: [] },
+    });
+
+    renderWithQuery(<ConfigPanel />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit' }));
+
+    const leaveNow = await screen.findByLabelText('Leave now (min)');
+    await userEvent.clear(leaveNow);
+    await userEvent.type(leaveNow, '15');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Save' }));
+
+    expect(
+      await screen.findByText(/Heads-up must be greater than or equal to Leave now/),
+    ).toBeInTheDocument();
+    expect(mockedUpdate).not.toHaveBeenCalled();
   });
 });

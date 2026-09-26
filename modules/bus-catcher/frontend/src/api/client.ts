@@ -1,4 +1,12 @@
-import type { ConfigStop, Line, Status, Stop, StopTimesResponse, StopWithLines } from './types';
+import type {
+  ConfigStop,
+  DepartureThresholds,
+  Line,
+  Status,
+  Stop,
+  StopTimesResponse,
+  StopWithLines,
+} from './types';
 
 export class ApiError extends Error {
   constructor(
@@ -36,12 +44,14 @@ export interface AddConfigStopBody {
   lineFilter?: string[];
   displayOrder?: number;
   enabled?: boolean;
+  thresholds?: Partial<DepartureThresholds>;
 }
 
 export interface UpdateConfigStopBody {
   lineFilter?: string[];
   displayOrder?: number;
   enabled?: boolean;
+  thresholds?: Partial<DepartureThresholds>;
 }
 
 export const api = {

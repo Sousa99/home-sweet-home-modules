@@ -63,12 +63,33 @@ export const stopTimesResponseSchema = z.object({
 });
 export type StopTimesResponse = z.infer<typeof stopTimesResponseSchema>;
 
+/** Resolved per-stop departure thresholds (minutes before arrival). */
+export const departureThresholdsSchema = z.object({
+  headsUpMinutes: z.number().int().min(0),
+  leaveNowMinutes: z.number().int().min(0),
+  missedMinutes: z.number().int().min(0),
+});
+export type DepartureThresholds = z.infer<typeof departureThresholdsSchema>;
+
+/**
+ * Partial thresholds as accepted on create/update bodies. Each field is
+ * optional; ordering (headsUp >= leaveNow >= missed) is enforced by the
+ * config service, which falls back to stored values on partial updates.
+ */
+export const partialThresholdsSchema = z.object({
+  headsUpMinutes: z.number().int().min(0).optional(),
+  leaveNowMinutes: z.number().int().min(0).optional(),
+  missedMinutes: z.number().int().min(0).optional(),
+});
+export type PartialThresholds = z.infer<typeof partialThresholdsSchema>;
+
 export const configStopSchema = z.object({
   id: z.number(),
   stop: stopSchema,
   lineFilter: z.array(z.string()),
   displayOrder: z.number(),
   enabled: z.boolean(),
+  thresholds: departureThresholdsSchema,
   missing: z.boolean().optional(),
 });
 export type ConfigStop = z.infer<typeof configStopSchema>;
@@ -101,6 +122,7 @@ export const createConfigStopBodySchema = z.object({
   lineFilter: z.array(z.string()).optional(),
   displayOrder: z.number().int().optional(),
   enabled: z.boolean().optional(),
+  thresholds: partialThresholdsSchema.optional(),
 });
 export type CreateConfigStopBody = z.infer<typeof createConfigStopBodySchema>;
 
@@ -108,5 +130,6 @@ export const updateConfigStopBodySchema = z.object({
   lineFilter: z.array(z.string()).optional(),
   displayOrder: z.number().int().optional(),
   enabled: z.boolean().optional(),
+  thresholds: partialThresholdsSchema.optional(),
 });
 export type UpdateConfigStopBody = z.infer<typeof updateConfigStopBodySchema>;

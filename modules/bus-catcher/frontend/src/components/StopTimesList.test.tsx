@@ -1,8 +1,14 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import type { Passing } from '../api/types';
+import type { DepartureThresholds, Passing } from '../api/types';
 import { StopTimesList } from './StopTimesList';
+
+const thresholds: DepartureThresholds = {
+  headsUpMinutes: 10,
+  leaveNowMinutes: 5,
+  missedMinutes: 1,
+};
 
 const times: Passing[] = [
   {
@@ -51,5 +57,46 @@ describe('StopTimesList', () => {
     expect(screen.getByText('Live')).toBeInTheDocument();
     expect(screen.getByText('09:04')).toBeInTheDocument();
     expect(screen.getByText('+4 min')).toBeInTheDocument();
+  });
+
+  it('renders an urgency dot per level without a text label', () => {
+    const base = liveTimes[0]!;
+    const rows: Passing[] = [
+      { ...base, minutesUntil: 25, scheduledAt: '2026-06-15T08:00:00.000Z' },
+      { ...base, minutesUntil: 10, scheduledAt: '2026-06-15T08:10:00.000Z' },
+      { ...base, minutesUntil: 5, scheduledAt: '2026-06-15T08:20:00.000Z' },
+      { ...base, minutesUntil: 1, scheduledAt: '2026-06-15T08:30:00.000Z' },
+      { ...base, minutesUntil: 0, scheduledAt: '2026-06-15T08:40:00.000Z' },
+    ];
+    const { container } = render(<StopTimesList times={rows} thresholds={thresholds} />);
+
+    expect(container.querySelectorAll('[data-testid="urgency-dot"]')).toHaveLength(5);
+    expect(screen.queryByText('relaxed')).not.toBeInTheDocument();
+    expect(screen.queryByText('heads-up')).not.toBeInTheDocument();
+    expect(screen.queryByText('leave-now')).not.toBeInTheDocument();
+    expect(screen.queryByText('missed')).not.toBeInTheDocument();
+  });
+
+  it('maps minutes to the expected dot hues', () => {
+    const cases: Array<[number, string]> = [
+      [25, 'bg-green-500'],
+      [10, 'bg-amber-500'],
+      [5, 'bg-orange-500'],
+      [1, 'bg-slate-900'],
+      [0, 'bg-slate-900'],
+    ];
+    for (const [minutesUntil, hue] of cases) {
+      const { container, unmount } = render(
+        <StopTimesList times={[{ ...liveTimes[0]!, minutesUntil }]} thresholds={thresholds} />,
+      );
+      const dot = container.querySelector('[data-testid="urgency-dot"]');
+      expect(dot?.className).toContain(hue);
+      unmount();
+    }
+  });
+
+  it('keeps the Live/Schedule pills when dots are shown', () => {
+    render(<StopTimesList times={liveTimes} thresholds={thresholds} />);
+    expect(screen.getByText('Live')).toBeInTheDocument();
   });
 });

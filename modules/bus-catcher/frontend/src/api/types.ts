@@ -50,12 +50,24 @@ export interface StopTimesResponse {
   realtime: RealtimeInfo;
 }
 
+/**
+ * Per-stop departure thresholds, in minutes before the bus arrives. Resolved
+ * by the backend to the documented defaults (10 / 5 / 1) when a stop has no
+ * explicit values.
+ */
+export interface DepartureThresholds {
+  headsUpMinutes: number;
+  leaveNowMinutes: number;
+  missedMinutes: number;
+}
+
 export interface ConfigStop {
   id: number;
   stop: Stop;
   lineFilter: string[];
   displayOrder: number;
   enabled: boolean;
+  thresholds: DepartureThresholds;
   missing?: boolean;
 }
 

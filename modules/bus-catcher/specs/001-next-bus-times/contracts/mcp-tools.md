@@ -43,13 +43,17 @@ Freshness + ingest state.
 
 ### `add_stop`
 
-- **Input**: `{ stopId: string, lineFilter?: string[], displayOrder?: number, enabled?: boolean }`
+- **Input**: `{ stopId: string, lineFilter?: string[], displayOrder?: number, enabled?: boolean, thresholds?: { headsUpMinutes?, leaveNowMinutes?, missedMinutes? } }`
 - **Output**: `{ stop: ConfigStop }` — error on unknown stop/line or duplicate
 
 ### `update_stop`
 
-- **Input**: `{ id: number, lineFilter?: string[], displayOrder?: number, enabled?: boolean }`
+- **Input**: `{ id: number, lineFilter?: string[], displayOrder?: number, enabled?: boolean, thresholds?: { headsUpMinutes?, leaveNowMinutes?, missedMinutes? } }`
 - **Output**: `{ stop: ConfigStop }` — error if unknown
+
+> **004**: `thresholds` (minutes before arrival; defaults 10 / 5 / 1 when unset)
+> resolve into `ConfigStop.thresholds`; ordering `headsUp >= leaveNow >= missed`
+> is enforced. See `specs/004-stop-alert-thresholds/contracts/rest-api.md`.
 
 ### `remove_stop`
 

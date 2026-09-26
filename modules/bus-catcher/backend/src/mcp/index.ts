@@ -6,7 +6,7 @@ import { config } from '../config';
 import type { BackendDeps } from '../compose';
 import { AppError } from '../lib/errors';
 import { logger } from '../lib/logger';
-import { createConfigStopBodySchema } from '../lib/schemas';
+import { createConfigStopBodySchema, partialThresholdsSchema } from '../lib/schemas';
 import { z } from 'zod';
 
 type TextContent = { type: 'text'; text: string };
@@ -167,7 +167,8 @@ function registerTools(server: McpServer, deps: BackendDeps): void {
     'add_stop',
     {
       title: 'Add a configured stop',
-      description: 'Add a stop (with optional line filter) to the dashboard config.',
+      description:
+        'Add a stop (with optional line filter and departure thresholds) to the dashboard config.',
       inputSchema: createConfigStopBodySchema,
     },
     async (args) => {
@@ -184,12 +185,14 @@ function registerTools(server: McpServer, deps: BackendDeps): void {
     'update_stop',
     {
       title: 'Update a configured stop',
-      description: 'Change a configured stop line filter, display order, or enabled state.',
+      description:
+        'Change a configured stop line filter, display order, enabled state, or departure thresholds.',
       inputSchema: {
         id: z.number().int(),
         lineFilter: z.array(z.string()).optional(),
         displayOrder: z.number().int().optional(),
         enabled: z.boolean().optional(),
+        thresholds: partialThresholdsSchema.optional(),
       },
     },
     async (args) => {

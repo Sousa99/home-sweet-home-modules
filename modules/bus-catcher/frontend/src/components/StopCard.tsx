@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { StopTimesResponse } from '../api/types';
+import type { DepartureThresholds, StopTimesResponse } from '../api/types';
 import { api } from '../api/client';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -31,6 +31,11 @@ export interface StopCardProps {
   fetchTimes?: FetchStopTimes;
   /** The stop no longer exists in the schedule; shows a notice and skips fetching. */
   missing?: boolean;
+  /**
+   * Per-stop departure thresholds (minutes before arrival). Optional; when
+   * omitted (or partially set) the documented defaults (10 / 5 / 1) apply.
+   */
+  thresholds?: Partial<DepartureThresholds>;
 }
 
 type LoadState =
@@ -44,6 +49,7 @@ export function StopCard({
   refetchIntervalMs = 15000,
   fetchTimes,
   missing = false,
+  thresholds,
 }: StopCardProps) {
   const fetchRef = useRef<FetchStopTimes | undefined>(fetchTimes);
   fetchRef.current = fetchTimes;
@@ -96,7 +102,7 @@ export function StopCard({
           <p className="text-sm text-red-600">Stop not found in the current schedule.</p>
         ) : (
           <>
-            <StopTimesList times={times} />
+            <StopTimesList times={times} thresholds={thresholds} />
             <div className="mt-2">
               <StopCoverage realtime={realtime} />
             </div>

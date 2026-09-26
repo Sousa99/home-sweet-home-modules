@@ -88,6 +88,12 @@ export const configuredStops = sqliteTable('configured_stops', {
   lineFilter: text('line_filter'),
   displayOrder: integer('display_order').notNull().default(0),
   enabled: integer('enabled').notNull().default(1),
+  // Minutes before arrival at which the departure-urgency zones begin.
+  // NULL means "not configured" — the service resolves the documented
+  // defaults (10 / 5 / 1) when serializing.
+  headsUpMin: integer('heads_up_min'),
+  leaveNowMin: integer('leave_now_min'),
+  missedMin: integer('missed_min'),
 });
 
 export const metadata = sqliteTable('metadata', {

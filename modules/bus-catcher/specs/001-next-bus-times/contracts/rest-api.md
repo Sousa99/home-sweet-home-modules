@@ -21,6 +21,9 @@ Line      = { id, shortName, longName }
 Stop      = { id, name, lat, lon, lines: Line[] }
 Passing   = { lineId, lineShortName, headsign, scheduledAt /* ISO UTC */, minutesUntil }
 ConfigStop = { id, stop: Stop, lineFilter: string[], displayOrder, enabled }
+// 004: ConfigStop also carries resolved thresholds:
+//   thresholds = { headsUpMinutes, leaveNowMinutes, missedMinutes }
+//   (defaults 10 / 5 / 1 when unset) — see specs/004-stop-alert-thresholds/contracts/rest-api.md
 Status    = { lastRefresh: string | null, feedVersion: string | null, stale: boolean }
 ```
 

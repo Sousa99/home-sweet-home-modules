@@ -42,6 +42,7 @@ export default function DashboardPage() {
               stopId={item.stop.id}
               stopName={item.stop.name}
               lines={item.lineFilter}
+              thresholds={item.thresholds}
               missing={item.missing}
             />
           ))
