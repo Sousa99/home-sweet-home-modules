@@ -1,50 +1,83 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+==================
+Version change: 0.0.0 (unfilled template) -> 1.0.0 (initial ratification)
+Modified principles (placeholder -> title):
+  - [PRINCIPLE_1_NAME] -> I. Module-First
+  - [PRINCIPLE_2_NAME] -> II. Local-First & Private by Default
+  - [PRINCIPLE_3_NAME] -> III. Configuration-Driven Consistency
+  - [PRINCIPLE_4_NAME] -> IV. Test-First (NON-NEGOTIABLE)
+  - [PRINCIPLE_5_NAME] -> V. Contract & Integration Testing
+Added sections:
+  - Core Principles (fully populated, 5 principles)
+  - Technology & Packaging Standards
+  - Development Workflow & Quality Gates
+  - Governance (amendment + versioning + compliance rules)
+Removed sections: none
+Deferred TODOs: none
+-->
+
+# Home Sweet Home — Modules Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Module-First
+Every feature or capability ships as a standalone Home Sweet Home module in its own
+repository. Modules MUST be self-contained, independently deployable, and documented
+in their README and generated `setup.md`. No organizational-only modules.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Local-First & Private by Default
+Home Sweet Home solutions MUST operate on in-home infrastructure first and remain
+functional offline. Household data MUST stay on-premises by default; external access,
+cloud sync, and remote tooling are opt-in and MUST be explicitly documented per module.
+Privacy and security are non-negotiable.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Configuration-Driven Consistency
+Every module's identity (name, slug, packages, stack, registries, theme) MUST be
+declared in a single `module.config.yaml`. Generated files MUST be rendered from the
+shared template and verified with `node scripts/scaffold.mjs --check`; the check MUST
+pass in CI. No drift from the declared config.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Test-First (NON-NEGOTIABLE)
+TDD is mandatory for backend and frontend: tests written, user approved, tests fail,
+then implementation. The Red-Green-Refactor cycle is strictly enforced. Vitest is the
+standard test runner.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Contract & Integration Testing
+Integration tests are required for: REST and MCP contract changes, module-to-module
+communication, shared schemas, and the dashboard's API surface. Every exposed contract
+change MUST be covered before merge.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Technology & Packaging Standards
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Backend: Node 24, Hono, Drizzle ORM, SQLite.
+- Frontend: Vite, React 19, Tailwind CSS v4.
+- Tooling: pnpm 11, TypeScript, ESLint, Prettier, Vitest.
+- Modules MUST extend the shared presets from `@sousa99/homesweethome-config` so lint,
+  format, and typecheck behave identically across the ecosystem.
+- Packages publish to GitHub Packages (`npm.pkg.github.com`) under the `@sousa99` scope;
+  container images publish to `ghcr.io/sousa99`.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow & Quality Gates
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- New modules MUST be stamped from the module template via the `homesweethome` CLI or
+  GitHub's "Use this template" flow; never hand-scaffolded.
+- Merge gates: `scaffold.mjs --check` passes, shared ESLint/Prettier clean, typecheck
+  passes, and the full test suite passes.
+- Every PR is code-reviewed; reviewers MUST verify compliance with this constitution.
+- Feature work follows the Spec Kit workflow: specify, plan, then tasks — each feature
+  is documented before implementation begins.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution supersedes all other project practices; no practice may contradict it.
+- Amendments require: documentation of the change, approval, and a migration plan when
+  the change is material.
+- Versioning is semantic. MAJOR for backward-incompatible principle removals or
+  redefinitions; MINOR for new principles or materially expanded guidance; PATCH for
+  clarifications, wording, and typo fixes.
+- Compliance is reviewed on every PR and revisited on every amendment.
+- Runtime development guidance follows each module's generated `setup.md` and the Spec
+  Kit workflow.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-26
