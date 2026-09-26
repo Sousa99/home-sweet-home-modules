@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createTestBackend, seedTestFeed } from '../test-utils/db';
 import { createScheduleService } from '../services/schedule';
 import type { RefreshService } from '../services/refresh';
@@ -171,16 +171,23 @@ describe('US1 REST contract', () => {
   });
 
   it('GET /api/stops/S1/times → 200 with next times', async () => {
-    const { app } = setup();
-    const res = await app.request('/api/stops/S1/times?limit=2');
-    expect(res.status).toBe(200);
-    const body = await json<{ stopId: string; times: Array<{ minutesUntil: number }> }>(res);
-    expect(body.stopId).toBe('S1');
-    // The seeded fixture only guarantees a stop with service today; how many
-    // upcoming buses exist depends on the wall clock, so assert a robust shape.
-    expect(body.times.length).toBeGreaterThan(0);
-    for (const time of body.times) {
-      expect(time.minutesUntil).toBeGreaterThanOrEqual(0);
+    // Pin the clock to a deterministic weekday afternoon so the seeded WD trips
+    // (T1/T2 already passed, T4 ~01:00 the next service day always upcoming) are
+    // deterministic regardless of when CI runs. See seedTestFeed().
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-18T15:00:00.000Z'));
+    try {
+      const { app } = setup();
+      const res = await app.request('/api/stops/S1/times?limit=2');
+      expect(res.status).toBe(200);
+      const body = await json<{ stopId: string; times: Array<{ minutesUntil: number }> }>(res);
+      expect(body.stopId).toBe('S1');
+      expect(body.times.length).toBeGreaterThan(0);
+      for (const time of body.times) {
+        expect(time.minutesUntil).toBeGreaterThanOrEqual(0);
+      }
+    } finally {
+      vi.useRealTimers();
     }
   });
 
@@ -379,42 +386,51 @@ describe('US1 REST contract', () => {
 
 describe('US1/US2/US4 realtime REST contract', () => {
   it('GET /api/stops/S1/times returns enriched live rows and a realtime block', async () => {
-    // The route always evaluates against wall-clock now, so predict the one
-    // fixture trip that is always upcoming regardless of when tests run: T4
-    // (~01:00 the following service day).
-    const now = new Date();
-    const serviceDay = dateToServiceDay(now);
-    const t4Scheduled = minutesToDate(1500, serviceDay);
-    const t4Predicted = new Date(t4Scheduled.getTime() + 4 * 60_000);
+    // Pin the clock to a deterministic weekday afternoon so the seeded WD trips
+    // (T1/T2 already passed, T4 ~01:00 the next service day always upcoming) are
+    // deterministic regardless of when CI runs. See seedTestFeed().
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-18T15:00:00.000Z'));
+    try {
+      // The route always evaluates against wall-clock now, so predict the one
+      // fixture trip that is always upcoming regardless of when tests run: T4
+      // (~01:00 the following service day).
+      const now = new Date();
+      const serviceDay = dateToServiceDay(now);
+      const t4Scheduled = minutesToDate(1500, serviceDay);
+      const t4Predicted = new Date(t4Scheduled.getTime() + 4 * 60_000);
 
-    const { app } = setupWithRealtime({
-      arrivals: [
-        {
-          tripId: 'rt-T4',
-          stopId: 'S1',
-          lineId: '736',
-          headsign: 'Cais',
-          directionId: 0,
-          estimatedAt: t4Predicted.getTime(),
-          scheduledAt: t4Scheduled.getTime(),
-          fetchedAt: 0,
-        },
-      ],
-      fetchedAt: now.getTime(),
-      available: true,
-    });
-    const res = await app.request('/api/stops/S1/times?limit=2');
-    expect(res.status).toBe(200);
-    const body = await json<{
-      times: Array<{ source?: string; delayMinutes?: number | null }>;
-      realtime: { available: boolean; liveCount: number; totalCount: number };
-    }>(res);
-    const live = body.times.find((t) => t.source === 'live');
-    expect(live).toBeDefined();
-    expect(live?.delayMinutes).toBe(4);
-    expect(body.realtime.available).toBe(true);
-    expect(body.realtime.liveCount).toBe(1);
-    expect(body.realtime.totalCount).toBe(body.times.length);
+      const { app } = setupWithRealtime({
+        arrivals: [
+          {
+            tripId: 'rt-T4',
+            stopId: 'S1',
+            lineId: '736',
+            headsign: 'Cais',
+            directionId: 0,
+            estimatedAt: t4Predicted.getTime(),
+            scheduledAt: t4Scheduled.getTime(),
+            fetchedAt: 0,
+          },
+        ],
+        fetchedAt: now.getTime(),
+        available: true,
+      });
+      const res = await app.request('/api/stops/S1/times?limit=2');
+      expect(res.status).toBe(200);
+      const body = await json<{
+        times: Array<{ source?: string; delayMinutes?: number | null }>;
+        realtime: { available: boolean; liveCount: number; totalCount: number };
+      }>(res);
+      const live = body.times.find((t) => t.source === 'live');
+      expect(live).toBeDefined();
+      expect(live?.delayMinutes).toBe(4);
+      expect(body.realtime.available).toBe(true);
+      expect(body.realtime.liveCount).toBe(1);
+      expect(body.realtime.totalCount).toBe(body.times.length);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('GET /api/stops/S1/times degrades to schedule-only when the feed is down (no 5xx)', async () => {
