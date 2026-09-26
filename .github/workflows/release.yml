@@ -89,9 +89,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Snapshot existing tags
-        run: git tag > /tmp/tags-before
-
       - name: 🚀 Run changesets (version PR, or publish when none pending)
         uses: changesets/action@v1
         with:
@@ -110,4 +107,4 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash scripts/release-modules.sh /tmp/tags-before
+        run: bash scripts/release-modules.sh
