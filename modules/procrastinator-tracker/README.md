@@ -52,6 +52,26 @@ Both backend modes share `modules/procrastinator-tracker/backend/data/procrastin
 instances of the same process — which also means you can restart the MCP process without
 affecting the REST API.
 
+## Backend
+
+### REST API
+
+OpenAPI 3.0 contract served at `/doc`, interactive Swagger UI at `/ui`:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/tasks` · `POST /api/tasks` | List / create tasks |
+| `GET /api/tasks/{id}` · `PUT /api/tasks/{id}` · `DELETE /api/tasks/{id}` | Get / update / delete a task |
+| `POST /api/tasks/{id}/status` | Move a task through its lifecycle (`to-start → started → in-progress → validating → finished`, `on-hold` / reopen) |
+| `GET /api/tasks/{id}/comments` · `POST /api/tasks/{id}/comments` | Status-aware comments |
+| `GET /api/tags` | Flat tags |
+| `GET /api/users` · `GET /api/users/{id}` | Lightweight users (no accounts) |
+
+### MCP tools
+
+`task.create`, `task.list`, `task.get`, `task.update`, `task.set_status`,
+`task.comment`, `task.delete`, `tag.list`, `user.list`.
+
 ## 🎨 Frontend: Storybook & the TaskDeck component
 
 The frontend ships a **Storybook workbench** (`pnpm --filter
@@ -88,11 +108,6 @@ import '@sousa99/procrastinator-tracker-components/styles.css';
 
 `react`, `react-dom`, `motion`, and `lucide-react` are peer dependencies (consumers provide
 them). The package is ESM-only — CommonJS consumers use dynamic import.
-
-## 🔌 MCP tools
-
-`task.create`, `task.list`, `task.get`, `task.update`, `task.set_status`,
-`task.comment`, `task.delete`, `tag.list`, `user.list`.
 
 ## 🔒 Quality gates
 
