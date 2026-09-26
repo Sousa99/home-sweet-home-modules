@@ -1,0 +1,22 @@
+module_name: bus-catcher
+module_slug: bus-catcher
+module_description: A Home Sweet Home module (bus-catcher)
+npm_scope: sousa99
+repo_owner: sousa99
+repo_name: bus-catcher
+ghcr_org: ghcr.io/sousa99
+packages:
+  - backend
+  - frontend
+stack:
+  backend: Node 24, TypeScript
+  frontend: Vite, React 19, Tailwind CSS v4
+  tooling: pnpm 11, TypeScript, ESLint, Prettier, Vitest
+umbrella_link: https://github.com/
+theme:
+  primary: '#d97706'
+  font_sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', sans-serif
+backend:
+  http_entry: --http
+  mcp_entry: --mcp

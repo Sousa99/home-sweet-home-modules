@@ -1,0 +1,22 @@
+# syntax=docker/dockerfile:1
+FROM node:24-slim AS build
+WORKDIR /app
+RUN npm install -g pnpm@11
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+COPY . .
+RUN --mount=type=secret,id=npm_token \
+  echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" > /root/.npmrc \
+  && pnpm install --frozen-lockfile
+RUN pnpm --filter ./backend build
+RUN pnpm --filter ./backend deploy --prod --legacy /out
+
+FROM node:24-slim
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build /out/package.json ./package.json
+COPY --from=build /out/node_modules ./node_modules
+COPY --from=build /app/backend/dist ./dist
+COPY --from=build /app/backend/drizzle ./drizzle
+EXPOSE 3000
+CMD ["sh", "-c", "node dist/migrate.js && node dist/index.js {{HTTP_ENTRY}}"]

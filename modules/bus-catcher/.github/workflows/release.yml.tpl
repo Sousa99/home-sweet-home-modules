@@ -1,0 +1,112 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: 🧪 Validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com/
+
+      - name: 📦 Install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::group::pnpm install"
+          pnpm install --frozen-lockfile
+          echo "::endgroup::"
+
+      - name: 🧹 Format
+        run: pnpm format
+
+      - name: 🚨 Lint
+        run: pnpm lint
+
+      - name: 🔍 Typecheck
+        run: pnpm typecheck
+
+      - name: 🧪 Test
+        run: pnpm test
+
+      - name: 🔀 Scaffold check
+        run: node scripts/scaffold.mjs --check
+
+{{#if backend}}
+      - name: 🏗️ Build backend
+        run: pnpm --filter ./backend build
+{{/if}}
+{{#if frontend}}
+      - name: 🖼️ Build SPA
+        run: pnpm --filter ./frontend build
+
+      - name: 📦 Build library
+        run: pnpm --filter ./frontend build:lib
+{{/if}}
+
+  release:
+    name: 🚀 Release
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: 📦 Install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > "$HOME/.npmrc"
+          echo "@{{NPM_SCOPE}}:registry=https://npm.pkg.github.com/" >> "$HOME/.npmrc"
+          echo "::group::pnpm install"
+          pnpm install --frozen-lockfile
+          echo "::endgroup::"
+
+      - name: 🔩 Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: 🧱 Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🚀 Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: pnpm exec semantic-release
