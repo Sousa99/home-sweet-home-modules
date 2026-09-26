@@ -98,7 +98,7 @@ The externally visible output of a release.
 
 | Artifact | Registry | Naming |
 |----------|----------|--------|
-| npm package | GitHub Packages (`npm.pkg.github.com`, `@sousa99`) | `@sousa99/<module>-backend`, `@sousa99/<module>-components`, `@sousa99/homesweethome-config` |
+| npm package | GitHub Packages (`npm.pkg.github.com`, `@sousa99`) | `@sousa99/<module>-components`, `@sousa99/homesweethome-config` (module backends are private, image-only) |
 | Backend image | GHCR | `ghcr.io/sousa99/<slug>-backend:<v>` (+ `:latest`) |
 | Frontend image | GHCR | `ghcr.io/sousa99/<slug>-frontend:<v>` (+ `:latest`) |
 | GitHub release | GitHub | per released module |
