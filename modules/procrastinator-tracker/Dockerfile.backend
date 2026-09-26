@@ -8,15 +8,14 @@ COPY . .
 RUN --mount=type=secret,id=npm_token \
   echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" > /root/.npmrc \
   && pnpm install --frozen-lockfile
-RUN pnpm --filter ./backend build
-RUN pnpm --filter ./backend deploy --prod --legacy /out
+RUN pnpm --filter @sousa99/procrastinator-tracker-backend build
+RUN pnpm --filter @sousa99/procrastinator-tracker-backend deploy --prod --legacy /out
 
 FROM node:24-slim
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /out/package.json ./package.json
 COPY --from=build /out/node_modules ./node_modules
-COPY --from=build /app/backend/dist ./dist
-COPY --from=build /app/backend/drizzle ./drizzle
+COPY --from=build /app/modules/procrastinator-tracker/backend/dist ./dist
 EXPOSE 3000
-CMD ["sh", "-c", "node dist/migrate.js && node dist/index.js --http"]
+CMD ["sh", "-c", "node dist/index.js --http"]
