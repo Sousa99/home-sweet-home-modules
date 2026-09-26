@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-app/
+dist-storybook/
+dist-lib/
+build/
+*.tsbuildinfo
+
+# Database
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs & env
+*.log
+.env
+.env.local
+.env.*.local
+
+# Tooling
+coverage/
+.vitest/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# pnpm
+.pnpm-store/
