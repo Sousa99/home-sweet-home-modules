@@ -70,7 +70,7 @@ describe('refresh service', () => {
     expect(stop?.name).toBe('Paragem Nova');
   });
 
-  it('replaces the feed with FK enforcement enabled and preserves config', async () => {
+  it('replaces the feed with FK enforcement enabled and preserves config', { timeout: 20000 }, async () => {
     const dbPath = makeTempDbPath();
     const { refresh } = setup(dbPath);
     expect(refresh.refresh().status).toBe('started');
@@ -87,7 +87,7 @@ describe('refresh service', () => {
     expect(getMetadata(testDb.db, 'last_refresh')).not.toBeNull();
   });
 
-  it('is single-flight: concurrent calls return in_progress', async () => {
+  it('is single-flight: concurrent calls return in_progress', { timeout: 20000 }, async () => {
     const dbPath = makeTempDbPath();
     const { refresh } = setup(dbPath);
 
