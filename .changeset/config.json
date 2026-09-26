@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.3/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    ["@sousa99/procrastinator-tracker-backend", "@sousa99/procrastinator-tracker-components"],
+    ["@sousa99/fly-over-tracker-backend", "@sousa99/fly-over-tracker-components"],
+    ["@sousa99/bus-catcher-backend", "@sousa99/bus-catcher-components"]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}
