@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release:
+    name: 🚀 Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: 📦 Install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > "$HOME/.npmrc"
+          echo "@sousa99:registry=https://npm.pkg.github.com/" >> "$HOME/.npmrc"
+          pnpm install --frozen-lockfile
+
+      - name: 🔩 Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: 🧱 Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Snapshot existing tags
+        run: git tag > /tmp/tags-before
+
+      - name: 🚀 Run changesets (version PR, or publish when none pending)
+        uses: changesets/action@v1
+        with:
+          version: pnpm version
+          publish: pnpm changeset publish
+          commit: 'chore(release): version packages'
+          title: 'chore(release): version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+
+      - name: 📌 Push release tags
+        run: git push origin --tags || true
+
+      - name: 🖼️ Publish GHCR images + GitHub releases
+        env:
+          NPM_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/release-modules.sh /tmp/tags-before

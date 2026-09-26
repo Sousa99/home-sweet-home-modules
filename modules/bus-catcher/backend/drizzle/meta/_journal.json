@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1790271363681,
+      "tag": "0000_keen_thor_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1790368217940,
+      "tag": "0001_curvy_slapstick",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790374433204,
+      "tag": "0002_little_guardsmen",
+      "breakpoints": true
+    }
+  ]
+}

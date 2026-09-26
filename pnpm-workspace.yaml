@@ -1,0 +1,12 @@
+packages:
+  - modules/*/backend
+  - modules/*/frontend
+  - packages/*
+
+allowBuilds:
+  '@parcel/watcher': false
+  better-sqlite3: true
+  esbuild: true
+
+minimumReleaseAgeExclude:
+  - '@sousa99/homesweethome-config'

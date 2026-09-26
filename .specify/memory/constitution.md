@@ -1,19 +1,22 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 0.0.0 (unfilled template) -> 1.0.0 (initial ratification)
-Modified principles (placeholder -> title):
-  - [PRINCIPLE_1_NAME] -> I. Module-First
-  - [PRINCIPLE_2_NAME] -> II. Local-First & Private by Default
-  - [PRINCIPLE_3_NAME] -> III. Configuration-Driven Consistency
-  - [PRINCIPLE_4_NAME] -> IV. Test-First (NON-NEGOTIABLE)
-  - [PRINCIPLE_5_NAME] -> V. Contract & Integration Testing
+Version change: 1.0.0 -> 2.0.0 (MAJOR: principle redefinitions for the monorepo)
+Modified principles (old title -> new title):
+  - I. Module-First (redefined: monorepo under modules/<slug>/; "own repository"
+    clause removed)
+  - III. Configuration-Driven Consistency -> III. Declared Identity & Uniform Tooling
+    (module.config.yaml/scaffold dropped; identity declared in package.json)
+  - Development Workflow & Quality Gates (removed CLI-stamping gate; added
+    in-repo module addition)
 Added sections:
-  - Core Principles (fully populated, 5 principles)
-  - Technology & Packaging Standards
-  - Development Workflow & Quality Gates
-  - Governance (amendment + versioning + compliance rules)
-Removed sections: none
+  - Repository Structure & Spec-Driven Development
+  - Release clause in Technology & Packaging Standards (per-module independent
+    releases via changesets fixed groups)
+Removed:
+  - "own repository" requirement (Principle I)
+  - module.config.yaml + scaffold.mjs --check requirements (Principle III)
+  - "stamp new modules via the homesweethome CLI / Use this template" gate
 Deferred TODOs: none
 -->
 
@@ -22,9 +25,9 @@ Deferred TODOs: none
 ## Core Principles
 
 ### I. Module-First
-Every feature or capability ships as a standalone Home Sweet Home module in its own
-repository. Modules MUST be self-contained, independently deployable, and documented
-in their README and generated `setup.md`. No organizational-only modules.
+Every feature or capability ships as a standalone Home Sweet Home module. Modules live
+in this repository under `modules/<slug>/`; each MUST be self-contained, independently
+deployable, and documented in its README and `setup.md`. No organizational-only modules.
 
 ### II. Local-First & Private by Default
 Home Sweet Home solutions MUST operate on in-home infrastructure first and remain
@@ -32,11 +35,14 @@ functional offline. Household data MUST stay on-premises by default; external ac
 cloud sync, and remote tooling are opt-in and MUST be explicitly documented per module.
 Privacy and security are non-negotiable.
 
-### III. Configuration-Driven Consistency
-Every module's identity (name, slug, packages, stack, registries, theme) MUST be
-declared in a single `module.config.yaml`. Generated files MUST be rendered from the
-shared template and verified with `node scripts/scaffold.mjs --check`; the check MUST
-pass in CI. No drift from the declared config.
+### III. Declared Identity & Uniform Tooling
+Module identity (name, slug, packages, stack, registries) MUST be declared in each
+package's `package.json`, and the directory name `modules/<slug>/` MUST match the package
+name prefix (`@sousa99/<slug>-*`). No scaffolding machinery (`module.config.yaml`,
+`scaffold.mjs`) is used. All modules MUST extend the shared presets from
+`@sousa99/homesweethome-config` so lint, format, and typecheck behave identically across
+the ecosystem. No drift between a module's declared identity and its directory/package
+names.
 
 ### IV. Test-First (NON-NEGOTIABLE)
 TDD is mandatory for backend and frontend: tests written, user approved, tests fail,
@@ -57,13 +63,28 @@ change MUST be covered before merge.
   format, and typecheck behave identically across the ecosystem.
 - Packages publish to GitHub Packages (`npm.pkg.github.com`) under the `@sousa99` scope;
   container images publish to `ghcr.io/sousa99`.
+- Releases are independent per module: each module's packages form a changesets fixed
+  group and version together; other modules and the tooling package are untouched. Every
+  package starts at version 0.0.1.
+
+## Repository Structure & Spec-Driven Development
+
+- The pnpm workspace globs `modules/*/backend`, `modules/*/frontend`, and `packages/*`
+  define membership. Adding a module means creating `modules/<slug>/` (its packages are
+  picked up automatically) and registering its fixed release group in
+  `.changeset/config.json`; no other root configuration is required.
+- Spec-driven development happens at the repository root under `specs/`. Active features
+  are `specs/NNN-name/`; modules carry no per-module spec directories.
+- Historical module specs from the pre-monorepo modules are archived at
+  `specs/001-merge-modules/merge-history/<module-slug>/` — archival only, never treated
+  as active features and never included in feature numbering.
 
 ## Development Workflow & Quality Gates
 
-- New modules MUST be stamped from the module template via the `homesweethome` CLI or
-  GitHub's "Use this template" flow; never hand-scaffolded.
-- Merge gates: `scaffold.mjs --check` passes, shared ESLint/Prettier clean, typecheck
-  passes, and the full test suite passes.
+- New modules MUST be added directly in this repository under `modules/<slug>/`; no
+  scaffolding CLI or template-stamping flow is used.
+- Merge gates: shared ESLint/Prettier clean, typecheck passes, and the full test suite
+  passes.
 - Every PR is code-reviewed; reviewers MUST verify compliance with this constitution.
 - Feature work follows the Spec Kit workflow: specify, plan, then tasks — each feature
   is documented before implementation begins.
@@ -77,7 +98,7 @@ change MUST be covered before merge.
   redefinitions; MINOR for new principles or materially expanded guidance; PATCH for
   clarifications, wording, and typo fixes.
 - Compliance is reviewed on every PR and revisited on every amendment.
-- Runtime development guidance follows each module's generated `setup.md` and the Spec
-  Kit workflow.
+- Runtime development guidance follows each module's `setup.md` and the Spec Kit
+  workflow.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-26
+**Version**: 2.0.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-26

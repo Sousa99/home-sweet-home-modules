@@ -1,0 +1,1 @@
+ALTER TABLE `stops` ADD `realtime_id` text;
