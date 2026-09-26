@@ -70,22 +70,26 @@ describe('refresh service', () => {
     expect(stop?.name).toBe('Paragem Nova');
   });
 
-  it('replaces the feed with FK enforcement enabled and preserves config', { timeout: 20000 }, async () => {
-    const dbPath = makeTempDbPath();
-    const { refresh } = setup(dbPath);
-    expect(refresh.refresh().status).toBe('started');
-    await refresh.whenIdle();
+  it(
+    'replaces the feed with FK enforcement enabled and preserves config',
+    { timeout: 20000 },
+    async () => {
+      const dbPath = makeTempDbPath();
+      const { refresh } = setup(dbPath);
+      expect(refresh.refresh().status).toBe('started');
+      await refresh.whenIdle();
 
-    const testDb = openDb(dbPath);
-    const config = createConfigService(testDb.db);
-    config.addConfigStop({ stopId: 'Z1' });
+      const testDb = openDb(dbPath);
+      const config = createConfigService(testDb.db);
+      config.addConfigStop({ stopId: 'Z1' });
 
-    expect(refresh.refresh().status).toBe('started');
-    await refresh.whenIdle();
+      expect(refresh.refresh().status).toBe('started');
+      await refresh.whenIdle();
 
-    expect(config.getConfigStop(1)?.stop.id).toBe('Z1');
-    expect(getMetadata(testDb.db, 'last_refresh')).not.toBeNull();
-  });
+      expect(config.getConfigStop(1)?.stop.id).toBe('Z1');
+      expect(getMetadata(testDb.db, 'last_refresh')).not.toBeNull();
+    },
+  );
 
   it('is single-flight: concurrent calls return in_progress', { timeout: 20000 }, async () => {
     const dbPath = makeTempDbPath();
