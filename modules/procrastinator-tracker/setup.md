@@ -1,8 +1,8 @@
 # Procrastinator Tracker — Setup
 
 This guide covers prerequisites, quality gates, pipelines, package organization, and good
-practices for this module. It is generated from `module.config.yaml` by
-`scripts/scaffold.mjs`.
+practices for this module. The module lives in the Home Sweet Home modules monorepo at
+`modules/procrastinator-tracker/`.
 
 ## 🧰 Prerequisites
 
@@ -10,6 +10,8 @@ practices for this module. It is generated from `module.config.yaml` by
 - pnpm 11 (`packageManager: pnpm@11.25.0`)
 
 ## 📦 Install
+
+From the repository root:
 
 ```bash
 pnpm install
@@ -19,89 +21,71 @@ pnpm install
 
 Home Sweet Home modules share a consistent package layout. This module ships:
 
-
 - **`backend`** (`@sousa99/procrastinator-tracker-backend`) — a single dual-mode package with two executions:
   - REST API via `--http`
   - MCP server via `--mcp`
-  Both share the same service/db layer. **The backend is never split** into separate
-  REST/MCP packages.
-
-
-
-- **`frontend`** (`@sousa99/procrastinator-tracker-components`) — a single package producing three artifacts from
-  the same source:
-  - SPA app (`pnpm --filter ./frontend build` → `dist-app/`)
-  - Storybook workbench (`pnpm --filter ./frontend storybook` / `build-storybook`)
-  - Published components library (`pnpm --filter ./frontend build:lib` → `dist-lib/`)
-  Styling uses Tailwind CSS v4 with the Home Sweet Home theme (see `module.config.yaml` →
-  `theme`).
-
-
+  Both share the same service/db layer. The backend is never split into separate
+  REST/MCP packages. It is private; it ships as a container image, not an npm package.
+- **`frontend`** (`@sousa99/procrastinator-tracker-components`) — a single package producing three artifacts
+  from the same source:
+  - SPA app (`pnpm --filter ./modules/procrastinator-tracker/frontend build` → `dist-app/`)
+  - Storybook workbench (`pnpm --filter ./modules/procrastinator-tracker/frontend storybook`)
+  - Published components library (`pnpm --filter ./modules/procrastinator-tracker/frontend build:lib` → `dist-lib/`)
+  Styling uses Tailwind CSS v4 with the Home Sweet Home theme.
 
 ## ⚙️ Backend
 
+Run from the repository root:
+
 ```bash
-pnpm --filter ./backend dev          # REST API (--http), tsx watch
-pnpm --filter ./backend dev:mcp      # MCP server (--mcp), tsx watch
-pnpm --filter ./backend start        # REST API (--http)
-pnpm --filter ./backend start:mcp    # MCP server (--mcp)
-pnpm --filter ./backend build        # esbuild bundle → dist/
-pnpm --filter ./backend test         # Vitest
-pnpm --filter ./backend typecheck    # tsc --noEmit
+pnpm --filter ./modules/procrastinator-tracker/backend dev          # REST API (--http), tsx watch
+pnpm --filter ./modules/procrastinator-tracker/backend dev:mcp      # MCP server (--mcp), tsx watch
+pnpm --filter ./modules/procrastinator-tracker/backend start        # REST API (--http)
+pnpm --filter ./modules/procrastinator-tracker/backend start:mcp    # MCP server (--mcp)
+pnpm --filter ./modules/procrastinator-tracker/backend build        # esbuild bundle → dist/
+pnpm --filter ./modules/procrastinator-tracker/backend test         # Vitest
+pnpm --filter ./modules/procrastinator-tracker/backend typecheck    # tsc --noEmit
 ```
-
-> Runtime defaults (server name, database filename, ports) are hand-written per module — see
-> `docs/clarify.md`.
-
-
 
 ## 🎨 Frontend
 
 ```bash
-pnpm --filter ./frontend dev             # SPA dev server
-pnpm --filter ./frontend storybook       # Storybook workbench
-pnpm --filter ./frontend build           # SPA build → dist-app/
-pnpm --filter ./frontend build:lib       # components library → dist-lib/
-pnpm --filter ./frontend test            # Vitest
-pnpm --filter ./frontend typecheck       # tsc --noEmit
+pnpm --filter ./modules/procrastinator-tracker/frontend dev             # SPA dev server
+pnpm --filter ./modules/procrastinator-tracker/frontend storybook       # Storybook workbench
+pnpm --filter ./modules/procrastinator-tracker/frontend build           # SPA build → dist-app/
+pnpm --filter ./modules/procrastinator-tracker/frontend build:lib       # components library → dist-lib/
+pnpm --filter ./modules/procrastinator-tracker/frontend test            # Vitest
+pnpm --filter ./modules/procrastinator-tracker/frontend typecheck       # tsc --noEmit
 ```
-
 
 ## 🔒 Quality gates
 
-All of the following MUST pass before commit/merge:
+All of the following MUST pass before commit/merge (enforced by the uniform CI pipeline
+for every module):
 
 ```bash
-pnpm lint          # ESLint (flat config)
-pnpm format        # Prettier check
+pnpm lint          # ESLint (shared flat config)
+pnpm format        # Prettier check (shared config)
 pnpm test          # Vitest (workspace)
 pnpm typecheck     # tsc --noEmit (workspace)
-node scripts/scaffold.mjs --check   # template drift check
 ```
-
-### 🔀 Template drift check
-
-`module.config.yaml` is the single source of truth for documentation and packaging. The
-generated files (README, AGENTS, setup, package names) are rendered by
-`scripts/scaffold.mjs`. After any hand edit to a generated file, run
-`node scripts/scaffold.mjs --check`; a failure must be resolved by re-rendering or updating
-the config — never by bypassing the check.
 
 ## 🚀 Pipelines
 
-- **CI** (`.github/workflows/ci.yml`) runs on every pull request: format, lint, typecheck,
-  tests, builds, PR format, and the scaffold `--check`. A single aggregator check is the
-  required gate on `main`.
-- **Release** (`.github/workflows/release.yml`) runs on push to `main`: re-validates the
-  gates, then semantic-release derives the version from conventional commits and publishes
-  the artifacts (Docker images, npm package) at one shared version.
+CI/CD is uniform at the repository root (`.github/workflows/`):
+
+- **CI** runs on every pull request and validates every module: format, lint, typecheck,
+  tests, backend/SPA/library builds, actionlint, and PR format. A single `✅ Check`
+  aggregator is the required gate on `main`.
+- **Release** runs on push to `main`: changesets creates a version PR; merging it publishes
+  the affected modules' components package (npm) and GHCR images, and creates a GitHub
+  release. Modules release independently (see the repository README).
 
 ## 🔀 Pull requests
 
 - **Title**: conventional commit `<type>(<scope>)?: <subject>` — enforced by the `📝 PR
   format` check.
 - **Branch**: `feature/NNN-kebab-case` or `fix/NNN-kebab-case`.
-- A guided **PR template** pre-fills every new PR body.
 
 ## 💡 Good practices
 
@@ -110,14 +94,11 @@ the config — never by bypassing the check.
 - **Linting is non-negotiable**: ESLint must pass before merge; exceptions are documented
   inline with justification.
 - **Living documentation**: docs update in the same change as the code they describe; the
-  README and this setup guide stay current (the drift check enforces it).
+  README and this setup guide stay current.
 - **Dependency hygiene**: after dependency changes run `pnpm install`/`pnpm dedupe`; keep a
   single instance of each critical package (`pnpm ls <pkg>` shows exactly one).
-- **IDE/TypeScript parity**: the IDE uses the workspace TypeScript (see
-  `.vscode/settings.json`); spurious IDE errors that do not reproduce in `tsc` are a
-  toolchain mismatch to fix, not to ignore.
 
 ## 🏛️ Governance
 
-See `.specify/memory/constitution.md` for the project's governing principles. Foundational
-decisions to settle when creating this module are listed in `docs/clarify.md`.
+See the [constitution](../.specify/memory/constitution.md) for the project's governing
+principles. Foundational decisions to settle for this module are listed in `docs/clarify.md`.

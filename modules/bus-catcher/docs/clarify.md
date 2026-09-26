@@ -1,9 +1,8 @@
 # Foundational Clarify — bus-catcher
 
-This document lists the foundational decisions to **settle when creating this module**. It is
-generated from `module.config.yaml` by `scripts/scaffold.mjs` and pre-filled with the current
-config values. For each item, confirm the value or edit the config (and re-run
-`node scripts/scaffold.mjs`) — never hand-edit the generated output.
+This document lists the foundational decisions settled when this module was created. The
+values below are confirmed as the module's identity; runtime defaults are hand-written
+application code by design.
 
 > These decisions are finalized at module-creation time. The **runtime defaults** below are
 > hand-written application code by design (FR-012): the template deliberately does not wire
@@ -17,7 +16,7 @@ config values. For each item, confirm the value or edit the config (and re-run
 | Module slug | `bus-catcher` | Confirm |
 | Description | `A Home Sweet Home module (bus-catcher)` | Confirm |
 | npm scope | `@sousa99` | Confirm |
-| Repo | `sousa99/bus-catcher` | Confirm |
+| Repo | `Sousa99/home-sweet-home-modules` | Confirm |
 | GHCR org | `ghcr.io/sousa99` | Confirm |
 | Umbrella link | `https://github.com/` | Confirm |
 
@@ -66,11 +65,11 @@ These are application code defaults that live in the module's source and are wri
 
 - [ ] Confirm the stack matches this module's needs: backend `Node 24, TypeScript`; frontend
   `Vite, React 19, Tailwind CSS v4`; tooling `pnpm 11, TypeScript, ESLint, Prettier, Vitest`
-- [ ] Confirm the styling theme (primary `#d97706`) — see `module.config.yaml` → `theme`
+- [ ] Confirm the styling theme (primary `#d97706`) — see the Home Sweet Home theme
 
 ## 🔁 How to apply a change
 
-1. Edit `module.config.yaml`.
-2. Run `node scripts/scaffold.mjs` to re-render generated files.
-3. Run `node scripts/scaffold.mjs --check` to verify the repo is in sync.
-4. Hand-edit any runtime default listed above in the application source.
+1. Change the module's identity in its `package.json` files (name/version) or the
+   `modules/<slug>/` directory name.
+2. Hand-edit any runtime default listed above in the application source.
+3. Run the uniform quality gates (see `setup.md`).

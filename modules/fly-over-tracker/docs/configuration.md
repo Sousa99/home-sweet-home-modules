@@ -9,7 +9,7 @@ open adsb.lol API. Everything is optional.
 
 - `loadConfig()` parses `process.env` at startup and fails fast on invalid
   values (non-numeric ports, unknown `FEED` mode, ...).
-- When the backend is started with `pnpm --filter ./backend dev` / `start`,
+- When the backend is started with `pnpm --filter ./modules/fly-over-tracker/backend dev` / `start`,
   the package's `.env` file (if present) is loaded via `dotenv/config`
   (`backend/src/index.ts`). **Existing environment variables always win** over
   `.env`, so container / CI-orchestrator env takes precedence.
@@ -58,8 +58,8 @@ resolvable route (e.g. general aviation, or planes on the ground) report
 
 ```bash
 cp backend/.env.example backend/.env
-pnpm --filter ./backend dev            # REST on :3000
-pnpm --filter ./backend dev:mcp        # MCP on :3001
+pnpm --filter ./modules/fly-over-tracker/backend dev            # REST on :3000
+pnpm --filter ./modules/fly-over-tracker/backend dev:mcp        # MCP on :3001
 ```
 
 ### Docker / orchestrator (released image)
@@ -77,6 +77,6 @@ feeds need no authentication.
 
 ## Note on generated docs
 
-`README.md` and `setup.md` are scaffold-generated from `module.config.yaml`;
-runtime configuration docs deliberately live here to avoid template drift.
-Run `node scripts/scaffold.mjs --check` before merge.
+`README.md` and `setup.md` follow the uniform Home Sweet Home module documentation
+structure; runtime configuration docs deliberately live here. They are maintained by
+hand and reviewed in the same change as the code they describe.

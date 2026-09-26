@@ -1,16 +1,8 @@
----
-module: fly-over-tracker
-slug: fly-over-tracker
-description: Track which aircraft are flying over a given location - REST API, MCP tool, and React SPA
-home: https://github.com/
-packages: backend frontend
----
-
 # fly-over-tracker
 
 [![Part of Home Sweet Home](https://img.shields.io/badge/Home%20Sweet%20Home-Module-blue)](https://github.com/)
 
-Track which aircraft are flying over a given location - REST API, MCP tool, and React SPA
+Track which aircraft are flying over a given location — REST API, MCP tool, and React SPA.
 
 ## 🧰 Stack
 
@@ -27,59 +19,63 @@ Track which aircraft are flying over a given location - REST API, MCP tool, and 
 
 ## 🚀 Setup
 
+From the repository root:
+
 ```bash
 pnpm install
 ```
 
-See [setup.md](setup.md) for the full module setup guide, quality gates, pipelines, and
-package organization. See [docs/clarify.md](docs/clarify.md) for the foundational decisions
-to settle when creating this module.
-
+See [setup.md](setup.md) for the full module setup guide, quality gates, and pipelines.
+See [docs/clarify.md](docs/clarify.md) for the foundational decisions settled at module
+creation.
 
 ## ⚙️ Backend
 
-One dual-mode package — **REST API** (`--http`) and **MCP server** (`--mcp`)
-— sharing the same service/db layer. Package: `@sousa99/fly-over-tracker-backend`.
+One dual-mode package — **REST API** (`--http`) and **MCP server** (`--mcp`) — sharing the
+same service/db layer. Package: `@sousa99/fly-over-tracker-backend`.
 
 ```bash
-pnpm --filter ./backend dev          # REST API in dev (--http)
-pnpm --filter ./backend dev:mcp      # MCP server in dev (--mcp)
-pnpm --filter ./backend start        # REST API (--http)
-pnpm --filter ./backend start:mcp    # MCP server (--mcp)
+pnpm --filter ./modules/fly-over-tracker/backend dev          # REST API in dev (--http)
+pnpm --filter ./modules/fly-over-tracker/backend dev:mcp      # MCP server in dev (--mcp)
+pnpm --filter ./modules/fly-over-tracker/backend start        # REST API (--http)
+pnpm --filter ./modules/fly-over-tracker/backend start:mcp    # MCP server (--mcp)
 ```
 
 > Runtime defaults (server name, database filename, ports) are hand-written per module — see
 > `docs/clarify.md`.
 
-
-
 ## 🎨 Frontend
 
 One package — **SPA app**, **Storybook workbench**, and a **publishable components library**
-— built from the same source. Package: `@sousa99/fly-over-tracker-components`. Styling uses Tailwind CSS v4
-with the Home Sweet Home theme (configurable via `module.config.yaml` → `theme`).
+— built from the same source. Package: `@sousa99/fly-over-tracker-components`. Styling uses
+Tailwind CSS v4 with the Home Sweet Home theme.
 
 ```bash
-pnpm --filter ./frontend dev             # SPA dev server
-pnpm --filter ./frontend storybook       # Storybook workbench
-pnpm --filter ./frontend build           # SPA build (dist-app)
-pnpm --filter ./frontend build:lib       # components library (dist-lib)
+pnpm --filter ./modules/fly-over-tracker/frontend dev             # SPA dev server
+pnpm --filter ./modules/fly-over-tracker/frontend storybook       # Storybook workbench
+pnpm --filter ./modules/fly-over-tracker/frontend build           # SPA build (dist-app)
+pnpm --filter ./modules/fly-over-tracker/frontend build:lib       # components library (dist-lib)
 ```
-
 
 ## 🔒 Quality gates
 
+Uniform gates, enforced on every pull request for every module:
+
 ```bash
-pnpm lint       # ESLint
-pnpm format     # Prettier check
+pnpm lint       # ESLint (shared flat config)
+pnpm format     # Prettier check (shared config)
 pnpm test       # Vitest
 pnpm typecheck  # tsc --noEmit
-pnpm --filter ./frontend build:lib 2>/dev/null; node scripts/scaffold.mjs --check  # template drift check
 ```
 
-All gates must pass before commit/merge. The `CI` workflow enforces them on every pull
-request; merging to `main` triggers the `Release` workflow.
+## 🚀 Releases
+
+This module releases independently via changesets: its `backend` and `components` packages
+share one version, and a release publishes the components package (npm) and the
+backend/frontend container images (GHCR) plus a GitHub release. See the [repository
+README](../README.md) and [.changeset/README.md](../.changeset/README.md).
 
 ## 🏛️ Governance
 
-See `.specify/memory/constitution.md` for the project's governing principles.
+See the [constitution](../.specify/memory/constitution.md) for the project's governing
+principles.

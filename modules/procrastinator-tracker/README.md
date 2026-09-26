@@ -1,11 +1,3 @@
----
-module: Procrastinator Tracker
-slug: procrastinator-tracker
-description: Local-first task tracker with REST + MCP backend and a React SPA frontend
-home: https://github.com/
-packages: backend frontend
----
-
 # Procrastinator Tracker
 
 [![Part of Home Sweet Home](https://img.shields.io/badge/Home%20Sweet%20Home-Module-blue)](https://github.com/)
@@ -20,16 +12,15 @@ optional location and urgency (1–5), recurring tasks, and status-aware comment
 
 ## 🧰 Stack
 
-| Layer    | Technology |
-|----------|------------|
-| Backend  | Node 24, Hono, `@hono/zod-openapi`, Drizzle ORM, better-sqlite3, MCP TypeScript SDK |
+| Layer | Technology |
+|-------|------------|
+| Backend | Node 24, Hono, `@hono/zod-openapi`, Drizzle ORM, better-sqlite3, MCP TypeScript SDK |
 | Frontend | Vite, React 19, Tailwind CSS v4, shadcn-style primitives, TanStack Query, React Router |
-| Tooling  | pnpm 11, TypeScript, ESLint (flat config), Prettier, Vitest |
+| Tooling | pnpm 11, TypeScript, ESLint (flat config), Prettier, Vitest |
 
 The backend is a single codebase with a **dual-mode entry**: `--http` serves the REST API,
-`--mcp` serves the MCP server over **streamable HTTP** (see
-[feature 002](specs/002-mcp-http-transport/)). Both modes share the same service/db layer
-— no separate backend packages.
+`--mcp` serves the MCP server over **streamable HTTP**. Both modes share the same
+service/db layer — no separate backend packages.
 
 ## 🧰 Prerequisites
 
@@ -38,37 +29,38 @@ The backend is a single codebase with a **dual-mode entry**: `--http` serves the
 
 ## 🚀 Setup
 
+From the repository root:
+
 ```bash
 pnpm install
-pnpm db:generate   # generate SQL migration from the Drizzle schema (if schema changed)
-pnpm db:migrate    # apply migrations (creates the SQLite database)
+pnpm --filter ./modules/procrastinator-tracker/backend db:generate   # if schema changed
+pnpm --filter ./modules/procrastinator-tracker/backend db:migrate    # creates the SQLite db
 ```
 
 ## 🏃 Run
 
 | Mode | Command | Notes |
 |------|---------|-------|
-| REST API + Swagger | `pnpm --filter ./backend start` | http://localhost:3000 · OpenAPI at `/doc` · Swagger UI at `/ui` |
-| MCP server (HTTP) | `pnpm --filter ./backend start:mcp` | Streamable HTTP MCP at http://localhost:3001/mcp (`MCP_PORT`) |
-| MCP auto-reload (dev) | `pnpm --filter ./backend dev:mcp` | Same, but `tsx watch` reloads on source edits |
-| Frontend (dev) | `pnpm --filter ./frontend dev` | http://localhost:5173, proxies `/api` to the backend |
-| Storybook (workbench) | `pnpm --filter ./frontend storybook` | http://localhost:6006 · static build → `dist-storybook/` |
-| Both together | `pnpm dev` | REST + frontend via `concurrently` |
+| REST API + Swagger | `pnpm --filter ./modules/procrastinator-tracker/backend start` | http://localhost:3000 · OpenAPI at `/doc` · Swagger UI at `/ui` |
+| MCP server (HTTP) | `pnpm --filter ./modules/procrastinator-tracker/backend start:mcp` | Streamable HTTP MCP at http://localhost:3001/mcp (`MCP_PORT`) |
+| MCP auto-reload (dev) | `pnpm --filter ./modules/procrastinator-tracker/backend dev:mcp` | Same, but `tsx watch` reloads on source edits |
+| Frontend (dev) | `pnpm --filter ./modules/procrastinator-tracker/frontend dev` | http://localhost:5173, proxies `/api` to the backend |
+| Storybook (workbench) | `pnpm --filter ./modules/procrastinator-tracker/frontend storybook` | http://localhost:6006 · static build → `dist-storybook/` |
 
-Both backend modes share `backend/data/procrastinator.db` (SQLite WAL allows concurrent
-access). To run REST and MCP simultaneously, start two instances of the same process —
-which also means you can restart the MCP process without affecting the REST API.
+Both backend modes share `modules/procrastinator-tracker/backend/data/procrastinator.db`
+(SQLite WAL allows concurrent access). To run REST and MCP simultaneously, start two
+instances of the same process — which also means you can restart the MCP process without
+affecting the REST API.
 
 ## 🎨 Frontend: Storybook & the TaskDeck component
 
-The frontend ships a **Storybook workbench** (`pnpm --filter ./frontend storybook` →
-http://localhost:6006) for developing and documenting components in isolation. Stories are
-co-located with components; see [feature 003](specs/003-storybook-task-stack/).
+The frontend ships a **Storybook workbench** (`pnpm --filter
+./modules/procrastinator-tracker/frontend storybook` → http://localhost:6006) for
+developing and documenting components in isolation. Stories are co-located with components.
 
 The **`TaskDeck`** component renders tasks as a **swipeable card stack** (Deck Standard 1
 style): the top card fully visible, the next `stackSize` cards scaled/fanned behind it. It
-supports drag-to-skip and an **auto-rotate** timer. Key props (see
-[contracts/task-deck.md](specs/003-storybook-task-stack/contracts/task-deck.md)):
+supports drag-to-skip and an **auto-rotate** timer. Key props:
 
 - `filters` — which tasks to show (fetched via the existing API client).
 - `refreshRateMs` (default 30000) — how often to re-fetch; `0` disables.
@@ -82,9 +74,10 @@ The app dashboard offers a **Deck | List** toggle: Deck renders `TaskDeckWrapper
 
 ### Exportable package
 
-`pnpm --filter ./frontend build:lib` produces `frontend/dist-lib/` — an ESM bundle
-(`index.js` + `index.d.ts`) plus a compiled `styles.css`, so the component can be installed
-and used in other React 19 apps:
+`pnpm --filter ./modules/procrastinator-tracker/frontend build:lib` produces
+`modules/procrastinator-tracker/frontend/dist-lib/` — an ESM bundle (`index.js` +
+`index.d.ts`) plus a compiled `styles.css`, so the component can be installed and used in
+other React 19 apps:
 
 ```tsx
 import { TaskDeckWrapper } from '@sousa99/procrastinator-tracker-components';
@@ -94,107 +87,37 @@ import '@sousa99/procrastinator-tracker-components/styles.css';
 ```
 
 `react`, `react-dom`, `motion`, and `lucide-react` are peer dependencies (consumers provide
-them). The package is ESM-only — CommonJS consumers use dynamic import. Validated with
-`npx publint` and `npx @arethetypeswrong/cli --pack`.
-
-## 📚 Documentation
-
-- **Specs**: `specs/001-task-tracker-core/` — spec, plan, research, data-model, contracts,
-  quickstart, tasks. `specs/002-mcp-http-transport/` — MCP HTTP transport (spec, plan,
-  research, contracts, quickstart, tasks). `specs/003-storybook-task-stack/` — Storybook
-  workbench + exportable TaskDeck component (spec, plan, research, data-model, contracts,
-  quickstart, tasks). `specs/004-ci-cd-pipelines/` — CI/CD + release automation (spec, plan,
-  research, data-model, contracts, quickstart, tasks). `specs/005-module-docs-templatization/`
-  — the Home Sweet Home module template this repo is generated from.
-- **API contract**: served at `/doc` (OpenAPI 3.0) with interactive Swagger UI at `/ui`.
-- **Endpoint validation**: VSCode REST Client files in `backend/http/*.http`.
-- **Setup guide**: [setup.md](setup.md) — quality gates, pipelines, package organization.
-- **Foundational clarify**: [docs/clarify.md](docs/clarify.md) — decisions settled at
-  module creation.
-
-## 🔒 Quality gates
-
-```bash
-pnpm lint       # ESLint (root flat config)
-pnpm format     # Prettier check (root config)
-pnpm test       # Vitest: backend (hono app + in-memory SQLite) + frontend (RTL)
-pnpm typecheck  # tsc --noEmit for both packages
-node scripts/scaffold.mjs --check  # template drift check
-```
-
-All gates MUST pass before commit/merge (see the project constitution). These gates (plus
-builds and the PR format checks) run automatically on every pull request via the `CI`
-workflow; merging to `main` triggers the `Release` workflow.
-
-## 🔀 Pull requests
-
-- **Title** must be a conventional commit: `<type>(<scope>)?: <subject>` (e.g.
-  `feat: add CI/CD pipelines`) — `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `build`,
-  `ci`, `style`, `perf`, `revert`. A `📝 PR format` check rejects non-conforming titles and
-  branches before review.
-- **Branch** must be `feature/NNN-kebab-case` or `fix/NNN-kebab-case` (e.g.
-  `feature/004-ci-cd-pipelines`, `fix/004-release-npm-token`).
-- A single **`✅ Check`** status check aggregates all CI jobs and is the required check on
-  `main` (enable the branch protection rule in repo Settings → Branches).
-- A guided **pull request template** pre-fills every new PR body with hidden fill-in
-  instructions.
-
-## 🚀 CI/CD & releases
-
-The repository ships two GitHub Actions workflows (`.github/workflows/`):
-
-- **CI** — on every pull request. Parallel emoji-labeled checks: 🧹 Format, 🚨 Lint,
-  🔍 Typecheck, 🧪 Test, 🔀 Scaffold check, 🏗️ Build backend, 🖼️ Build SPA, 📦 Build library,
-  🔬 actionlint, and 📝 PR format (title + branch). A single **`✅ Check`** aggregator
-  is the required status check on `main`.
-- **Release** — on push to `main` (or manual dispatch). Runs the quality gates, then
-  semantic-release computes the next version from conventional-commit history and publishes
-  three artifacts at the **same version** (all `package.json` files are kept in sync):
-  - **Backend image** → `ghcr.io/sousa99/procrastinator-tracker-backend` (multi-stage,
-    `node:24-slim`, runs SQLite migrations on startup)
-  - **SPA image** → `ghcr.io/sousa99/procrastinator-tracker-frontend` (`nginx:alpine`,
-    serves the static build)
-  - **npm package** → `@sousa99/procrastinator-tracker-components` on GitHub Packages
-    (`npm.pkg.github.com`)
-
-A `CHANGELOG.md` and a GitHub release are generated for every release; the version bump is
-committed back to `main` as `chore(release): X.Y.Z [skip ci]`. See
-[feature 004](specs/004-ci-cd-pipelines/) for the full spec, contracts, and quickstart.
+them). The package is ESM-only — CommonJS consumers use dynamic import.
 
 ## 🔌 MCP tools
 
 `task.create`, `task.list`, `task.get`, `task.update`, `task.set_status`,
 `task.comment`, `task.delete`, `tag.list`, `user.list`.
 
-## 🤖 Connecting opencode
+## 🔒 Quality gates
 
-The repo's `opencode.json` registers the tracker as a **remote** MCP server:
+Uniform gates, enforced on every pull request for every module:
 
-```json
-{
-  "mcp": {
-    "procrastinator-tracker": {
-      "type": "remote",
-      "url": "http://localhost:3001/mcp",
-      "enabled": true
-    }
-  }
-}
+```bash
+pnpm lint       # ESLint (shared flat config)
+pnpm format     # Prettier check (shared config)
+pnpm test       # Vitest: backend (hono app + in-memory SQLite) + frontend (RTL)
+pnpm typecheck  # tsc --noEmit
 ```
 
-Start the MCP process (`pnpm --filter ./backend start:mcp` or `dev:mcp`), then opencode
-connects on its next start. **Reloading MCP code needs no opencode restart**: restart the
-MCP process (or let `dev:mcp` reload on save) and opencode picks it up on the next tool
-call. See [feature 002 contracts](specs/002-mcp-http-transport/contracts/mcp.md).
+## 🚀 Releases
 
-**Deployed**: same config shape — swap `url` and add auth headers:
+This module releases independently via changesets: its `backend` and `components` packages
+share one version, and a release publishes the components package (npm) and the
+backend/frontend container images (GHCR) plus a GitHub release. See the [repository
+README](../README.md) and [.changeset/README.md](../.changeset/README.md).
 
-```json
-{ "type": "remote", "url": "https://your-server.example/mcp",
-  "headers": { "Authorization": "Bearer {env:MCP_TOKEN}" } }
-```
+## 📚 Historical specs
+
+The feature specs developed in this module's original repository are archived (read-only)
+at `specs/001-merge-modules/merge-history/procrastinator-tracker/`.
 
 ## 🏛️ Governance
 
-See `.specify/memory/constitution.md` for the project's governing principles (code
-quality, automated formatting/linting, maintainability, living documentation).
+See the [constitution](../.specify/memory/constitution.md) for the project's governing
+principles.
