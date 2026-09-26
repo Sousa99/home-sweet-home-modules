@@ -1,0 +1,22 @@
+module_name: fly-over-tracker
+module_slug: fly-over-tracker
+module_description: Track which aircraft are flying over a given location - REST API, MCP tool, and React SPA
+npm_scope: sousa99
+repo_owner: sousa99
+repo_name: fly-over-tracker
+ghcr_org: ghcr.io/sousa99
+packages:
+  - backend
+  - frontend
+stack:
+  backend: Node 24, TypeScript
+  frontend: Vite, React 19, Tailwind CSS v4
+  tooling: pnpm 11, TypeScript, ESLint, Prettier, Vitest
+umbrella_link: https://github.com/
+theme:
+  primary: '#d97706'
+  font_sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', sans-serif
+backend:
+  http_entry: --http
+  mcp_entry: --mcp

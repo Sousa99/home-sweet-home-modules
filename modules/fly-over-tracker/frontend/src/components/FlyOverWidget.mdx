@@ -1,0 +1,61 @@
+import { Meta, Canvas, Controls, ArgTypes } from '@storybook/addon-docs/blocks';
+import * as FlyOverWidgetStories from './FlyOverWidget.stories';
+
+<Meta of={FlyOverWidgetStories} />
+
+# FlyOverWidget
+
+`FlyOverWidget` is a self-sufficient, embeddable panel for a dashboard: a read-only
+map of a configured location with every aircraft inside the radius marked, and the
+same aircraft listed beneath the map as compact cards.
+
+It fills the available width; the map expands to take the available vertical space and
+the list below takes only the height it needs (scrolling when it is longer than the
+space). The widget fetches and auto-refreshes its own data, so a host application only
+supplies configuration through props — no data wiring or TanStack Query setup is
+required.
+
+## Usage
+
+```tsx
+import { FlyOverWidget } from '@sousa99/fly-over-tracker-components';
+
+<FlyOverWidget location={{ lat: 48.8566, lng: 2.3522, radiusKm: 50 }} autoRefresh={10} />;
+```
+
+## Props
+
+<ArgTypes of={FlyOverWidgetStories} />
+
+## Examples
+
+### Aircraft in range
+
+<Canvas of={FlyOverWidgetStories.WithAircraft} />
+<Controls of={FlyOverWidgetStories.WithAircraft} />
+
+### No aircraft in range
+
+<Canvas of={FlyOverWidgetStories.Empty} />
+
+### Feed unavailable
+
+<Canvas of={FlyOverWidgetStories.Error} />
+
+### Auto-refresh
+
+<Canvas of={FlyOverWidgetStories.AutoRefresh} />
+
+## Behavior notes
+
+- **Self-sufficient data** — fetches `GET {baseUrl}/api/fly-overs` and re-fetches
+  automatically every `autoRefresh` seconds (`'off'` disables automatic refresh).
+- **Update feedback** — a small "Updating…" indicator appears in the top corner while
+  a refresh is in flight and clears when it completes.
+- **States** — loading, empty ("No aircraft within … km"), and error states render in
+  place of the list; stale data is never presented as fresh.
+- **Layout** — `w-full`, `h-full` flex column: the map is `flex-1` and the list takes
+  its natural height with a scroll cap. Mount it inside a container with a defined
+  height.
+- **Requirements** — the host must provide the peer dependencies `react`, `react-dom`,
+  `leaflet`, and `react-leaflet`.

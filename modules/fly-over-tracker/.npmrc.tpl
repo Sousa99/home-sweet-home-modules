@@ -1,0 +1,1 @@
+@{{NPM_SCOPE}}:registry=https://npm.pkg.github.com/
