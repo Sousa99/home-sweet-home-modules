@@ -20,6 +20,10 @@ MODULES="fly-over-tracker procrastinator-tracker bus-catcher"
 release_notes() {
   local changelog="$1"
   local version="$2"
+  if [[ ! -f "$changelog" ]]; then
+    echo ""
+    return 0
+  fi
   node -e '
     const fs = require("fs");
     const [path, version] = process.argv.slice(1);
