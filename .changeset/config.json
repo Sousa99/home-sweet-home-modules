@@ -5,7 +5,8 @@
   "fixed": [
     ["@sousa99/procrastinator-tracker-backend", "@sousa99/procrastinator-tracker-components"],
     ["@sousa99/fly-over-tracker-backend", "@sousa99/fly-over-tracker-components"],
-    ["@sousa99/bus-catcher-backend", "@sousa99/bus-catcher-components"]
+    ["@sousa99/bus-catcher-backend", "@sousa99/bus-catcher-components"],
+    ["@sousa99/current-time-components"]
   ],
   "linked": [],
   "access": "public",

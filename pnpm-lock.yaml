@@ -158,6 +158,79 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@26.6.2)(jiti@2.7.0)(jsdom@25.0.1(supports-color@8.1.1))(lightningcss@1.32.0)(supports-color@8.1.1)(tsx@4.23.15)(yaml@2.9.1)
 
+  modules/current-time/frontend:
+    dependencies:
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.3.0)
+      motion:
+        specifier: ^13.2.0
+        version: 13.4.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      react:
+        specifier: ^19.0.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.0(react@19.3.0)
+      react-router:
+        specifier: ^7.1.0
+        version: 7.18.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+    devDependencies:
+      '@microsoft/api-extractor':
+        specifier: ^7.59.0
+        version: 7.59.2(@types/node@26.6.2)
+      '@storybook/addon-docs':
+        specifier: ^9.1.20
+        version: 9.1.20(@types/react@19.3.0)(storybook@9.1.20(@testing-library/dom@10.4.2)(prettier@3.9.9)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))
+      '@storybook/react-vite':
+        specifier: ^9.1.20
+        version: 9.1.20(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rollup@4.63.5)(storybook@9.1.20(@testing-library/dom@10.4.2)(prettier@3.9.9)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))(supports-color@8.1.1)(typescript@5.9.3)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@tailwindcss/cli':
+        specifier: ^4.3.3
+        version: 4.3.3
+      '@tailwindcss/vite':
+        specifier: ^4.1.0
+        version: 4.3.3(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@testing-library/jest-dom':
+        specifier: ^6.6.0
+        version: 6.10.0(@testing-library/dom@10.4.2)
+      '@testing-library/react':
+        specifier: ^16.1.0
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@testing-library/user-event':
+        specifier: ^14.5.0
+        version: 14.6.7(@testing-library/dom@10.4.2)
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: ^4.3.0
+        version: 4.7.0(supports-color@8.1.1)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      jsdom:
+        specifier: ^25.0.0
+        version: 25.0.1(supports-color@8.1.1)
+      storybook:
+        specifier: ^9.1.20
+        version: 9.1.20(@testing-library/dom@10.4.2)(prettier@3.9.9)(supports-color@8.1.1)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      tailwindcss:
+        specifier: ^4.1.0
+        version: 4.3.3
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+      vite-plugin-dts:
+        specifier: ^5.1.0
+        version: 5.1.1(@microsoft/api-extractor@7.59.2(@types/node@26.6.2))(esbuild@0.28.2)(rollup@4.63.5)(supports-color@8.1.1)(typescript@5.9.3)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@26.6.2)(jiti@2.7.0)(jsdom@25.0.1(supports-color@8.1.1))(lightningcss@1.32.0)(supports-color@8.1.1)(tsx@4.23.15)(yaml@2.9.1)
+
   modules/fly-over-tracker/backend:
     dependencies:
       '@hono/node-server':

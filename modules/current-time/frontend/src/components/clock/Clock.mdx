@@ -1,0 +1,39 @@
+import { Meta, Canvas, ArgTypes } from '@storybook/addon-docs/blocks';
+import * as ClockCardStories from './ClockCard.stories';
+import * as ClockPlainStories from './ClockPlain.stories';
+
+<Meta title="Clock/Documentation" />
+
+# Clock widgets
+
+The clock is published as two widgets with identical props — `ClockCard` (with card chrome) and
+`ClockPlain` (without). Both self-contain the live time from the device clock, expand to fill the
+available width and height with the readout scaling to fit, and can be constrained by an optional
+aspect ratio.
+
+## Props
+
+`ClockPlain` accepts the exact same props as `ClockCard`.
+
+<ArgTypes of={ClockCardStories} />
+
+## ClockCard
+
+The card presentation — the readout inside the shared white, amber-bordered card chrome.
+
+<Canvas of={ClockCardStories.Default} />
+
+### Variants
+
+<Canvas of={ClockCardStories.TwelveHour} />
+<Canvas of={ClockCardStories.NotSwitchable} />
+<Canvas of={ClockCardStories.LeftAligned} />
+<Canvas of={ClockCardStories.WideAspectRatio} />
+
+## ClockPlain
+
+The plain presentation — the same readout, no card chrome.
+
+<Canvas of={ClockPlainStories.Default} />
+<Canvas of={ClockPlainStories.TwelveHour} />
+<Canvas of={ClockPlainStories.RightAligned} />
