@@ -12,16 +12,14 @@
       }
     }
   },
-  "tools": {
-    "github_*": false
-  },
-  "agent": {
-    "github-helper": {
-      "description": "Handles GitHub operations: repositories, issues, pull requests, and Actions/CI runs via the GitHub MCP server. Delegate any GitHub task to this agent.",
-      "mode": "subagent",
-      "tools": {
-        "github_*": true
-      }
+  "permission": {
+    "github_*": "deny",
+    "bash": {
+      "*": "allow",
+      "git": "deny",
+      "git *": "deny",
+      "gh": "deny",
+      "gh *": "deny"
     }
   }
 }
