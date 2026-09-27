@@ -7,7 +7,7 @@ import { useCurrentTime } from '../../lib/useCurrentTime';
 import { ClockFace } from './ClockFace';
 import { TimeFormatToggle } from './TimeFormatToggle';
 
-export type ClockAlign = 'left' | 'center' | 'right';
+type ClockAlign = 'left' | 'center' | 'right';
 
 export interface ClockWidgetProps {
   align?: ClockAlign;
@@ -21,9 +21,12 @@ const ALIGN_CLASS: Record<ClockAlign, string> = {
   right: 'items-end',
 };
 
+const MIN_FONT_SIZE = 16;
+const DEFAULT_FONT_SIZE = 32;
+
 function useScaledFontSize<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
-  const [fontSize, setFontSize] = useState<number | null>(null);
+  const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
 
   useEffect(() => {
     const el = ref.current;
@@ -31,7 +34,7 @@ function useScaledFontSize<T extends HTMLElement>() {
     const observer = new ResizeObserver((entries) => {
       const { width, height } = entries[0]?.contentRect ?? { width: 0, height: 0 };
       if (width > 0 && height > 0) {
-        setFontSize(Math.max(16, Math.min(width / 8, height / 2.5)));
+        setFontSize(Math.max(MIN_FONT_SIZE, Math.min(width / 8, height / 2.5)));
       }
     });
     observer.observe(el);
@@ -57,7 +60,7 @@ export function ClockWidget({
       data-testid="clock-widget"
       className={cn('flex h-full w-full flex-col justify-center gap-2', ALIGN_CLASS[align])}
     >
-      <div data-testid="clock-scale" style={fontSize ? { fontSize } : undefined}>
+      <div data-testid="clock-scale" style={{ fontSize }}>
         <ClockFace time={parts} />
       </div>
       {switchable ? <TimeFormatToggle format={format} onChange={setFormat} /> : null}

@@ -55,4 +55,11 @@ export const RightAligned: Story = {
 
 export const WideAspectRatio: Story = {
   args: { aspectRatio: '16/9' },
+  decorators: [
+    (Story) => (
+      <div className="w-96">
+        <Story />
+      </div>
+    ),
+  ],
 };

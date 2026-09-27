@@ -14,12 +14,7 @@ export default defineConfig({
     outDir: 'dist-lib',
     rollupOptions: {
       external: (id) =>
-        id === 'react' ||
-        id === 'react-dom' ||
-        id === 'react/jsx-runtime' ||
-        id === 'lucide-react' ||
-        id === 'motion' ||
-        id.startsWith('motion/'),
+        id === 'react' || id === 'react-dom' || id === 'react/jsx-runtime' || id === 'lucide-react',
     },
   },
 });

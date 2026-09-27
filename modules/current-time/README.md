@@ -64,9 +64,30 @@ The module extends the shared presets from `@sousa99/homesweethome-config`, so t
 | `@sousa99/current-time-components` | GitHub Packages (`npm.pkg.github.com`) | SPA + publishable components library |
 
 The public surface is `ClockCard`, `ClockPlain`, `ClockFace`, `TimeFormatToggle`, `DashboardPage`,
-`useCurrentTime`, `formatTimeParts`, `getTimeFormat`, and `setTimeFormat` (see the feature
-contracts under `specs/003-current-time-dashboard/contracts/frontend-api.md`). Releases are
-independent via its own changesets fixed group, starting at `0.0.1`.
+`useCurrentTime`, `formatTimeParts`, `getTimeFormat`, and `setTimeFormat`, plus the types
+`TimeFormat`, `TimeParts`, `ClockCardProps`, `ClockPlainProps`, `ClockFaceProps`, and
+`TimeFormatToggleProps` (see the feature contracts under
+`specs/003-current-time-dashboard/contracts/frontend-api.md`). Releases are independent via its own
+changesets fixed group, starting at `0.0.1`.
+
+### Embedding the widgets
+
+```tsx
+import '@sousa99/current-time-components/styles.css';
+import { ClockCard } from '@sousa99/current-time-components';
+
+function Dashboard() {
+  return (
+    <div className="h-40 w-96">
+      <ClockCard align="center" defaultFormat="24h" switchable />
+    </div>
+  );
+}
+```
+
+Give the widget a container with explicit size — it fills the space and scales the readout to fit;
+an optional `aspectRatio` prop (e.g. `'16/9'`, `'1/1'`) constrains its proportions when one axis is
+free.
 
 ## 📚 Learn More
 

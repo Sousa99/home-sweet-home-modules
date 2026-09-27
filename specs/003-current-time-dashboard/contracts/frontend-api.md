@@ -98,11 +98,15 @@ Stored on the user's device in browser local storage — never transmitted.
 
 Contract behavior is verified by the test suite (see [quickstart.md](quickstart.md) and `tasks.md`):
 - `use-current-time.test.ts` — ticking, boundary advance, resync on visibility/focus.
+- `use-clock-format.test.ts` — seeding from stored/default, pinning when not switchable, persist
+  policy.
 - `time-format.test.ts` — `formatTimeParts` output, `getTimeFormat` defaulting, `setTimeFormat`
   round-trip, invalid-value fallback.
+- `clock-face.test.tsx` — readout parts and AM/PM rendering.
 - `clock-widget.test.tsx` — both widgets render identical readouts (chrome differs), alignment
-  honored per `align`, `defaultFormat` seeding, `switchable` true/false behavior + persistence.
-- `dashboard.test.tsx` — dashboard renders the card widget; toggle flow.
+  honored per `align`, `defaultFormat` seeding, `switchable` true/false behavior + persistence,
+  fill/scale + legibility clamp, `aspectRatio`, and the shared preference across widgets.
+- `dashboard.test.tsx` — dashboard renders the card widget; toggle flow and persistence.
 - `time-format-toggle.test.tsx` — toggle reflects/persists format.
 
 ## 5. Component workbench

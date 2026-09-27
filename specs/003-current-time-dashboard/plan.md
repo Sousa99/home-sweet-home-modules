@@ -14,7 +14,7 @@ A frontend-only Home Sweet Home module displaying the current local time (hours,
 
 **Language/Version**: TypeScript 5.x (strict), React 19, Node 24 (pnpm 11 workspace)
 
-**Primary Dependencies**: Vite 6, React 19 + react-dom, Tailwind CSS v4, react-router (SPA shell); peer/UI libs `lucide-react`, `motion`; Storybook 9 + `@storybook/addon-docs` (workbench + `.mdx` docs, mirroring existing modules); `@sousa99/homesweethome-config` for shared presets
+**Primary Dependencies**: Vite 6, React 19 + react-dom, Tailwind CSS v4, react-router (SPA shell); peer/UI lib `lucide-react`; Storybook 9 + `@storybook/addon-docs` (workbench + `.mdx` docs, mirroring existing modules); `@sousa99/homesweethome-config` for shared presets
 
 **Storage**: N/A (no server storage). One persisted value — the user-chosen 12/24-hour format — kept on-device in browser local storage under key `current-time:time-format` (local-first, private by default)
 
@@ -67,7 +67,6 @@ modules/current-time/
 ├── AGENTS.md                        # Module-level guidance (pattern of existing modules)
 ├── README.md                        # Module documentation
 └── frontend/
-    ├── public/
     ├── index.html
     ├── .storybook/
     │   ├── main.ts                  # Storybook 9: stories glob, @storybook/addon-docs, Tailwind plugin

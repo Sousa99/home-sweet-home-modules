@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ClockCard } from '../src/components/clock/ClockCard';
 import { ClockPlain } from '../src/components/clock/ClockPlain';
@@ -69,6 +70,13 @@ describe('ClockCard', () => {
     expect(card).toHaveClass('w-full');
     expect(card.style.aspectRatio).toBe('16/9');
   });
+
+  it('honors alignment via items-* classes', () => {
+    const { rerender } = render(<ClockCard align="left" />);
+    expect(screen.getByTestId('clock-widget')).toHaveClass('items-start');
+    rerender(<ClockCard align="right" />);
+    expect(screen.getByTestId('clock-widget')).toHaveClass('items-end');
+  });
 });
 
 describe('ClockPlain', () => {
@@ -95,6 +103,48 @@ describe('ClockPlain', () => {
     stubResizeObserver(640, 160);
     render(<ClockPlain />);
     expect(screen.getByTestId('clock-scale').style.fontSize).toBe('64px');
+  });
+
+  it('clamps the readout to a minimum legible size in very small containers', () => {
+    stubResizeObserver(10, 10);
+    render(<ClockPlain />);
+    expect(screen.getByTestId('clock-scale').style.fontSize).toBe('16px');
+  });
+
+  it('drives the font size from width when it is the smaller axis', () => {
+    stubResizeObserver(160, 160);
+    render(<ClockPlain />);
+    expect(screen.getByTestId('clock-scale').style.fontSize).toBe('20px');
+  });
+
+  it('honors the aspect ratio and default fill', () => {
+    const { rerender } = render(<ClockPlain aspectRatio="1/1" />);
+    const plain = screen.getByTestId('clock-plain');
+    expect(plain).toHaveClass('h-full');
+    expect(plain).toHaveClass('w-full');
+    expect(plain.style.aspectRatio).toBe('1/1');
+    rerender(<ClockPlain />);
+    expect(screen.getByTestId('clock-plain').style.aspectRatio).toBe('');
+  });
+});
+
+describe('Shared preference across widgets', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('seeds both widgets from the stored preference and persists toggles to the shared key', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('current-time:time-format', '12h');
+    render(
+      <>
+        <ClockCard />
+        <ClockPlain />
+      </>,
+    );
+    expect(screen.getAllByText(/^(AM|PM)$/).length).toBeGreaterThan(1);
+    await user.click(screen.getAllByRole('button', { name: '24h' })[0]!);
+    expect(localStorage.getItem('current-time:time-format')).toBe('24h');
   });
 });
 

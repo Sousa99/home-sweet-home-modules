@@ -45,10 +45,21 @@ export const NotSwitchable: Story = {
   args: { switchable: false },
 };
 
+export const LeftAligned: Story = {
+  args: { align: 'left' },
+};
+
 export const RightAligned: Story = {
   args: { align: 'right' },
 };
 
-export const WideAspectRatio: Story = {
+export const SquareAspectRatio: Story = {
   args: { aspectRatio: '1/1' },
+  decorators: [
+    (Story) => (
+      <div className="w-96">
+        <Story />
+      </div>
+    ),
+  ],
 };

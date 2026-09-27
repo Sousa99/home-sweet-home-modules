@@ -34,14 +34,14 @@ The derived display value rendered by the readout. Transient — recomputed on e
 
 | Field | Type | Description |
 |-------|------|-------------|
-| date | `Date` | The authoritative snapshot used for this render (single source of truth per tick). |
 | hours | `string` | Zero-padded hour per the active format (e.g., `'09'`, `'14'`). |
 | minutes | `string` | Zero-padded minutes (e.g., `'05'`). |
 | seconds | `string` | Zero-padded seconds (e.g., `'42'`). |
 | ampm | `'AM' \| 'PM' \| null` | Non-null only in 12-hour format. |
 
-**Derivation rule**: all parts derive from the single `date` snapshot via
+**Derivation rule**: all parts derive from a single `Date` snapshot via
 `formatTimeParts(date, format)` so hours/minutes/seconds are mutually consistent at every render.
+The `Date` snapshot is an input to the derivation, not a field of `TimeParts`.
 
 ## Entity: ClockWidgetPresentation
 
