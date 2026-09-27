@@ -21,6 +21,10 @@ may run git/gh commands or use GitHub MCP tools.
   concise, descriptive messages in conventional-commit style (`type(scope): summary`, e.g.
   `feat(procrastinator-tracker): add recurring task support`). The pre-commit hook runs
   lint-staged (Prettier + ESLint), so ensure staged files are clean before committing.
+- Create and switch branches following the repository's branch-naming convention:
+  `<feature|fix>/<NNN>-<short-description>` (e.g. `feature/002-user-auth`, `fix/003-crash-on-save`),
+  where `<NNN>` is the spec feature number and `<short-description>` is a kebab-case slug of the
+  work.
 - Push commits, create and switch branches, pull/rebase when needed.
 - Open and manage pull requests, manage issues, and inspect CI/Actions runs via the GitHub MCP
   server.

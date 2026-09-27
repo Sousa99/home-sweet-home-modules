@@ -47,6 +47,9 @@ pnpm --filter ./modules/<slug>/frontend dev         # run one module's SPA
   tasks — under `specs/` at the repository root (no per-module spec directories).
 - **Releases**: per-module changesets fixed groups; each module's packages version together.
 - **Commits**: conventional-commit style (`type(scope): summary`); pre-commit hook runs lint-staged.
+- **Branches**: `<feature|fix>/<NNN>-<short-description>` (e.g. `feature/002-agents-skills-profiles`,
+  `fix/003-crash-on-save`) — `<NNN>` is the spec feature number, `<short-description>` is a
+  kebab-case slug of the work. `github-helper` applies this when creating branches.
 
 ## Agent & skill routing
 
