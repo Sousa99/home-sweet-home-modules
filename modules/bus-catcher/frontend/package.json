@@ -1,7 +1,7 @@
 {
   "name": "@sousa99/bus-catcher-components",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
@@ -42,6 +42,10 @@
     }
   },
   "sideEffects": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
+  },
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
