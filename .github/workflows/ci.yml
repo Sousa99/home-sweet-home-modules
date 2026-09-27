@@ -196,6 +196,11 @@ jobs:
       - name: 🔬 Check workflow files
         uses: docker://rhysd/actionlint:latest
 
+      - name: 🔬 Verify release version command
+        run: |
+          grep -Eq '^\s*version: pnpm changeset version$' .github/workflows/release.yml \
+            || { echo "::error::release.yml changesets 'version' must be 'pnpm changeset version' (pnpm version is the built-in, not changesets)."; exit 1; }
+
   pr-format:
     name: 📝 PR format
     runs-on: ubuntu-latest
