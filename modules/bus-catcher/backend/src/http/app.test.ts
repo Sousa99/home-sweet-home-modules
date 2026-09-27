@@ -192,11 +192,19 @@ describe('US1 REST contract', () => {
   });
 
   it('GET /api/stops/S1/times respects the line filter', async () => {
-    const { app } = setup();
-    const res = await app.request('/api/stops/S1/times?line=706');
-    expect(res.status).toBe(200);
-    const body = await json<{ times: unknown[] }>(res);
-    expect(body.times).toEqual([]);
+    // Pin the clock to a deterministic weekday (WE-service trip T3 on line 706
+    // is never active on weekdays), so the filtered result is always empty.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-18T15:00:00.000Z'));
+    try {
+      const { app } = setup();
+      const res = await app.request('/api/stops/S1/times?line=706');
+      expect(res.status).toBe(200);
+      const body = await json<{ times: unknown[] }>(res);
+      expect(body.times).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('GET /api/stops/S1/times?limit=999 → 400', async () => {
