@@ -92,7 +92,7 @@ jobs:
       - name: 🚀 Run changesets (version PR, or publish when none pending)
         uses: changesets/action@v1
         with:
-          version: pnpm version
+          version: pnpm changeset version
           publish: pnpm changeset publish
           commit: 'chore(release): version packages'
           title: 'chore(release): version packages'
