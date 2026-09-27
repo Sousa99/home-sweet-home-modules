@@ -1,0 +1,3 @@
+{
+  "extends": "@sousa99/homesweethome-config/tsconfig.base"
+}

@@ -138,7 +138,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [fly-over-tracker, procrastinator-tracker, bus-catcher]
+        module: [current-time, fly-over-tracker, procrastinator-tracker, bus-catcher]
 
     steps:
       - uses: actions/checkout@v4
@@ -165,7 +165,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [fly-over-tracker, procrastinator-tracker, bus-catcher]
+        module: [current-time, fly-over-tracker, procrastinator-tracker, bus-catcher]
 
     steps:
       - uses: actions/checkout@v4
