@@ -1,6 +1,6 @@
 {
   "name": "@sousa99/current-time-components",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "description": "Frontend-only Home Sweet Home module: a polished, live current-time dashboard (hours, minutes, seconds) with a persisted 12/24-hour format toggle.",
   "repository": "https://github.com/sousa99/home-sweet-home-modules.git",
