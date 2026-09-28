@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { Logger } from 'pino';
 import { errorStatus, toErrorResponse } from '../lib/errors';
@@ -23,6 +24,12 @@ export interface AppDeps {
 export function createApp(deps: AppDeps): Hono {
   const app = new Hono();
   const log = deps.logger ?? defaultLogger;
+
+  // Permissive CORS: allow any origin so the SPA and embedded widgets can reach
+  // the API cross-origin (e.g. via an API_BASE_URL override). This is not ideal
+  // for a local-first product — tighten to specific origins when external access
+  // is configured. Acceptable as-is for now.
+  app.use('/api/*', cors());
 
   app.use(async (c, next) => {
     const start = performance.now();

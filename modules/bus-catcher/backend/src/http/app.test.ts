@@ -62,6 +62,12 @@ describe('US1 REST contract', () => {
     expect(await res.json()).toEqual({ ok: true, service: 'bus-catcher' });
   });
 
+  it('GET /api/health → 200 with permissive CORS headers', async () => {
+    const { app } = setup();
+    const res = await app.request('/api/health');
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+  });
+
   it('GET /api/lines → 200 with lines', async () => {
     const { app } = setup();
     const res = await app.request('/api/lines');
