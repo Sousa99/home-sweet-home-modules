@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from './client';
+import { api, type AddConfigStopBody } from './client';
 
 export function useSearchStops(q: string) {
   return useQuery({
@@ -21,21 +21,21 @@ export function useStop(id: string | null) {
 export function useLines() {
   return useQuery({
     queryKey: ['lines'],
-    queryFn: api.listLines,
+    queryFn: () => api.listLines(),
   });
 }
 
 export function useConfig() {
   return useQuery({
     queryKey: ['config'],
-    queryFn: api.getConfig,
+    queryFn: () => api.getConfig(),
   });
 }
 
 export function useAddStop() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: api.addConfigStop,
+    mutationFn: (body: AddConfigStopBody) => api.addConfigStop(body),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['config'] });
     },
@@ -54,7 +54,7 @@ export function useStopTimes(stopId: string, limit = 5, lines?: string[], enable
 export function useStatus() {
   return useQuery({
     queryKey: ['status'],
-    queryFn: api.getStatus,
+    queryFn: () => api.getStatus(),
     refetchInterval: 15_000,
   });
 }

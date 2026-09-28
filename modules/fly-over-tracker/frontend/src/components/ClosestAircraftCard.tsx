@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { getApiBaseUrl } from '../api/baseUrl';
 import { useFlyOversQuery } from '../hooks/useFlyOversQuery';
 import type { Aircraft, LocationQuery } from '../api/types';
 import { AircraftCard } from './AircraftCard';
@@ -42,7 +43,8 @@ export interface ClosestAircraftCardProps {
   location: LocationQuery;
   /** Auto-refresh cadence in seconds; 'off' disables automatic refresh. */
   autoRefresh?: RefreshRate;
-  /** Base URL of the module backend; '' (default) = same-origin `/api`. */
+  /** Base URL of the module backend; defaults to the runtime-configured
+   * value (from `/config.json` / `API_BASE_URL`), `''` = same-origin `/api`. */
   baseUrl?: string;
   /** Extra classes applied to the card root. */
   className?: string;
@@ -61,7 +63,7 @@ export interface ClosestAircraftCardProps {
 export const ClosestAircraftCard = ({
   location,
   autoRefresh = 'off',
-  baseUrl = '',
+  baseUrl = getApiBaseUrl(),
   className,
 }: ClosestAircraftCardProps): JSX.Element => {
   const [queryClient] = useState(createWidgetQueryClient);

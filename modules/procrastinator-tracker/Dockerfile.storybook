@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+FROM node:24-slim AS build
+WORKDIR /app
+RUN npm install -g pnpm@11
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+COPY . .
+RUN --mount=type=secret,id=npm_token \
+  if [ -f /run/secrets/npm_token ]; then \
+    echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" > /root/.npmrc; \
+  fi \
+  && pnpm install --frozen-lockfile
+RUN pnpm --filter @sousa99/procrastinator-tracker-components build-storybook
+
+FROM nginx:alpine
+COPY --from=build /app/modules/procrastinator-tracker/frontend/dist-storybook /usr/share/nginx/html
+COPY modules/procrastinator-tracker/deploy/nginx.spa.conf /etc/nginx/conf.d/default.conf
+COPY modules/procrastinator-tracker/deploy/nginx.spa.proxy.conf.template /etc/nginx/backend-proxy.conf.template
+COPY modules/procrastinator-tracker/deploy/nginx-entrypoint.d/40-backend-upstream.sh /docker-entrypoint.d/40-backend-upstream.sh
+RUN chmod +x /docker-entrypoint.d/40-backend-upstream.sh
+EXPOSE 80

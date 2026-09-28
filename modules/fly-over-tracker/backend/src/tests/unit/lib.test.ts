@@ -51,8 +51,17 @@ describe('config', () => {
     expect(loadConfig({ NODE_ENV: 'production' }).logLevel).toBe('info');
   });
 
+  it('reads the REST port from PORT when HTTP_PORT is not set', () => {
+    expect(loadConfig({ PORT: '4200' }).httpPort).toBe(4200);
+  });
+
+  it('keeps HTTP_PORT as a backward-compatible alias that wins over PORT', () => {
+    expect(loadConfig({ PORT: '4300', HTTP_PORT: '4100' }).httpPort).toBe(4100);
+  });
+
   it('rejects invalid values with a parse error', () => {
     expect(() => loadConfig({ HTTP_PORT: 'abc' })).toThrow();
+    expect(() => loadConfig({ PORT: 'abc' })).toThrow();
     expect(() => loadConfig({ FEED: 'bogus' })).toThrow();
     expect(() => loadConfig({ LOG_LEVEL: 'shout' })).toThrow();
   });

@@ -17,6 +17,11 @@ const service = createFlyOverService(new MockFeed(), new MockRouteFeed());
 const app = testApp(service);
 
 describe('GET /api/fly-overs (REST contract)', () => {
+  it('sends permissive CORS headers on /api responses', async () => {
+    const res = await app.request('/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50');
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+  });
+
   it('returns a 200 FlyOverResult for a valid query', async () => {
     const res = await app.request('/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50');
     expect(res.status).toBe(200);

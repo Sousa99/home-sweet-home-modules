@@ -13,7 +13,7 @@ export interface DbHandle {
 }
 
 export function createDb(dbPath?: string): DbHandle {
-  const url = dbPath ?? process.env.DATABASE_URL ?? './data/procrastinator.db';
+  const url = dbPath ?? process.env.DATABASE_URL ?? '../../data/procrastinator.db';
   const isMemory = url === ':memory:' || url.startsWith('file::memory:');
   if (!isMemory) {
     const dir = path.dirname(url);
@@ -22,6 +22,7 @@ export function createDb(dbPath?: string): DbHandle {
   const sqlite = new Database(url);
   sqlite.pragma('journal_mode = WAL');
   sqlite.pragma('foreign_keys = ON');
+  sqlite.pragma('busy_timeout = 5000');
   const db = drizzle(sqlite, { schema });
   return { db, sqlite };
 }

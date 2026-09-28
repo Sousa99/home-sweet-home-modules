@@ -13,7 +13,9 @@ const PINO_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent
 
 const envSchema = z.object({
   HOST: z.string().default('127.0.0.1'),
-  HTTP_PORT: z.coerce.number().int().positive().default(3000),
+  PORT: z.coerce.number().int().positive().default(3000),
+  // Backward-compatible alias for PORT; wins when both are set.
+  HTTP_PORT: z.coerce.number().int().positive().optional(),
   MCP_PORT: z.coerce.number().int().positive().default(3001),
   MAX_RADIUS_KM: z.coerce.number().positive().default(DEFAULT_MAX_RADIUS_KM),
   ADSB_BASE_URL: z.string().url().default('https://api.adsb.lol'),
@@ -41,7 +43,8 @@ const envSchema = z.object({
 export interface Config {
   /** Hostname/interface the servers bind to. */
   host: string;
-  /** Port of the REST API (`--http` execution). */
+  /** Port of the REST API (`--http` execution). Standardized on `PORT`;
+   * `HTTP_PORT` remains a backward-compatible alias and wins when both are set. */
   httpPort: number;
   /** Port of the MCP server (`--mcp` execution). */
   mcpPort: number;
@@ -84,7 +87,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const envName = parsed.NODE_ENV;
   return {
     host: parsed.HOST,
-    httpPort: parsed.HTTP_PORT,
+    httpPort: parsed.HTTP_PORT ?? parsed.PORT,
     mcpPort: parsed.MCP_PORT,
     maxRadiusKm: parsed.MAX_RADIUS_KM,
     feedBaseUrl: parsed.ADSB_BASE_URL,

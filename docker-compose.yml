@@ -1,0 +1,251 @@
+name: home-sweet-home
+
+# Home Sweet Home — local development environment.
+# Run modes (Compose profiles): mcp | rest+spa | rest+storybook | full | backend
+# Host ports (fixed, collision-free): see specs/004-local-setup-standardization/contracts/ports.md
+# Data: all module databases live in ./data (repo-root common data directory, gitignored).
+
+services:
+  # ------------------------------------------------------------------ bus-catcher
+  bus-catcher-backend:
+    build:
+      context: .
+      dockerfile: modules/bus-catcher/Dockerfile.backend
+    command: ['node', 'dist/index.js', '--http']
+    environment:
+      PORT: '3000'
+      MCP_PORT: '3001'
+      DB_PATH: /data/bus-catcher.db
+    volumes:
+      - ./data:/data
+    ports:
+      - '${HSH_BUS_CATCHER_REST_PORT:-3100}:3000'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles: [rest+spa, rest+storybook, full, backend]
+
+  bus-catcher-mcp:
+    build:
+      context: .
+      dockerfile: modules/bus-catcher/Dockerfile.backend
+    command: ['node', 'dist/index.js', '--mcp']
+    environment:
+      PORT: '3000'
+      MCP_PORT: '3001'
+      DB_PATH: /data/bus-catcher.db
+    volumes:
+      - ./data:/data
+    ports:
+      - '${HSH_BUS_CATCHER_MCP_PORT:-3200}:3001'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "const s=require('net').connect(3001,'127.0.0.1',()=>process.exit(0));s.on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles: [mcp, full, backend]
+
+  bus-catcher-spa:
+    build:
+      context: .
+      dockerfile: modules/bus-catcher/Dockerfile.frontend
+    environment:
+      BACKEND_UPSTREAM: '${HSH_BUS_CATCHER_UPSTREAM:-bus-catcher-backend:3000}'
+    ports:
+      - '${HSH_BUS_CATCHER_SPA_PORT:-3300}:80'
+    depends_on:
+      bus-catcher-backend:
+        condition: service_healthy
+    profiles: [rest+spa, full]
+
+  bus-catcher-storybook:
+    build:
+      context: .
+      dockerfile: modules/bus-catcher/Dockerfile.storybook
+    environment:
+      BACKEND_UPSTREAM: '${HSH_BUS_CATCHER_UPSTREAM:-bus-catcher-backend:3000}'
+    ports:
+      - '${HSH_BUS_CATCHER_STORYBOOK_PORT:-3400}:80'
+    depends_on:
+      bus-catcher-backend:
+        condition: service_healthy
+    profiles: [rest+storybook, full]
+
+  # ------------------------------------------------------------ fly-over-tracker
+  fly-over-tracker-backend:
+    build:
+      context: .
+      dockerfile: modules/fly-over-tracker/Dockerfile.backend
+    command: ['node', 'dist/index.js', '--http']
+    environment:
+      HOST: 0.0.0.0
+      PORT: '3000'
+      MCP_PORT: '3001'
+    ports:
+      - '${HSH_FLY_OVER_TRACKER_REST_PORT:-3101}:3000'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "const s=require('net').connect(3000,'127.0.0.1',()=>process.exit(0));s.on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles: [rest+spa, rest+storybook, full, backend]
+
+  fly-over-tracker-mcp:
+    build:
+      context: .
+      dockerfile: modules/fly-over-tracker/Dockerfile.backend
+    command: ['node', 'dist/index.js', '--mcp']
+    environment:
+      HOST: 0.0.0.0
+      PORT: '3000'
+      MCP_PORT: '3001'
+    ports:
+      - '${HSH_FLY_OVER_TRACKER_MCP_PORT:-3201}:3001'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "const s=require('net').connect(3001,'127.0.0.1',()=>process.exit(0));s.on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles: [mcp, full, backend]
+
+  fly-over-tracker-spa:
+    build:
+      context: .
+      dockerfile: modules/fly-over-tracker/Dockerfile.frontend
+    environment:
+      BACKEND_UPSTREAM: '${HSH_FLY_OVER_TRACKER_UPSTREAM:-fly-over-tracker-backend:3000}'
+    ports:
+      - '${HSH_FLY_OVER_TRACKER_SPA_PORT:-3301}:80'
+    depends_on:
+      fly-over-tracker-backend:
+        condition: service_healthy
+    profiles: [rest+spa, full]
+
+  fly-over-tracker-storybook:
+    build:
+      context: .
+      dockerfile: modules/fly-over-tracker/Dockerfile.storybook
+    environment:
+      BACKEND_UPSTREAM: '${HSH_FLY_OVER_TRACKER_UPSTREAM:-fly-over-tracker-backend:3000}'
+    ports:
+      - '${HSH_FLY_OVER_TRACKER_STORYBOOK_PORT:-3401}:80'
+    depends_on:
+      fly-over-tracker-backend:
+        condition: service_healthy
+    profiles: [rest+storybook, full]
+
+  # ------------------------------------------------------ procrastinator-tracker
+  procrastinator-tracker-backend:
+    build:
+      context: .
+      dockerfile: modules/procrastinator-tracker/Dockerfile.backend
+    command: ['sh', '-c', 'node dist/migrate.js && node dist/index.js --http']
+    environment:
+      PORT: '3000'
+      MCP_PORT: '3001'
+      DATABASE_URL: /data/procrastinator.db
+    volumes:
+      - ./data:/data
+    ports:
+      - '${HSH_PROCRASTINATOR_TRACKER_REST_PORT:-3102}:3000'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles: [rest+spa, rest+storybook, full, backend]
+
+  procrastinator-tracker-mcp:
+    build:
+      context: .
+      dockerfile: modules/procrastinator-tracker/Dockerfile.backend
+    command: ['sh', '-c', 'node dist/migrate.js && node dist/index.js --mcp']
+    environment:
+      PORT: '3000'
+      MCP_PORT: '3001'
+      DATABASE_URL: /data/procrastinator.db
+    volumes:
+      - ./data:/data
+    ports:
+      - '${HSH_PROCRASTINATOR_TRACKER_MCP_PORT:-3202}:3001'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "const s=require('net').connect(3001,'127.0.0.1',()=>process.exit(0));s.on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles: [mcp, full, backend]
+
+  procrastinator-tracker-spa:
+    build:
+      context: .
+      dockerfile: modules/procrastinator-tracker/Dockerfile.frontend
+    environment:
+      BACKEND_UPSTREAM: '${HSH_PROCRASTINATOR_TRACKER_UPSTREAM:-procrastinator-tracker-backend:3000}'
+    ports:
+      - '${HSH_PROCRASTINATOR_TRACKER_SPA_PORT:-3302}:80'
+    depends_on:
+      procrastinator-tracker-backend:
+        condition: service_healthy
+    profiles: [rest+spa, full]
+
+  procrastinator-tracker-storybook:
+    build:
+      context: .
+      dockerfile: modules/procrastinator-tracker/Dockerfile.storybook
+    environment:
+      BACKEND_UPSTREAM: '${HSH_PROCRASTINATOR_TRACKER_UPSTREAM:-procrastinator-tracker-backend:3000}'
+    ports:
+      - '${HSH_PROCRASTINATOR_TRACKER_STORYBOOK_PORT:-3402}:80'
+    depends_on:
+      procrastinator-tracker-backend:
+        condition: service_healthy
+    profiles: [rest+storybook, full]
+
+  # --------------------------------------------------------------- current-time
+  current-time-spa:
+    build:
+      context: .
+      dockerfile: modules/current-time/Dockerfile.frontend
+    ports:
+      - '${HSH_CURRENT_TIME_SPA_PORT:-3303}:80'
+    profiles: [rest+spa, full]
+
+  current-time-storybook:
+    build:
+      context: .
+      dockerfile: modules/current-time/Dockerfile.storybook
+    ports:
+      - '${HSH_CURRENT_TIME_STORYBOOK_PORT:-3403}:80'
+    profiles: [rest+storybook, full]

@@ -15,7 +15,7 @@ set -euo pipefail
 GHCR="${1:-ghcr.io/sousa99}"
 PLATFORMS="${PLATFORMS:-linux/amd64}"
 
-MODULES="fly-over-tracker procrastinator-tracker bus-catcher"
+MODULES="fly-over-tracker procrastinator-tracker bus-catcher current-time"
 
 release_notes() {
   local changelog="$1"
@@ -39,6 +39,10 @@ for m in $MODULES; do
   echo "[release] $m @ $version"
 
   for target in backend frontend; do
+    if [[ ! -f "modules/$m/Dockerfile.$target" ]]; then
+      echo "[release]   no Dockerfile.$target — skipping ($m is frontend-only for this target)"
+      continue
+    fi
     image="$GHCR/$m-$target:$version"
     if docker manifest inspect "$image" >/dev/null 2>&1; then
       echo "[release]   $image already exists — skipping"

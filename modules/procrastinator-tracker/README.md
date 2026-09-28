@@ -6,133 +6,129 @@ A local-first task tracker: a Hono REST API (with OpenAPI/Swagger) plus an MCP s
 SQLite database via Drizzle, and a lightweight React single-page app that makes it easy to
 push tasks to done.
 
+## Overview
+
 Track tasks through a fixed lifecycle — `to-start → started → in-progress → validating →
-finished` (with `on-hold` and reopen) — with flat tags, lightweight users (no accounts),
-optional location and urgency (1–5), recurring tasks, and status-aware comments.
+finished` (with `on-hold` and reopen) — with flat tags, lightweight users (no accounts), optional
+location and urgency (1–5), recurring tasks, and status-aware comments. The module is local-first:
+all household data (tasks, users, comments) persists in this module's SQLite database.
+
+One dual-mode backend serves both the REST API (`--http`) and the MCP server (`--mcp`), sharing the
+same service/db layer, and the frontend package produces the SPA, a Storybook workbench, and a
+publishable components library.
 
 ## 🧰 Stack
 
 | Layer | Technology |
 |-------|------------|
 | Backend | Node 24, Hono, `@hono/zod-openapi`, Drizzle ORM, better-sqlite3, MCP TypeScript SDK |
-| Frontend | Vite, React 19, Tailwind CSS v4, shadcn-style primitives, TanStack Query, React Router |
+| Frontend | Vite, React 19, Tailwind CSS v4, shadcn-style primitives, TanStack Query, React Router, motion, Lucide icons |
 | Tooling | pnpm 11, TypeScript, ESLint (flat config), Prettier, Vitest |
 
-The backend is a single codebase with a **dual-mode entry**: `--http` serves the REST API,
-`--mcp` serves the MCP server over **streamable HTTP**. Both modes share the same
-service/db layer — no separate backend packages.
+The backend is a single codebase with a **dual-mode entry**: `--http` serves the REST API on
+`:3000` (`PORT`), `--mcp` serves the MCP server over streamable HTTP on `:3001` (`MCP_PORT`). Both
+modes share the same service/db layer — no separate backend packages.
+
+## ✨ Features
+
+- **Fixed task lifecycle** — `to-start → started → in-progress → validating → finished`, with
+  `on-hold` and reopen; invalid transitions are rejected (`409`).
+- **Flat tags** — lightweight, deduplicated labels for filtering.
+- **Lightweight users** — simple names, no accounts or authentication.
+- **Location & urgency** — optional location string and urgency 1–5 per task.
+- **Recurring tasks** — recurrence rules with a catch-up process for past-due occurrences.
+- **Status-aware comments** — comments are stored with the task status context.
+- **REST API with OpenAPI/Swagger** — interactive contract at `/doc` and `/ui`.
+- **MCP tools** — the same service exposed as `task.*`, `tag.list`, and `user.list` tools.
+- **SPA dashboard** — Deck | List toggle: a swipeable `TaskDeck` card stack or a classic task list,
+  with filters and a task detail page.
 
 ## 🧰 Prerequisites
 
-- Node.js 24 LTS
-- pnpm 11
+- Node 24, pnpm 11 (see the repository root `AGENTS.md` / `setup.md`)
 
-## 🚀 Setup
+## 🚀 Getting Started
 
 From the repository root:
 
 ```bash
-pnpm install
-pnpm --filter ./modules/procrastinator-tracker/backend db:generate   # if schema changed
-pnpm --filter ./modules/procrastinator-tracker/backend db:migrate    # creates the SQLite db
+pnpm install                                             # install the whole workspace
+pnpm --filter ./modules/procrastinator-tracker/backend db:migrate   # create/upgrade the SQLite db
+pnpm --filter ./modules/procrastinator-tracker/backend dev          # REST API in dev (--http, default :3000)
+pnpm --filter ./modules/procrastinator-tracker/backend dev:mcp      # MCP server in dev (--mcp, default :3001)
+pnpm --filter ./modules/procrastinator-tracker/frontend dev         # SPA dev server (default :5173, proxies /api)
+pnpm --filter ./modules/procrastinator-tracker/frontend storybook   # component workbench (default :6006)
 ```
 
-## 🏃 Run
-
-| Mode | Command | Notes |
-|------|---------|-------|
-| REST API + Swagger | `pnpm --filter ./modules/procrastinator-tracker/backend start` | http://localhost:3000 · OpenAPI at `/doc` · Swagger UI at `/ui` |
-| MCP server (HTTP) | `pnpm --filter ./modules/procrastinator-tracker/backend start:mcp` | Streamable HTTP MCP at http://localhost:3001/mcp (`MCP_PORT`) |
-| MCP auto-reload (dev) | `pnpm --filter ./modules/procrastinator-tracker/backend dev:mcp` | Same, but `tsx watch` reloads on source edits |
-| Frontend (dev) | `pnpm --filter ./modules/procrastinator-tracker/frontend dev` | http://localhost:5173, proxies `/api` to the backend |
-| Storybook (workbench) | `pnpm --filter ./modules/procrastinator-tracker/frontend storybook` | http://localhost:6006 · static build → `dist-storybook/` |
-
-Both backend modes share `modules/procrastinator-tracker/backend/data/procrastinator.db`
-(SQLite WAL allows concurrent access). To run REST and MCP simultaneously, start two
-instances of the same process — which also means you can restart the MCP process without
-affecting the REST API.
-
-## Backend
-
-### REST API
-
-OpenAPI 3.0 contract served at `/doc`, interactive Swagger UI at `/ui`:
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/tasks` · `POST /api/tasks` | List / create tasks |
-| `GET /api/tasks/{id}` · `PUT /api/tasks/{id}` · `DELETE /api/tasks/{id}` | Get / update / delete a task |
-| `POST /api/tasks/{id}/status` | Move a task through its lifecycle (`to-start → started → in-progress → validating → finished`, `on-hold` / reopen) |
-| `GET /api/tasks/{id}/comments` · `POST /api/tasks/{id}/comments` | Status-aware comments |
-| `GET /api/tags` | Flat tags |
-| `GET /api/users` · `GET /api/users/{id}` | Lightweight users (no accounts) |
-
-### MCP tools
-
-`task.create`, `task.list`, `task.get`, `task.update`, `task.set_status`,
-`task.comment`, `task.delete`, `tag.list`, `user.list`.
-
-## 🎨 Frontend: Storybook & the TaskDeck component
-
-The frontend ships a **Storybook workbench** (`pnpm --filter
-./modules/procrastinator-tracker/frontend storybook` → http://localhost:6006) for
-developing and documenting components in isolation. Stories are co-located with components.
-
-The **`TaskDeck`** component renders tasks as a **swipeable card stack** (Deck Standard 1
-style): the top card fully visible, the next `stackSize` cards scaled/fanned behind it. It
-supports drag-to-skip and an **auto-rotate** timer. Key props:
-
-- `filters` — which tasks to show (fetched via the existing API client).
-- `refreshRateMs` (default 30000) — how often to re-fetch; `0` disables.
-- `autoRotateMs` (default 4000) — auto-advance interval; `0` disables; pauses during drag and
-  resets after a manual skip.
-- `slideDurationMs` (default 500) — swipe/exit animation duration.
-- `loop` (default true) — cycles back to the first task instead of showing an empty state.
-
-The app dashboard offers a **Deck | List** toggle: Deck renders `TaskDeckWrapper`
-(self-fetching), List renders the classic vertical task list.
-
-### Exportable package
-
-`pnpm --filter ./modules/procrastinator-tracker/frontend build:lib` produces
-`modules/procrastinator-tracker/frontend/dist-lib/` — an ESM bundle (`index.js` +
-`index.d.ts`) plus a compiled `styles.css`, so the component can be installed and used in
-other React 19 apps:
-
-```tsx
-import { TaskDeckWrapper } from '@sousa99/procrastinator-tracker-components';
-import '@sousa99/procrastinator-tracker-components/styles.css';
-
-<TaskDeckWrapper filters={{ status: 'started' }} autoRotateMs={5000} />;
-```
-
-`react`, `react-dom`, `motion`, and `lucide-react` are peer dependencies (consumers provide
-them). The package is ESM-only — CommonJS consumers use dynamic import.
-
-## 🔒 Quality gates
-
-Uniform gates, enforced on every pull request for every module:
+Or run the module in the shared Docker Compose environment (repo-root `data/` directory for the
+database, fixed host ports per `specs/004-local-setup-standardization/contracts/ports.md`; the
+Compose backend runs `node dist/migrate.js` before startup):
 
 ```bash
-pnpm lint       # ESLint (shared flat config)
-pnpm format     # Prettier check (shared config)
-pnpm test       # Vitest: backend (hono app + in-memory SQLite) + frontend (RTL)
-pnpm typecheck  # tsc --noEmit
+docker compose --profile rest+spa up -d        # REST backend (:3102) + SPA (:3302)
+docker compose --profile rest+storybook up -d  # REST backend (:3102) + Storybook (:3402)
+docker compose --profile mcp up -d             # MCP server (:3202)
+docker compose --profile full up -d            # backend, MCP, SPA, and Storybook together
 ```
 
-## 🚀 Releases
+Compose services: `procrastinator-tracker-backend` (REST, host `3102`),
+`procrastinator-tracker-mcp` (MCP, host `3202`), `procrastinator-tracker-spa` (host `3302`), and
+`procrastinator-tracker-storybook` (host `3402`).
 
-This module releases independently via changesets: its `backend` and `components` packages
-share one version, and a release publishes the components package (npm) and the
-backend/frontend container images (GHCR) plus a GitHub release. See the [repository
-README](../README.md) and [.changeset/README.md](../.changeset/README.md).
+## 🧪 Quality Gates
 
-## 📚 Historical specs
+```bash
+pnpm --filter ./modules/procrastinator-tracker/backend test        # Vitest suite
+pnpm --filter ./modules/procrastinator-tracker/backend typecheck   # tsc --noEmit
+pnpm --filter ./modules/procrastinator-tracker/frontend test       # Vitest suite
+pnpm --filter ./modules/procrastinator-tracker/frontend typecheck  # tsc --noEmit
+pnpm --filter ./modules/procrastinator-tracker/frontend build      # SPA build (dist-app)
+pnpm --filter ./modules/procrastinator-tracker/frontend build:lib  # publishable library build (dist-lib)
+pnpm --filter ./modules/procrastinator-tracker/frontend build-storybook # static workbench (dist-storybook)
+```
 
-The feature specs developed in this module's original repository are archived (read-only)
-at `specs/001-merge-modules/merge-history/procrastinator-tracker/`.
+The module extends the shared presets from `@sousa99/homesweethome-config`, so the repository-wide
+`pnpm lint`, `pnpm format`, `pnpm typecheck`, and `pnpm test` cover it too.
 
-## 🏛️ Governance
+## 📦 Package
 
-See the [constitution](../.specify/memory/constitution.md) for the project's governing
-principles.
+| Package | Registry | Purpose |
+|---------|----------|---------|
+| `@sousa99/procrastinator-tracker-components` | GitHub Packages (`npm.pkg.github.com`) | SPA + publishable components library |
+
+The public surface is the `TaskDeck` swipeable card stack, its `TaskDeckCard`, and the
+self-fetching `TaskDeckWrapper`, plus the task/types surface (`Task`, `TaskFilters`, `TaskStatus`,
+`Assignee`, `Comment`, `CreateTaskInput`, `UpdateTaskInput`, `Recurrence`, `RecurrenceFrequency`,
+`Tag`, `User`) and the prop types. Releases are independent via its own changesets fixed group
+(`@sousa99/procrastinator-tracker-backend` + `@sousa99/procrastinator-tracker-components`),
+starting at `0.0.1`. The package is ESM-only — CommonJS consumers use dynamic import.
+
+### Embedding the TaskDeck
+
+```tsx
+import '@sousa99/procrastinator-tracker-components/styles.css';
+import { TaskDeckWrapper } from '@sousa99/procrastinator-tracker-components';
+
+function PendingTasks() {
+  return (
+    <TaskDeckWrapper
+      filters={{ status: 'started' }}
+      autoRotateMs={5000}
+      baseUrl="https://tasks.example.com" // optional — empty means same-origin /api
+    />
+  );
+}
+```
+
+`TaskDeckWrapper` fetches and refreshes the task list itself (`refreshRateMs`, default `30000`).
+The optional `baseUrl` prop points the built-in client at a remote backend; when empty it targets
+the same-origin `/api` path. `react`, `react-dom`, `motion`, and `lucide-react` are peer
+dependencies (consumers provide them). See the `TaskDeckWrapper.mdx` workbench page for the full
+prop reference.
+
+## 📚 Learn More
+
+- Repository layout, conventions, and delegation: root `AGENTS.md`
+- Module-specific run commands and troubleshooting: [`setup.md`](setup.md)
+- Module guidance for contributors: [`AGENTS.md`](AGENTS.md)
+- Foundational decisions: [`docs/clarify.md`](docs/clarify.md)

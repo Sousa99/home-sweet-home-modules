@@ -41,7 +41,8 @@ resolvable route (e.g. general aviation, or planes on the ground) report
 | `FEED` | no | `adsb` | `adsb` or `mock` (deterministic offline data) |
 | `FEED_TIMEOUT_MS` | no | `8000` | Per-request feed timeout |
 | `HOST` | no | `127.0.0.1` | Bind address |
-| `HTTP_PORT` | no | `3000` | REST API port (`--http`) |
+| `PORT` | no | `3000` | REST API port (`--http`) |
+| `HTTP_PORT` | no | — | Backward-compatible alias for `PORT`; wins when both are set |
 | `MCP_PORT` | no | `3001` | MCP server port (`--mcp`) |
 | `MAX_RADIUS_KM` | no | `463` | Maximum accepted query radius (adsb.lol `/v2/point` cap) |
 | `RETRY_ATTEMPTS` | no | `3` | Bounded retries on upstream `429` |

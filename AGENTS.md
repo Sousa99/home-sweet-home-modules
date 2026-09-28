@@ -33,6 +33,13 @@ pnpm changeset                                      # add a changeset
 pnpm --filter ./modules/<slug>/backend dev          # run one module's backend (--http)
 pnpm --filter ./modules/<slug>/backend dev:mcp      # run one module's MCP server (--mcp)
 pnpm --filter ./modules/<slug>/frontend dev         # run one module's SPA
+
+docker compose build                                # build all module images once
+docker compose --profile mcp up -d                  # all MCP servers
+docker compose --profile rest+spa up -d             # all REST backends + SPAs
+docker compose --profile rest+storybook up -d       # all REST backends + Storybook workbenches
+docker compose --profile full up -d                 # everything
+docker compose --profile backend up -d              # only REST + MCP backends
 ```
 
 ## Conventions & quality gates

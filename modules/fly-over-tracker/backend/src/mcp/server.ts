@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { createMcpHandler, McpServer } from '@modelcontextprotocol/server';
 import { createMcpHonoApp } from '@modelcontextprotocol/hono';
 import { LocationQuerySchema } from '../domain/schemas';
@@ -52,6 +53,8 @@ export function createMcpApp(deps: McpServerDeps): Hono {
   });
 
   const app = createMcpHonoApp();
+  // Permissive CORS (see http/app.ts) so browser-based MCP clients can connect.
+  app.use('/mcp', cors());
   app.all('/mcp', (c) => handler.fetch(c.req.raw, { parsedBody: c.get('parsedBody' as never) }));
   return app;
 }

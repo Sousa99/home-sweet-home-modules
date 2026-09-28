@@ -1,10 +1,21 @@
 import { render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TaskDeckWrapper } from '../src/components/task/TaskDeckWrapper';
 import { sampleTasks } from '../src/components/task/TaskDeck.fixtures';
 import type { Task } from '../src/api/client';
+import { api } from '../src/api/client';
+
+vi.mock('../src/api/client', () => ({
+  api: {
+    listTasks: vi.fn(),
+  },
+}));
 
 describe('TaskDeckWrapper', () => {
+  beforeEach(() => {
+    vi.mocked(api.listTasks).mockReset();
+  });
+
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -89,5 +100,36 @@ describe('TaskDeckWrapper', () => {
     render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
     await vi.advanceTimersByTimeAsync(5000);
     expect(dataSource).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes the baseUrl prop through to the default data source', async () => {
+    vi.mocked(api.listTasks).mockResolvedValue(sampleTasks);
+    render(
+      <TaskDeckWrapper baseUrl="https://api.example.com" refreshRateMs={0} autoRotateMs={0} />,
+    );
+    expect(await screen.findByText('Implement MCP tools')).toBeInTheDocument();
+    expect(api.listTasks).toHaveBeenCalledWith({}, 'https://api.example.com');
+  });
+
+  it('defaults the data source to the same-origin API when baseUrl is omitted', async () => {
+    vi.mocked(api.listTasks).mockResolvedValue(sampleTasks);
+    render(<TaskDeckWrapper refreshRateMs={0} autoRotateMs={0} />);
+    expect(await screen.findByText('Implement MCP tools')).toBeInTheDocument();
+    expect(api.listTasks).toHaveBeenCalledWith({}, undefined);
+  });
+
+  it('keeps the dataSource override precedence over the baseUrl prop', async () => {
+    const dataSource = vi.fn().mockResolvedValue(sampleTasks);
+    render(
+      <TaskDeckWrapper
+        baseUrl="https://api.example.com"
+        dataSource={dataSource}
+        refreshRateMs={0}
+        autoRotateMs={0}
+      />,
+    );
+    expect(await screen.findByText('Implement MCP tools')).toBeInTheDocument();
+    expect(dataSource).toHaveBeenCalledTimes(1);
+    expect(api.listTasks).not.toHaveBeenCalled();
   });
 });

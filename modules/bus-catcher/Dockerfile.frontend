@@ -6,11 +6,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 make g+
   && rm -rf /var/lib/apt/lists/*
 COPY . .
 RUN --mount=type=secret,id=npm_token \
-  echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" > /root/.npmrc \
+  if [ -f /run/secrets/npm_token ]; then \
+    echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" > /root/.npmrc; \
+  fi \
   && pnpm install --frozen-lockfile
 RUN pnpm --filter @sousa99/bus-catcher-components build
 
 FROM nginx:alpine
 COPY --from=build /app/modules/bus-catcher/frontend/dist-app /usr/share/nginx/html
 COPY modules/bus-catcher/deploy/nginx.spa.conf /etc/nginx/conf.d/default.conf
+COPY modules/bus-catcher/deploy/nginx.spa.proxy.conf.template /etc/nginx/backend-proxy.conf.template
+COPY modules/bus-catcher/deploy/nginx-entrypoint.d/40-backend-upstream.sh /docker-entrypoint.d/40-backend-upstream.sh
+RUN chmod +x /docker-entrypoint.d/40-backend-upstream.sh
 EXPOSE 80

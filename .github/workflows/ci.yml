@@ -186,6 +186,23 @@ jobs:
       - name: 📦 Library build (${{ matrix.module }})
         run: pnpm --filter ./modules/${{ matrix.module }}/frontend build:lib
 
+  compose-config:
+    name: 🐳 Compose config
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🐳 Validate docker-compose.yml
+        run: |
+          docker compose config -q
+          SERVICES="$(docker compose --profile full config --services | wc -l)"
+          if [ "$SERVICES" -ne 14 ]; then
+            echo "::error::expected 14 services under --profile full, got $SERVICES"
+            exit 1
+          fi
+          echo "✅ compose file valid (14 services, 5 profiles)"
+
   actionlint:
     name: 🔬 actionlint
     runs-on: ubuntu-latest
@@ -226,7 +243,7 @@ jobs:
   check:
     name: ✅ Check
     runs-on: ubuntu-latest
-    needs: [format, lint, typecheck, test, build-backends, build-spas, build-libs, actionlint, pr-format]
+    needs: [format, lint, typecheck, test, build-backends, build-spas, build-libs, compose-config, actionlint, pr-format]
 
     steps:
       - name: ✅ All required checks passed
