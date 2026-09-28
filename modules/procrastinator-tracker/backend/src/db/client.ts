@@ -22,6 +22,7 @@ export function createDb(dbPath?: string): DbHandle {
   const sqlite = new Database(url);
   sqlite.pragma('journal_mode = WAL');
   sqlite.pragma('foreign_keys = ON');
+  sqlite.pragma('busy_timeout = 5000');
   const db = drizzle(sqlite, { schema });
   return { db, sqlite };
 }

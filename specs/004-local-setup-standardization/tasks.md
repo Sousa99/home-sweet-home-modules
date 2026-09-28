@@ -241,7 +241,7 @@ repository quality gates and confirm no regressions.
 - [x] T032 [P] Run every scenario in `specs/004-local-setup-standardization/quickstart.md`
   end-to-end as the final acceptance pass (all five modes, single-module scope, no collisions,
   no-rebuild switching, data persistence, graceful degradation, docs deliverables)
-- [ ] T033 Coordinate `version-analyser` review of the module Dockerfile/nginx changes
+- [x] T033 Coordinate `version-analyser` review of the module Dockerfile/nginx changes
   (`modules/*/Dockerfile.frontend`, new `Dockerfile.storybook`, `deploy/nginx.spa.conf`) to
   determine whether changesets/version bumps are required before any PR is opened
 
@@ -335,8 +335,11 @@ Task: "T009 Dockerfile.storybook current-time"
 
 - [P] tasks = different files, no dependencies.
 - [Story] label maps each task to its user story for traceability.
-- No unit-test tasks: in-scope changes are Compose/Dockerfile/nginx artifacts validated via
-  `quickstart.md`; the SPA `API_BASE_URL`/`baseUrl` source changes are deferred (Q2:C).
+- No unit-test tasks were generated up front: the in-scope changes were Compose/Dockerfile/nginx
+  artifacts validated via `quickstart.md`. The SPA `API_BASE_URL`/`baseUrl` source changes were
+  later implemented as part of the conformance pass (see `docs/module-gap-assessment.md`).
+- T033 (version-analyser review) completed pre-PR: three minor changesets for bus-catcher,
+  fly-over-tracker, and procrastinator-tracker.
 - The host-port table is fixed and authoritative: `specs/004-local-setup-standardization/contracts/ports.md`.
 - Commit after each logical group; never run native dev and the compose stack against the same
   `data/` files concurrently (edge case).

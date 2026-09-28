@@ -163,6 +163,9 @@ docs/                            module guides (clarify.md)
   reports staleness.
 - **Wrong database**: native runs use `../../data/bus-catcher.db` from the backend package
   directory (repo-root `data/`); override with `DB_PATH` if you need a different file.
+- **Permission errors on the shared `data/` directory**: the Docker Compose stack creates `./data`
+  as root on first start; if a later native run cannot write the database, fix ownership once with
+  `sudo chown -R $(id -u):$(id -g) data/`.
 
 ## 📦 Versioning & Releases
 

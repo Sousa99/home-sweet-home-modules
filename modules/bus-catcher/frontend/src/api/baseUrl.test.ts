@@ -33,6 +33,7 @@ describe('loadApiBaseUrl', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
+        ok: true,
         json: async () => ({ apiBaseUrl: 'http://localhost:3100' }),
       }),
     );
@@ -59,6 +60,7 @@ describe('loadApiBaseUrl', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
+        ok: true,
         json: async () => {
           throw new SyntaxError('Unexpected token < in JSON');
         },

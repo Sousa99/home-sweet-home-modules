@@ -23,6 +23,10 @@ export async function loadApiBaseUrl(): Promise<void> {
     const response = await fetch('/config.json', {
       headers: { Accept: 'application/json' },
     });
+    if (!response.ok) {
+      configureApiBaseUrl(undefined);
+      return;
+    }
     const data = (await response.json()) as { apiBaseUrl?: string };
     configureApiBaseUrl(data.apiBaseUrl);
   } catch {

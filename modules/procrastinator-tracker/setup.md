@@ -171,6 +171,9 @@ LICENSE                          module license
   override with `DATABASE_URL` if you need a different file.
 - **Invalid status transition**: the lifecycle is fixed — a `409` means the requested transition is
   not in the state machine (see `src/domain/status.ts`).
+- **Permission errors on the shared `data/` directory**: the Docker Compose stack creates `./data`
+  as root on first start; if a later native run cannot write the database, fix ownership once with
+  `sudo chown -R $(id -u):$(id -g) data/`.
 - **Typecheck/lint failures**: run `pnpm format:write` then the module typecheck.
 
 ## 📦 Versioning & Releases
