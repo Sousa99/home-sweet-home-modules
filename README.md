@@ -53,6 +53,28 @@ pnpm --filter ./modules/procrastinator-tracker/frontend dev
 
 See each module's README for its run commands, ports, and configuration.
 
+## Local environment (Docker Compose)
+
+A single root `docker-compose.yml` launches every module together from one command. Build the
+images once, then pick a run mode with a Compose profile:
+
+```bash
+docker compose build                 # build all module images (backend, spa, storybook)
+docker compose --profile mcp up -d            # all MCP servers
+docker compose --profile rest+spa up -d       # all REST backends + their SPAs
+docker compose --profile rest+storybook up -d # all REST backends + their Storybook workbenches
+docker compose --profile full up -d           # everything
+docker compose --profile backend up -d        # only REST + MCP backends
+```
+
+Append service names to run a single module, e.g.
+`docker compose --profile rest+spa up -d bus-catcher-backend bus-catcher-spa`. Host ports are
+fixed and collision-free per module (REST `31xx`, MCP `32xx`, SPA `33xx`, Storybook `34xx`) — see
+`specs/004-local-setup-standardization/contracts/ports.md`. All module databases live in the
+repo-root `data/` directory (gitignored) and persist across restarts, shared by native and Docker
+runs. Ports and backend upstreams are overridable via `.env` (see `.env.example`). Switch modes
+anytime without rebuilding images.
+
 ## Quality gates
 
 One shared set of gates, enforced on every pull request by the uniform CI pipeline for

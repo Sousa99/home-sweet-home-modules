@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 make g+
   && rm -rf /var/lib/apt/lists/*
 COPY . .
 RUN --mount=type=secret,id=npm_token \
-  echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" > /root/.npmrc \
+  if [ -f /run/secrets/npm_token ]; then \
+    echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" > /root/.npmrc; \
+  fi \
   && pnpm install --frozen-lockfile
 RUN pnpm --filter @sousa99/bus-catcher-backend build
 RUN pnpm --filter @sousa99/bus-catcher-backend deploy --prod --legacy /out
@@ -17,5 +19,8 @@ WORKDIR /app
 COPY --from=build /out/package.json ./package.json
 COPY --from=build /out/node_modules ./node_modules
 COPY --from=build /app/modules/bus-catcher/backend/dist ./dist
+# The bundled dist resolves migrations via new URL('../../drizzle', import.meta.url),
+# which lands at the filesystem root when dist sits at /app/dist — place them there.
+COPY --from=build /app/modules/bus-catcher/backend/drizzle /drizzle
 EXPOSE 3000
 CMD ["sh", "-c", "node dist/index.js --http"]

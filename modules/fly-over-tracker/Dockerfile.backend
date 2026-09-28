@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 make g+
   && rm -rf /var/lib/apt/lists/*
 COPY . .
 RUN --mount=type=secret,id=npm_token \
-  echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" > /root/.npmrc \
+  if [ -f /run/secrets/npm_token ]; then \
+    echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/npm_token)" > /root/.npmrc; \
+  fi \
   && pnpm install --frozen-lockfile
 RUN pnpm --filter @sousa99/fly-over-tracker-backend build
 RUN pnpm --filter @sousa99/fly-over-tracker-backend deploy --prod --legacy /out

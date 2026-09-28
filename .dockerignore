@@ -15,5 +15,6 @@ specs/
 *.db-journal
 *.db-wal
 *.db-shm
+data/
 .env
 .env.*
