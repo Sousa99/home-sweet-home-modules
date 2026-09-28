@@ -7,6 +7,7 @@ import { TaskDeck, type TaskDeckProps } from './TaskDeck';
 export interface TaskDeckWrapperProps extends Omit<TaskDeckProps, 'tasks'> {
   filters?: TaskFilters;
   refreshRateMs?: number;
+  baseUrl?: string;
   dataSource?: (filters: TaskFilters) => Promise<Task[]>;
 }
 
@@ -21,7 +22,8 @@ const EMPTY_FILTERS: TaskFilters = {};
 export function TaskDeckWrapper({
   filters = EMPTY_FILTERS,
   refreshRateMs = 30000,
-  dataSource = api.listTasks,
+  baseUrl,
+  dataSource = (filters) => api.listTasks(filters, baseUrl),
   autoRotateMs = 4000,
   loop = true,
   stackSize = 3,

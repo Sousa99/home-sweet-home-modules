@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { configureApiBaseUrl } from '../../api/baseUrl';
 import type { FlyOverResult, LocationQuery } from '../../api/types';
 import type { UseFlyOversQueryResult } from '../../hooks/useFlyOversQuery';
 import { FlyOverWidget } from '../FlyOverWidget';
@@ -80,6 +81,10 @@ function makeState(overrides: Partial<UseFlyOversQueryResult>): UseFlyOversQuery
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+afterEach(() => {
+  configureApiBaseUrl(undefined);
 });
 
 describe('FlyOverWidget', () => {
@@ -164,6 +169,18 @@ describe('FlyOverWidget', () => {
       location: nextLocation,
       autoRefresh: 10,
       baseUrl: 'https://api.example.com',
+    });
+  });
+
+  it('defaults the hook baseUrl to the runtime-configured value', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    configureApiBaseUrl('https://configured.example.com');
+    render(<FlyOverWidget location={location} />);
+
+    expect(mockedUseFlyOversQuery).toHaveBeenCalledWith({
+      location,
+      autoRefresh: 'off',
+      baseUrl: 'https://configured.example.com',
     });
   });
 });

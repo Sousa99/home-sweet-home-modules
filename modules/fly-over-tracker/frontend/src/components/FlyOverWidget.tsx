@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { getApiBaseUrl } from '../api/baseUrl';
 import { useFlyOversQuery } from '../hooks/useFlyOversQuery';
 import type { Aircraft, Center, LocationQuery } from '../api/types';
 import { AircraftMapView } from './AircraftMapView';
@@ -31,7 +32,8 @@ export interface FlyOverWidgetProps {
   location: LocationQuery;
   /** Auto-refresh cadence in seconds; 'off' disables automatic refresh. */
   autoRefresh?: RefreshRate;
-  /** Base URL of the module backend; '' (default) = same-origin `/api`. */
+  /** Base URL of the module backend; defaults to the runtime-configured
+   * value (from `/config.json` / `API_BASE_URL`), `''` = same-origin `/api`. */
   baseUrl?: string;
   /** Extra classes applied to the widget root. */
   className?: string;
@@ -50,7 +52,7 @@ export interface FlyOverWidgetProps {
 export const FlyOverWidget = ({
   location,
   autoRefresh = 'off',
-  baseUrl = '',
+  baseUrl = getApiBaseUrl(),
   className,
 }: FlyOverWidgetProps): JSX.Element => {
   const [queryClient] = useState(createWidgetQueryClient);

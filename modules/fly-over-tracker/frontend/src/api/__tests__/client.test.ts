@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { configureApiBaseUrl } from '../baseUrl';
 import { ApiError, getFlyOvers } from '../client';
 import type { FlyOverResult } from '../types';
 
@@ -34,6 +35,7 @@ const result: FlyOverResult = {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  configureApiBaseUrl(undefined);
 });
 
 describe('getFlyOvers', () => {
@@ -54,6 +56,30 @@ describe('getFlyOvers', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.example.com/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50',
+    );
+  });
+
+  it('uses the configured base URL when no explicit base URL is given', async () => {
+    configureApiBaseUrl('https://configured.example.com');
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(result), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await getFlyOvers({ lat: 48.8566, lng: 2.3522, radiusKm: 50 });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://configured.example.com/api/fly-overs?lat=48.8566&lng=2.3522&radiusKm=50',
+    );
+  });
+
+  it('prefers an explicit base URL over the configured one', async () => {
+    configureApiBaseUrl('https://configured.example.com');
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(result), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await getFlyOvers({ lat: 1, lng: 2, radiusKm: 3 }, 'https://explicit.example.com');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://explicit.example.com/api/fly-overs?lat=1&lng=2&radiusKm=3',
     );
   });
 

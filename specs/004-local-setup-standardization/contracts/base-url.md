@@ -36,7 +36,7 @@ Precedence: `baseUrl` prop > `API_BASE_URL` env > same-origin `/api`.
 
 | Module | SPA env | Component prop |
 |--------|---------|----------------|
-| bus-catcher | missing (hardcoded `/api`) | missing |
-| fly-over-tracker | missing (SPA uses same-origin) | present (`getFlyOvers`) |
-| procrastinator-tracker | missing (hardcoded `/api`) | missing |
+| bus-catcher | conformant (`configureApiBaseUrl` + `/config.json`) | conformant (`StopCard.baseUrl`) |
+| fly-over-tracker | conformant | conformant (`FlyOverWidget`/`ClosestAircraftCard.baseUrl`, `getFlyOvers`) |
+| procrastinator-tracker | conformant | conformant (`TaskDeckWrapper.baseUrl`) |
 | current-time | N/A (frontend-only) | N/A |

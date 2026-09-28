@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { loadApiBaseUrl } from './api/baseUrl';
 import App from './App';
 import './index.css';
 
@@ -20,10 +21,16 @@ if (rootElement === null) {
   throw new Error('Root element #root not found');
 }
 
-createRoot(rootElement).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </StrictMode>,
-);
+// Resolve the runtime API base URL (`/config.json`, generated from the
+// `API_BASE_URL` env) before first render so the SPA's default API target is
+// correct from the start. The config loader never rejects; any failure falls
+// back to the same-origin `/api` default.
+void loadApiBaseUrl().finally(() => {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </StrictMode>,
+  );
+});

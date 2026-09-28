@@ -41,9 +41,9 @@ For each module, assess every applicable area: `conformant` / `non-conformant` /
 
 | Module | base-url | documentation | workbench | tests | tooling |
 |--------|----------|---------------|-----------|-------|---------|
-| bus-catcher | non-conformant | non-conformant | conformant | conformant | non-conformant (DB_PATH default) |
-| fly-over-tracker | partial (prop only) | conformant | conformant | conformant | non-conformant (`HTTP_PORT`) |
-| procrastinator-tracker | non-conformant | non-conformant | conformant | conformant | non-conformant (DATABASE_URL default) |
+| bus-catcher | conformant | non-conformant (pending) | conformant | conformant | conformant (DB default → `data/`) |
+| fly-over-tracker | conformant | conformant | conformant | conformant | conformant (`PORT` unified) |
+| procrastinator-tracker | conformant | non-conformant (pending) | conformant | conformant | conformant (DB default → `data/`) |
 | current-time | N/A | conformant | conformant | conformant | conformant |
 
 Deferred changes required per module are listed in `docs/module-gap-assessment.md`.

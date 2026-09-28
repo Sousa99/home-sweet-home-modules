@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { configureApiBaseUrl } from '../../api/baseUrl';
 import type { FlyOverResult, LocationQuery } from '../../api/types';
 import type { RefreshRate } from '../../components/RefreshRateSelect';
 import { useFlyOversQuery } from '../useFlyOversQuery';
@@ -94,6 +95,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+  configureApiBaseUrl(undefined);
 });
 
 describe('useFlyOversQuery', () => {
@@ -117,6 +119,15 @@ describe('useFlyOversQuery', () => {
 
     await waitFor(() => expect(mockedGetFlyOvers).toHaveBeenCalledTimes(2));
     expect(mockedGetFlyOvers).toHaveBeenLastCalledWith(locationB, '');
+  });
+
+  it('defaults to the configured API base URL', async () => {
+    configureApiBaseUrl('https://configured.example.com');
+    mockedGetFlyOvers.mockResolvedValue(result);
+    renderPanel({ location: locationA });
+
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('1'));
+    expect(mockedGetFlyOvers).toHaveBeenCalledWith(locationA, 'https://configured.example.com');
   });
 
   it('re-fetches on the auto-refresh interval', async () => {

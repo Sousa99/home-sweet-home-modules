@@ -6,6 +6,6 @@ export default defineConfig({
   schema: './src/db/schema.ts',
   out: './drizzle',
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? './data/procrastinator.db',
+    url: process.env.DATABASE_URL ?? '../../data/procrastinator.db',
   },
 });

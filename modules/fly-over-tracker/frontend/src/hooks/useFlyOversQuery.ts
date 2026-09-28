@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { getApiBaseUrl } from '../api/baseUrl';
 import { getFlyOvers } from '../api/client';
 import type { FlyOverResult, LocationQuery } from '../api/types';
 import type { RefreshRate } from '../components/RefreshRateSelect';
@@ -8,7 +9,8 @@ export interface UseFlyOversQueryOptions {
   location: LocationQuery;
   /** Auto-refresh cadence in seconds; 'off' disables automatic refresh. */
   autoRefresh?: RefreshRate;
-  /** Base URL of the module backend; '' (default) = same-origin `/api`. */
+  /** Base URL of the module backend; defaults to the runtime-configured
+   * value (from `/config.json` / `API_BASE_URL`), `''` = same-origin `/api`. */
   baseUrl?: string;
 }
 
@@ -43,7 +45,7 @@ export interface UseFlyOversQueryResult {
 export const useFlyOversQuery = ({
   location,
   autoRefresh = 'off',
-  baseUrl = '',
+  baseUrl = getApiBaseUrl(),
 }: UseFlyOversQueryOptions): UseFlyOversQueryResult => {
   const base = baseUrl ?? '';
 

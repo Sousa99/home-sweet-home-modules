@@ -7,6 +7,7 @@ import type {
   StopTimesResponse,
   StopWithLines,
 } from './types';
+import { getApiBaseUrl } from './baseUrl';
 
 export class ApiError extends Error {
   constructor(
@@ -19,8 +20,10 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`/api${path}`, {
+async function request<T>(path: string, init?: RequestInit, baseUrl?: string): Promise<T> {
+  const base = baseUrl ?? getApiBaseUrl();
+  const url = base ? `${base}/api${path}` : `/api${path}`;
+  const response = await fetch(url, {
     headers: { 'content-type': 'application/json' },
     ...init,
   });
@@ -55,32 +58,52 @@ export interface UpdateConfigStopBody {
 }
 
 export const api = {
-  searchStops: (q: string, limit = 20) =>
-    request<{ stops: Stop[] }>(`/stops?q=${encodeURIComponent(q)}&limit=${limit}`),
-  getStop: (id: string) => request<{ stop: StopWithLines }>(`/stops/${encodeURIComponent(id)}`),
-  listLines: () => request<{ lines: Line[] }>('/lines'),
-  getConfig: () => request<{ stops: ConfigStop[] }>('/config'),
-  addConfigStop: (body: AddConfigStopBody) =>
-    request<{ stop: ConfigStop }>('/config/stops', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    }),
-  getStopTimes: (stopId: string, limit = 5, lines?: string[]) => {
+  searchStops: (q: string, limit = 20, baseUrl?: string) =>
+    request<{ stops: Stop[] }>(
+      `/stops?q=${encodeURIComponent(q)}&limit=${limit}`,
+      undefined,
+      baseUrl,
+    ),
+  getStop: (id: string, baseUrl?: string) =>
+    request<{ stop: StopWithLines }>(`/stops/${encodeURIComponent(id)}`, undefined, baseUrl),
+  listLines: (baseUrl?: string) => request<{ lines: Line[] }>('/lines', undefined, baseUrl),
+  getConfig: (baseUrl?: string) => request<{ stops: ConfigStop[] }>('/config', undefined, baseUrl),
+  addConfigStop: (body: AddConfigStopBody, baseUrl?: string) =>
+    request<{ stop: ConfigStop }>(
+      '/config/stops',
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+      },
+      baseUrl,
+    ),
+  getStopTimes: (stopId: string, limit = 5, lines?: string[], baseUrl?: string) => {
     const params = new URLSearchParams({ limit: String(limit) });
     for (const line of lines ?? []) params.append('line', line);
     return request<StopTimesResponse>(
       `/stops/${encodeURIComponent(stopId)}/times?${params.toString()}`,
+      undefined,
+      baseUrl,
     );
   },
-  getStatus: () => request<Status>('/status'),
-  refreshSchedule: () =>
-    request<{ status: 'started' | 'in_progress' }>('/refresh', {
-      method: 'POST',
-    }),
-  updateConfigStop: (id: number, body: UpdateConfigStopBody) =>
-    request<{ stop: ConfigStop }>(`/config/stops/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(body),
-    }),
-  removeConfigStop: (id: number) => request<void>(`/config/stops/${id}`, { method: 'DELETE' }),
+  getStatus: (baseUrl?: string) => request<Status>('/status', undefined, baseUrl),
+  refreshSchedule: (baseUrl?: string) =>
+    request<{ status: 'started' | 'in_progress' }>(
+      '/refresh',
+      {
+        method: 'POST',
+      },
+      baseUrl,
+    ),
+  updateConfigStop: (id: number, body: UpdateConfigStopBody, baseUrl?: string) =>
+    request<{ stop: ConfigStop }>(
+      `/config/stops/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      },
+      baseUrl,
+    ),
+  removeConfigStop: (id: number, baseUrl?: string) =>
+    request<void>(`/config/stops/${id}`, { method: 'DELETE' }, baseUrl),
 };

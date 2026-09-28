@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from './baseUrl';
+
 export type TaskStatus =
   'to-start' | 'started' | 'in-progress' | 'on-hold' | 'validating' | 'finished';
 
@@ -90,8 +92,10 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
+async function request<T>(path: string, init?: RequestInit, baseUrl?: string): Promise<T> {
+  const base = baseUrl ?? getApiBaseUrl();
+  const url = base ? `${base}${path}` : path;
+  const res = await fetch(url, {
     headers: init?.body ? { 'Content-Type': 'application/json' } : undefined,
     ...init,
   });
@@ -125,30 +129,41 @@ function queryString(filters: TaskFilters): string {
 }
 
 export const api = {
-  listTasks: (filters: TaskFilters = {}) => request<Task[]>(`/api/tasks${queryString(filters)}`),
-  getTask: (id: number) => request<Task>(`/api/tasks/${id}`),
-  createTask: (input: CreateTaskInput) =>
-    request<Task>('/api/tasks', { method: 'POST', body: JSON.stringify(input) }),
-  updateTask: (id: number, input: UpdateTaskInput) =>
-    request<Task>(`/api/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
-  deleteTask: (id: number) => request<void>(`/api/tasks/${id}`, { method: 'DELETE' }),
-  setStatus: (id: number, status: TaskStatus) =>
-    request<Task>(`/api/tasks/${id}/status`, {
-      method: 'POST',
-      body: JSON.stringify({ status }),
-    }),
-  addComment: (id: number, body: string) =>
-    request<Comment>(`/api/tasks/${id}/comments`, {
-      method: 'POST',
-      body: JSON.stringify({ body }),
-    }),
+  listTasks: (filters: TaskFilters = {}, baseUrl?: string) =>
+    request<Task[]>(`/api/tasks${queryString(filters)}`, undefined, baseUrl),
+  getTask: (id: number, baseUrl?: string) => request<Task>(`/api/tasks/${id}`, undefined, baseUrl),
+  createTask: (input: CreateTaskInput, baseUrl?: string) =>
+    request<Task>('/api/tasks', { method: 'POST', body: JSON.stringify(input) }, baseUrl),
+  updateTask: (id: number, input: UpdateTaskInput, baseUrl?: string) =>
+    request<Task>(`/api/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(input) }, baseUrl),
+  deleteTask: (id: number, baseUrl?: string) =>
+    request<void>(`/api/tasks/${id}`, { method: 'DELETE' }, baseUrl),
+  setStatus: (id: number, status: TaskStatus, baseUrl?: string) =>
+    request<Task>(
+      `/api/tasks/${id}/status`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ status }),
+      },
+      baseUrl,
+    ),
+  addComment: (id: number, body: string, baseUrl?: string) =>
+    request<Comment>(
+      `/api/tasks/${id}/comments`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ body }),
+      },
+      baseUrl,
+    ),
 
-  listTags: () => request<Tag[]>('/api/tags'),
-  createTag: (name: string) =>
-    request<Tag>('/api/tags', { method: 'POST', body: JSON.stringify({ name }) }),
+  listTags: (baseUrl?: string) => request<Tag[]>('/api/tags', undefined, baseUrl),
+  createTag: (name: string, baseUrl?: string) =>
+    request<Tag>('/api/tags', { method: 'POST', body: JSON.stringify({ name }) }, baseUrl),
 
-  listUsers: () => request<User[]>('/api/users'),
-  createUser: (name: string) =>
-    request<User>('/api/users', { method: 'POST', body: JSON.stringify({ name }) }),
-  deleteUser: (id: number) => request<void>(`/api/users/${id}`, { method: 'DELETE' }),
+  listUsers: (baseUrl?: string) => request<User[]>('/api/users', undefined, baseUrl),
+  createUser: (name: string, baseUrl?: string) =>
+    request<User>('/api/users', { method: 'POST', body: JSON.stringify({ name }) }, baseUrl),
+  deleteUser: (id: number, baseUrl?: string) =>
+    request<void>(`/api/users/${id}`, { method: 'DELETE' }, baseUrl),
 };

@@ -53,7 +53,7 @@ directory) so it participates in the compose SPA/Storybook modes. The backend im
 
 | Service kind | Env vars (Compose sets) |
 |--------------|--------------------------|
-| backend | `PORT` (bus-catcher, procrastinator-tracker) or `HTTP_PORT` (fly-over-tracker); `DB_PATH` / `DATABASE_URL` for DB-backed modules |
+| backend | `PORT`; `DB_PATH` / `DATABASE_URL` for DB-backed modules |
 | mcp | `MCP_PORT`; `DB_PATH` / `DATABASE_URL` for DB-backed modules |
 | spa / storybook | `BACKEND_UPSTREAM=<slug>-backend:3000` (nginx `/api` proxy target) |
 

@@ -91,7 +91,7 @@ services:
     command: ['node', 'dist/index.js', '--http']
     environment:
       HOST: 0.0.0.0
-      HTTP_PORT: '3000'
+      PORT: '3000'
       MCP_PORT: '3001'
     ports:
       - '${HSH_FLY_OVER_TRACKER_REST_PORT:-3101}:3000'
@@ -114,7 +114,7 @@ services:
     command: ['node', 'dist/index.js', '--mcp']
     environment:
       HOST: 0.0.0.0
-      HTTP_PORT: '3000'
+      PORT: '3000'
       MCP_PORT: '3001'
     ports:
       - '${HSH_FLY_OVER_TRACKER_MCP_PORT:-3201}:3001'

@@ -47,7 +47,7 @@ describe('StopCard widget', () => {
   it('fetches waiting times with the default client and renders them', async () => {
     mockedGetStopTimes.mockResolvedValue(response);
     render(<StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />);
-    await waitFor(() => expect(mockedGetStopTimes).toHaveBeenCalledWith('S1', 5, []));
+    await waitFor(() => expect(mockedGetStopTimes).toHaveBeenCalledWith('S1', 5, [], undefined));
     expect(await screen.findByText('Cais')).toBeInTheDocument();
     expect(screen.getByText('Schedule')).toBeInTheDocument();
   });
@@ -63,7 +63,34 @@ describe('StopCard widget', () => {
         refetchIntervalMs={0}
       />,
     );
-    await waitFor(() => expect(mockedGetStopTimes).toHaveBeenCalledWith('S1', 3, ['736', '3705']));
+    await waitFor(() =>
+      expect(mockedGetStopTimes).toHaveBeenCalledWith('S1', 3, ['736', '3705'], undefined),
+    );
+  });
+
+  it('forwards the baseUrl prop to the default client fetcher', async () => {
+    mockedGetStopTimes.mockResolvedValue(response);
+    render(
+      <StopCard
+        stopId="S1"
+        stopName="Sete Rios"
+        lines={['736']}
+        limit={2}
+        refetchIntervalMs={0}
+        baseUrl="http://localhost:3100"
+      />,
+    );
+    await waitFor(() =>
+      expect(mockedGetStopTimes).toHaveBeenCalledWith('S1', 2, ['736'], 'http://localhost:3100'),
+    );
+    expect(await screen.findByText('Cais')).toBeInTheDocument();
+  });
+
+  it('keeps the same-origin default when no baseUrl is provided', async () => {
+    mockedGetStopTimes.mockResolvedValue(response);
+    render(<StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />);
+    await waitFor(() => expect(mockedGetStopTimes).toHaveBeenCalled());
+    expect(mockedGetStopTimes).toHaveBeenCalledWith('S1', 5, [], undefined);
   });
 
   it('shows the coverage notice from realtime data', async () => {

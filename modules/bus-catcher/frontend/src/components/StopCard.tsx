@@ -29,6 +29,12 @@ export interface StopCardProps {
    * Defaults to the built-in API client. Keep the reference stable.
    */
   fetchTimes?: FetchStopTimes;
+  /**
+   * Optional base URL of the module backend. When empty the built-in client
+   * targets the same-origin `/api` path (the SPA default). Used by embeds to
+   * point at a remote backend. Ignored when `fetchTimes` is provided.
+   */
+  baseUrl?: string;
   /** The stop no longer exists in the schedule; shows a notice and skips fetching. */
   missing?: boolean;
   /**
@@ -48,6 +54,7 @@ export function StopCard({
   limit = 5,
   refetchIntervalMs = 15000,
   fetchTimes,
+  baseUrl,
   missing = false,
   thresholds,
 }: StopCardProps) {
@@ -62,7 +69,7 @@ export function StopCard({
     let timer: ReturnType<typeof setTimeout> | undefined;
     const fetchFn =
       fetchRef.current ??
-      (({ stopId: id, limit: lim, lines: ln }) => api.getStopTimes(id, lim, ln));
+      (({ stopId: id, limit: lim, lines: ln }) => api.getStopTimes(id, lim, ln, baseUrl));
     const load = async () => {
       try {
         const data = await fetchFn({ stopId, limit, lines });
@@ -80,7 +87,7 @@ export function StopCard({
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [stopId, limit, linesKey, refetchIntervalMs, missing]);
+  }, [stopId, limit, linesKey, refetchIntervalMs, baseUrl, missing]);
 
   const times = state.status === 'ready' ? state.data.times : [];
   const realtime = state.status === 'ready' ? state.data.realtime : undefined;
