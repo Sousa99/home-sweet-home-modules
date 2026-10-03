@@ -23,6 +23,8 @@ export { FlyOverMapCard } from './FlyOverMapCard';
 export type { FlyOverMapCardProps } from './FlyOverMapCard';
 export { FlyOverListCard } from './FlyOverListCard';
 export type { FlyOverListCardProps } from './FlyOverListCard';
+export { FlyOverClosestPanel } from './FlyOverClosestPanel';
+export type { FlyOverClosestPanelProps } from './FlyOverClosestPanel';
 export { ViewModeToggle } from './ViewModeToggle';
 export type { ViewMode, ViewModeToggleProps } from './ViewModeToggle';
 export { RefreshRateSelect } from './RefreshRateSelect';

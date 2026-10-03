@@ -37,6 +37,10 @@ export interface MockedMap {
   flyToBounds: (bounds: unknown, options?: Record<string, unknown>) => void;
   getSize: () => { x: number; y: number };
   getCenter: () => { lat: number; lng: number };
+  /** The container element Leaflet tracks (used by `invalidateSize`). */
+  getContainer: () => HTMLElement;
+  /** Recomputes the viewport size (see `AircraftMapView`'s `MapSizeSync`). */
+  invalidateSize: () => void;
 }
 
 export interface MapStore {
@@ -53,6 +57,8 @@ function createMockedMap(): MockedMap {
     },
     getSize: () => ({ x: 800, y: 420 }),
     getCenter: () => ({ lat: 0, lng: 0 }),
+    getContainer: () => document.createElement('div'),
+    invalidateSize: () => undefined,
   };
 }
 

@@ -12,6 +12,50 @@ import { cn } from '../lib/utils';
 const FIT_PADDING_RATIO = 0.01;
 /** Maximum zoom the fit will request; matches the OSM tile layer ceiling (z19). */
 const FIT_MAX_ZOOM = 19;
+/** Maximum reload attempts for a single failed tile. */
+const TILE_MAX_RETRIES = 2;
+/** Delay before retrying a failed tile, so transient errors can clear. */
+const TILE_RETRY_DELAY_MS = 150;
+
+/**
+ * Keeps Leaflet's viewport in sync with its container. The dashboard hosts the
+ * map inside a flex/grid cell whose size is only known after layout; if Leaflet
+ * initializes at that moment it can compute a wrong (often 0) size and render
+ * blank regions with only some tiles loaded. `invalidateSize()` on mount and on
+ * every container resize fixes both the initial fit and later reflows.
+ */
+function MapSizeSync() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    const sync = () => map.invalidateSize();
+    sync();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(sync);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [map]);
+  return null;
+}
+
+const tileRetries = new WeakMap<HTMLElement, number>();
+
+/**
+ * Retry a failed tile a bounded number of times (transient OSM/network errors).
+ * Re-pointing the src triggers a fresh request; permanently-429 tiles give up
+ * after `TILE_MAX_RETRIES`.
+ */
+function retryFailedTile(tile: HTMLElement | undefined): void {
+  if (!tile) return;
+  const attempt = (tileRetries.get(tile) ?? 0) + 1;
+  if (attempt > TILE_MAX_RETRIES) return;
+  tileRetries.set(tile, attempt);
+  const src = tile.getAttribute('src');
+  tile.removeAttribute('src');
+  window.setTimeout(() => {
+    if (src) tile.setAttribute('src', src);
+  }, TILE_RETRY_DELAY_MS);
+}
 
 /**
  * Moves the map view to the configured selection so the radius circle fills
@@ -79,11 +123,18 @@ export const AircraftMapView = ({
         className,
       )}
     >
+      <MapSizeSync />
       <MapFitController center={center} radiusKm={radiusKm} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         maxZoom={19}
+        eventHandlers={{
+          tileerror: (event) => {
+            const tile = (event as { tile?: HTMLElement }).tile;
+            if (tile) retryFailedTile(tile);
+          },
+        }}
       />
       <Circle
         center={[center.lat, center.lng]}

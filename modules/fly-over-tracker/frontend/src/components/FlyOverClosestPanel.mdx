@@ -1,0 +1,69 @@
+import { Meta, Canvas, Controls, ArgTypes } from '@storybook/addon-docs/blocks';
+import * as FlyOverClosestPanelStories from './FlyOverClosestPanel.stories';
+
+<Meta of={FlyOverClosestPanelStories} />
+
+# FlyOverClosestPanel
+
+`FlyOverClosestPanel` is a self-sufficient, embeddable panel for a dashboard: the single
+aircraft nearest to a configured location as a prominent tile (full `AircraftCard`),
+followed by the **remaining** aircraft as compact list cards — the closest is never
+repeated in the list. It renders **no map**, so a host can pair it with `FlyOverMapCard`
+for a two-region layout.
+
+The optional `maxResults` prop caps how many aircraft are listed after the closest tile.
+
+The panel fetches and auto-refreshes its own data once, so a host application only
+supplies configuration through props — no data wiring or TanStack Query setup is
+required.
+
+## Usage
+
+```tsx
+import { FlyOverClosestPanel } from '@sousa99/fly-over-tracker-components';
+
+<FlyOverClosestPanel
+  location={{ lat: 48.8566, lng: 2.3522, radiusKm: 50 }}
+  autoRefresh={10}
+  maxResults={5}
+/>;
+```
+
+## Props
+
+<ArgTypes of={FlyOverClosestPanelStories} />
+
+## Examples
+
+### Aircraft in range
+
+<Canvas of={FlyOverClosestPanelStories.WithAircraft} />
+<Controls of={FlyOverClosestPanelStories.WithAircraft} />
+
+### Capped list (`maxResults`)
+
+<Canvas of={FlyOverClosestPanelStories.CappedList} />
+
+### No aircraft in range
+
+<Canvas of={FlyOverClosestPanelStories.Empty} />
+
+### Feed unavailable
+
+<Canvas of={FlyOverClosestPanelStories.Error} />
+
+### Auto-refresh
+
+<Canvas of={FlyOverClosestPanelStories.AutoRefresh} />
+
+## Behavior notes
+
+- **Single fetch** — the panel makes one `GET {baseUrl}/api/fly-overs` call per refresh
+  and renders both the closest tile and the list from that result.
+- **No repetition** — the closest aircraft is shown once (the tile); the list contains
+  every other aircraft in range, sorted closest first.
+- **Capping** — `maxResults` slices the remaining list; omit it to list everything after
+  the closest.
+- **States** — loading, empty ("No aircraft within … km"), and error states render in
+  place of the content; stale data is never presented as fresh.
+- **Requirements** — the host must provide the peer dependencies `react` and `react-dom`.

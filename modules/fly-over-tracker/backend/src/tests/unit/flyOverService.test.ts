@@ -66,6 +66,47 @@ describe('flyOverService', () => {
   });
 });
 
+describe('flyOverService snapshot cache', () => {
+  function countingFeed() {
+    let calls = 0;
+    const feed: AircraftFeed = {
+      getSnapshot: async () => {
+        calls++;
+        return new MockFeed().getSnapshot(CDG.lat, CDG.lng, 50);
+      },
+    };
+    return { feed, getCalls: () => calls };
+  }
+
+  it('coalesces overlapping location queries onto one feed call within the TTL', async () => {
+    const { feed, getCalls } = countingFeed();
+    const service = createFlyOverService(feed, undefined, { snapshotCacheTtlMs: 60_000 });
+
+    await service.query({ ...CDG, radiusKm: 50 });
+    await service.query({ ...CDG, radiusKm: 50 });
+    expect(getCalls()).toBe(1);
+  });
+
+  it('keeps distinct locations in separate cache entries', async () => {
+    const { feed, getCalls } = countingFeed();
+    const service = createFlyOverService(feed, undefined, { snapshotCacheTtlMs: 60_000 });
+
+    await service.query({ ...CDG, radiusKm: 50 });
+    await service.query({ ...CDG, radiusKm: 100 });
+    expect(getCalls()).toBe(2);
+  });
+
+  it('re-fetches from the feed after the snapshot TTL expires', async () => {
+    const { feed, getCalls } = countingFeed();
+    const service = createFlyOverService(feed, undefined, { snapshotCacheTtlMs: 10 });
+
+    await service.query({ ...CDG, radiusKm: 50 });
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    await service.query({ ...CDG, radiusKm: 50 });
+    expect(getCalls()).toBe(2);
+  });
+});
+
 describe('flyOverService destination enrichment', () => {
   it('fills origin and destination for every matched aircraft with complete enrichment', async () => {
     const service = createFlyOverService(new MockFeed(), new MockRouteFeed());
