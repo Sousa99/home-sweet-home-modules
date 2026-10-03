@@ -1,5 +1,13 @@
 # @sousa99/current-time-components
 
+## 0.1.1
+
+### Patch Changes
+
+- d44821b: Fix the published component libraries: the release pipeline now builds `dist-lib` before publishing
+  and CI verifies the tarball contents (`scripts/check-publishable-libs.mjs`). Previous releases
+  shipped empty packages (only `package.json`), so consumers could not import any widget.
+
 ## 0.1.0
 
 ### Minor Changes
