@@ -31,6 +31,8 @@ const envSchema = z.object({
   // Destination route cache tuning.
   DEST_CACHE_TTL_MS: z.coerce.number().int().positive().default(600_000),
   DEST_NEGATIVE_TTL_MS: z.coerce.number().int().positive().default(60_000),
+  // Feed snapshot cache tuning (coalesces overlapping location queries).
+  SNAPSHOT_CACHE_TTL_MS: z.coerce.number().int().positive().default(10_000),
 });
 
 /**
@@ -68,6 +70,8 @@ export interface Config {
   destinationCacheTtlMs: number;
   /** TTL in milliseconds for negative destination route cache entries. */
   destinationNegativeTtlMs: number;
+  /** TTL in milliseconds for cached feed snapshots (per location). */
+  snapshotCacheTtlMs: number;
   /** pino log level. */
   logLevel: string;
   /** Runtime environment (`development`, `production`, `test`, ...). */
@@ -99,6 +103,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     retryCapMs: parsed.RETRY_CAP_MS,
     destinationCacheTtlMs: parsed.DEST_CACHE_TTL_MS,
     destinationNegativeTtlMs: parsed.DEST_NEGATIVE_TTL_MS,
+    snapshotCacheTtlMs: parsed.SNAPSHOT_CACHE_TTL_MS,
     logLevel: parsed.LOG_LEVEL ?? (envName === 'production' ? 'info' : 'debug'),
     env: envName,
   };

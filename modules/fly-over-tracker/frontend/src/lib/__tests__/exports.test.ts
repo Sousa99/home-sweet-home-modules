@@ -7,6 +7,7 @@ describe('library entry', () => {
     expect(library.ClosestAircraftCard).toBeTypeOf('function');
     expect(library.FlyOverMapCard).toBeTypeOf('function');
     expect(library.FlyOverListCard).toBeTypeOf('function');
+    expect(library.FlyOverClosestPanel).toBeTypeOf('function');
   });
 
   it('does not export the SPA components or the API client', () => {

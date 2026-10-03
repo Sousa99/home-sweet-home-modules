@@ -8,6 +8,7 @@ import { countryForIcao } from '../lib/airports';
 import { loadConfig } from '../lib/config';
 import { countryForIso2 } from '../lib/countries';
 import { createDestinationCache, type DestinationCache } from '../lib/destinationCache';
+import { createSnapshotCache } from '../lib/snapshotCache';
 import { FeedUnavailableError, ValidationError, formatZodError } from '../lib/errors';
 
 /**
@@ -30,6 +31,8 @@ export interface FlyOverServiceOptions {
   destinationCacheTtlMs?: number;
   /** TTL in ms for negative (not found) destination lookups. */
   destinationNegativeTtlMs?: number;
+  /** TTL in ms for cached feed snapshots keyed by location. */
+  snapshotCacheTtlMs?: number;
 }
 
 function toAircraft(
@@ -127,6 +130,9 @@ export function createFlyOverService(
     ttlMs: options.destinationCacheTtlMs ?? cfg.destinationCacheTtlMs,
     negativeTtlMs: options.destinationNegativeTtlMs ?? cfg.destinationNegativeTtlMs,
   });
+  const snapshotCache = createSnapshotCache({
+    ttlMs: options.snapshotCacheTtlMs ?? cfg.snapshotCacheTtlMs,
+  });
 
   return {
     async query(input: LocationQuery): Promise<FlyOverResult> {
@@ -136,7 +142,10 @@ export function createFlyOverService(
       }
 
       const { lat, lng, radiusKm } = parsed.data;
-      const snapshot = await feed.getSnapshot(lat, lng, radiusKm);
+      const snapshotKey = `${lat}|${lng}|${radiusKm}`;
+      const cached = snapshotCache.get(snapshotKey);
+      const snapshot = cached ?? (await feed.getSnapshot(lat, lng, radiusKm));
+      if (cached === undefined) snapshotCache.set(snapshotKey, snapshot);
 
       const aircraft = snapshot.states
         .filter(

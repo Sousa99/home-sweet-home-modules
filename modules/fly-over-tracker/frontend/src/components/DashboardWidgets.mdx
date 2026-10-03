@@ -3,12 +3,13 @@ import * as FlyOverWidgetStories from './FlyOverWidget.stories';
 import * as ClosestAircraftCardStories from './ClosestAircraftCard.stories';
 import * as FlyOverMapCardStories from './FlyOverMapCard.stories';
 import * as FlyOverListCardStories from './FlyOverListCard.stories';
+import * as FlyOverClosestPanelStories from './FlyOverClosestPanel.stories';
 
 <Meta title="DashboardWidgets/Overview" />
 
 # Dashboard widgets
 
-Four self-sufficient, embeddable widgets for a dashboard (e.g. `homesweethome`). Each
+Five self-sufficient, embeddable widgets for a dashboard (e.g. `homesweethome`). Each
 one is configured entirely through props — a location, a radius, and an auto-refresh
 cadence — and fetches and refreshes its own data, so the host application needs no data
 wiring.
@@ -19,7 +20,7 @@ wiring.
 pnpm add @sousa99/fly-over-tracker-components
 ```
 
-The package publishes **only these four widgets**. It relies on the peer dependencies
+The package publishes **only these five widgets**. It relies on the peer dependencies
 `react`, `react-dom`, `leaflet`, and `react-leaflet`, and ships its own Tailwind styles:
 
 ```tsx
@@ -48,6 +49,14 @@ The aircraft list only, closest first, with an optional `maxResults` cap. Use it
 
 <Canvas of={FlyOverListCardStories.WithAircraft} />
 
+## FlyOverClosestPanel
+
+The closest aircraft as a prominent tile plus the remaining aircraft as a list (no
+repeat), with an optional `maxResults` cap. Pair with `FlyOverMapCard` for a
+"closest + list" column next to a map.
+
+<Canvas of={FlyOverClosestPanelStories.WithAircraft} />
+
 ## ClosestAircraftCard
 
 A compact card showing the single nearest aircraft within the radius, with a smooth
@@ -66,7 +75,7 @@ All widgets share these props:
 | `baseUrl`     | `string`                       | `''`    | Module backend base URL; `''` = same-origin `/api` |
 | `className`   | `string`                       | —       | Extra classes on the widget root                   |
 
-`FlyOverWidget` and `FlyOverListCard` additionally accept `maxResults?: number` to cap the
-list to the closest N aircraft (omit to list all).
+`FlyOverWidget`, `FlyOverListCard`, and `FlyOverClosestPanel` additionally accept
+`maxResults?: number` to cap their lists (omit to list all).
 
 See each widget's page for the full props reference, live examples, and behavior notes.
