@@ -1,5 +1,14 @@
 # @sousa99/fly-over-tracker-components
 
+## 0.4.1
+
+### Patch Changes
+
+- fae70e7: Make the `debug` map diagnostics human-readable in production bundles: log the container
+  size as `WxH`, the center as `lat,lng`, add a `tiles.requested` count (via
+  `tileloadstart`) and a post-fit `fitted` line — so it is clear whether tiles are never
+  requested or failing to load.
+
 ## 0.4.0
 
 ### Minor Changes
