@@ -213,10 +213,12 @@ jobs:
       - name: 🔬 Check workflow files
         uses: docker://rhysd/actionlint:latest
 
-      - name: 🔬 Verify release version command
+      - name: 🔬 Verify release workflow configuration
         run: |
           grep -Eq '^\s*version: pnpm changeset version$' .github/workflows/release.yml \
             || { echo "::error::release.yml changesets 'version' must be 'pnpm changeset version' (pnpm version is the built-in, not changesets)."; exit 1; }
+          grep -Eq '^\s*createGithubReleases: false$' .github/workflows/release.yml \
+            || { echo "::error::release.yml changesets 'createGithubReleases' must be 'false' so GitHub releases are owned only by scripts/release-modules.sh."; exit 1; }
 
   pr-format:
     name: 📝 PR format

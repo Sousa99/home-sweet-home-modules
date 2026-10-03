@@ -94,6 +94,7 @@ jobs:
         with:
           version: pnpm changeset version
           publish: pnpm changeset publish
+          createGithubReleases: false
           commit: 'chore(release): version packages'
           title: 'chore(release): version packages'
         env:
