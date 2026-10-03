@@ -1,0 +1,57 @@
+import { Meta, Canvas, Controls, ArgTypes } from '@storybook/addon-docs/blocks';
+import * as FlyOverMapCardStories from './FlyOverMapCard.stories';
+
+<Meta of={FlyOverMapCardStories} />
+
+# FlyOverMapCard
+
+`FlyOverMapCard` is a self-sufficient, embeddable map card for a dashboard: a read-only
+map of a configured location and radius with every aircraft inside the radius marked at
+its reported position. It renders **no list**, so a host can place the map and the
+aircraft list (see `FlyOverListCard`) independently in different regions of a layout.
+
+It fills its container (the map expands to the available space). The card fetches and
+auto-refreshes its own data, so a host application only supplies configuration through
+props — no data wiring or TanStack Query setup is required.
+
+## Usage
+
+```tsx
+import { FlyOverMapCard } from '@sousa99/fly-over-tracker-components';
+
+<FlyOverMapCard location={{ lat: 48.8566, lng: 2.3522, radiusKm: 50 }} autoRefresh={10} />;
+```
+
+## Props
+
+<ArgTypes of={FlyOverMapCardStories} />
+
+## Examples
+
+### Aircraft in range
+
+<Canvas of={FlyOverMapCardStories.WithAircraft} />
+<Controls of={FlyOverMapCardStories.WithAircraft} />
+
+### No aircraft in range
+
+<Canvas of={FlyOverMapCardStories.Empty} />
+
+### Feed unavailable
+
+<Canvas of={FlyOverMapCardStories.Error} />
+
+### Auto-refresh
+
+<Canvas of={FlyOverMapCardStories.AutoRefresh} />
+
+## Behavior notes
+
+- **Self-sufficient data** — fetches `GET {baseUrl}/api/fly-overs` and re-fetches
+  automatically every `autoRefresh` seconds (`'off'` disables automatic refresh).
+- **Update feedback** — a small "Updating…" indicator appears in the top corner while
+  a refresh is in flight and clears when it completes.
+- **Layout** — `w-full`, `h-full` flex column: the map is `flex-1`. Mount it inside a
+  container with a defined height.
+- **Requirements** — the host must provide the peer dependencies `react`, `react-dom`,
+  `leaflet`, and `react-leaflet`.

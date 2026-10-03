@@ -3,8 +3,7 @@ import type { JSX } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { getApiBaseUrl } from '../api/baseUrl';
 import { useFlyOversQuery } from '../hooks/useFlyOversQuery';
-import type { Aircraft, Center, LocationQuery } from '../api/types';
-import { AircraftMapView } from './AircraftMapView';
+import type { Aircraft, LocationQuery } from '../api/types';
 import { AircraftMapCard } from './AircraftMapCard';
 import { UpdatingIndicator } from './UpdatingIndicator';
 import { Button } from './ui/button';
@@ -12,7 +11,7 @@ import type { RefreshRate } from './RefreshRateSelect';
 import { createWidgetQueryClient } from '../lib/widgetQueryClient';
 import { cn } from '../lib/utils';
 
-export interface FlyOverWidgetProps {
+export interface FlyOverListCardProps {
   /** The location and radius to watch (a valid LocationQuery). */
   location: LocationQuery;
   /** Auto-refresh cadence in seconds; 'off' disables automatic refresh. */
@@ -22,32 +21,32 @@ export interface FlyOverWidgetProps {
   baseUrl?: string;
   /** Maximum number of aircraft to list, closest first; omit to list all. */
   maxResults?: number;
-  /** Extra classes applied to the widget root. */
+  /** Extra classes applied to the card root. */
   className?: string;
 }
 
 /**
- * Self-sufficient embeddable widget for a dashboard: a read-only map of the
- * configured location with the aircraft within the radius listed beneath it
- * (compact `AircraftMapCard`s). Fills the available width; the map expands to
- * the available vertical space and the list takes its natural height,
- * scrolling when it exceeds the space. Fetches and auto-refreshes its own data
+ * Self-sufficient embeddable card for a dashboard: a scrollable list of the
+ * aircraft within the configured radius, closest first (the backend returns
+ * them sorted by distance). `maxResults` caps how many are rendered. Unlike
+ * `FlyOverWidget` it renders no map, so a host can place the list and the map
+ * (via `FlyOverMapCard`) independently. Fetches and auto-refreshes its own data
  * through `useFlyOversQuery` (no host react-query setup required), shows a
  * top-corner updating indicator while a refresh is in flight, and exposes a
  * manual Refresh action.
  */
-export const FlyOverWidget = ({
+export const FlyOverListCard = ({
   location,
   autoRefresh = 'off',
   baseUrl = getApiBaseUrl(),
   maxResults,
   className,
-}: FlyOverWidgetProps): JSX.Element => {
+}: FlyOverListCardProps): JSX.Element => {
   const [queryClient] = useState(createWidgetQueryClient);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <FlyOverWidgetContent
+      <FlyOverListCardContent
         location={location}
         autoRefresh={autoRefresh}
         baseUrl={baseUrl}
@@ -58,30 +57,31 @@ export const FlyOverWidget = ({
   );
 };
 
-function FlyOverWidgetContent({
+function FlyOverListCardContent({
   location,
   autoRefresh,
   baseUrl,
   maxResults,
   className,
-}: FlyOverWidgetProps): JSX.Element {
+}: FlyOverListCardProps): JSX.Element {
   const { data, isLoading, isFetching, isError, error, refetch } = useFlyOversQuery({
     location,
     autoRefresh,
     baseUrl,
   });
 
-  const center: Center = { lat: location.lat, lng: location.lng };
   const aircraft: Aircraft[] = data?.aircraft ?? [];
-  const visibleAircraft = maxResults === undefined ? aircraft : aircraft.slice(0, maxResults);
+  const visible = maxResults === undefined ? aircraft : aircraft.slice(0, maxResults);
   const isEmpty = data !== null && data.count === 0;
+  const total = data?.count ?? 0;
+  const capped = maxResults !== undefined && total > maxResults;
 
   return (
     <div className={cn('flex h-full w-full flex-col', className)}>
       <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
         <p className="text-sm text-slate-600">
-          Aircraft over {location.lat.toFixed(4)}, {location.lng.toFixed(4)} (±
-          {location.radiusKm} km)
+          {capped ? `Closest ${visible.length} of ${total}` : `${total}`} aircraft over{' '}
+          {location.lat.toFixed(4)}, {location.lng.toFixed(4)} (±{location.radiusKm} km)
         </p>
         <div className="flex items-center gap-2">
           <UpdatingIndicator visible={isFetching} />
@@ -91,11 +91,7 @@ function FlyOverWidgetContent({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1">
-        <AircraftMapView center={center} radiusKm={location.radiusKm} aircraft={aircraft} />
-      </div>
-
-      <div className="mt-2 max-h-[40%] shrink-0 space-y-2 overflow-y-auto border-t border-slate-100 pt-2">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
         {isLoading && <p className="text-center text-sm text-slate-500">Loading aircraft…</p>}
         {isError && (
           <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
@@ -107,7 +103,7 @@ function FlyOverWidgetContent({
             No aircraft within {location.radiusKm} km of this location.
           </p>
         )}
-        {visibleAircraft.map((aircraftItem) => (
+        {visible.map((aircraftItem) => (
           <AircraftMapCard key={aircraftItem.icao24} aircraft={aircraftItem} />
         ))}
       </div>

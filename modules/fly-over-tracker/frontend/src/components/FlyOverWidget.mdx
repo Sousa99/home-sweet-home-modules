@@ -57,5 +57,10 @@ import { FlyOverWidget } from '@sousa99/fly-over-tracker-components';
 - **Layout** — `w-full`, `h-full` flex column: the map is `flex-1` and the list takes
   its natural height with a scroll cap. Mount it inside a container with a defined
   height.
+- **Capped list** — the optional `maxResults` prop limits the list to the closest N
+  aircraft (the map still shows every aircraft in range).
+- **Separate map/list** — when a layout needs the map and the list in different regions,
+  use `FlyOverMapCard` (map only) and `FlyOverListCard` (list only, with `maxResults`)
+  instead of the combined `FlyOverWidget`.
 - **Requirements** — the host must provide the peer dependencies `react`, `react-dom`,
   `leaflet`, and `react-leaflet`.

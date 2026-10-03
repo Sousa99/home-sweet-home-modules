@@ -100,6 +100,16 @@ describe('FlyOverWidget', () => {
     expect(screen.getByText('26.1 km')).toBeInTheDocument();
   });
 
+  it('caps the list to maxResults while the map still shows every aircraft', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    render(<FlyOverWidget location={location} maxResults={1} />);
+
+    // The closest aircraft appears in both the map tooltip and its list card.
+    expect(screen.getAllByText('DLH400').length).toBeGreaterThanOrEqual(2);
+    // The second aircraft remains on the map (tooltip) but is dropped from the list.
+    expect(screen.getAllByText('RYR45A')).toHaveLength(1);
+  });
+
   it('shows a loading hint while the first fetch is pending', () => {
     mockedUseFlyOversQuery.mockReturnValue(makeState({ data: null, isLoading: true }));
     render(<FlyOverWidget location={location} />);

@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import * as library from '../../index';
 
 describe('library entry', () => {
-  it('exports the two dashboard widgets', () => {
+  it('exports the dashboard widgets', () => {
     expect(library.FlyOverWidget).toBeTypeOf('function');
     expect(library.ClosestAircraftCard).toBeTypeOf('function');
+    expect(library.FlyOverMapCard).toBeTypeOf('function');
+    expect(library.FlyOverListCard).toBeTypeOf('function');
   });
 
   it('does not export the SPA components or the API client', () => {

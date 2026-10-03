@@ -1,0 +1,69 @@
+import { Meta, Canvas, Controls, ArgTypes } from '@storybook/addon-docs/blocks';
+import * as FlyOverListCardStories from './FlyOverListCard.stories';
+
+<Meta of={FlyOverListCardStories} />
+
+# FlyOverListCard
+
+`FlyOverListCard` is a self-sufficient, embeddable list card for a dashboard: a
+scrollable list of the aircraft within a configured radius, **closest first** (the
+backend returns them sorted by distance). It renders **no map**, so a host can place the
+list and the map (see `FlyOverMapCard`) independently in different regions of a layout.
+
+The optional `maxResults` prop caps how many aircraft are rendered — useful to keep a
+dashboard tile compact. When capped, the header shows `Closest N of M` so the full count
+is still visible.
+
+The card fetches and auto-refreshes its own data, so a host application only supplies
+configuration through props — no data wiring or TanStack Query setup is required.
+
+## Usage
+
+```tsx
+import { FlyOverListCard } from '@sousa99/fly-over-tracker-components';
+
+<FlyOverListCard
+  location={{ lat: 48.8566, lng: 2.3522, radiusKm: 50 }}
+  autoRefresh={10}
+  maxResults={5}
+/>;
+```
+
+## Props
+
+<ArgTypes of={FlyOverListCardStories} />
+
+## Examples
+
+### Aircraft in range
+
+<Canvas of={FlyOverListCardStories.WithAircraft} />
+<Controls of={FlyOverListCardStories.WithAircraft} />
+
+### Capped list (`maxResults`)
+
+<Canvas of={FlyOverListCardStories.CappedList} />
+
+### No aircraft in range
+
+<Canvas of={FlyOverListCardStories.Empty} />
+
+### Feed unavailable
+
+<Canvas of={FlyOverListCardStories.Error} />
+
+### Auto-refresh
+
+<Canvas of={FlyOverListCardStories.AutoRefresh} />
+
+## Behavior notes
+
+- **Self-sufficient data** — fetches `GET {baseUrl}/api/fly-overs` and re-fetches
+  automatically every `autoRefresh` seconds (`'off'` disables automatic refresh).
+- **Capping** — `maxResults` slices the already-distance-sorted list, so the closest
+  aircraft are always the ones shown; omit it to list every aircraft in range.
+- **States** — loading, empty ("No aircraft within … km"), and error states render in
+  place of the list; stale data is never presented as fresh.
+- **Layout** — `w-full`, `h-full` flex column with a scrollable list body. Mount it
+  inside a container with a defined height.
+- **Requirements** — the host must provide the peer dependencies `react` and `react-dom`.
