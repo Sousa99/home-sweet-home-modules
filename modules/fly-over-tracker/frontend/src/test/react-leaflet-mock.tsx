@@ -88,6 +88,7 @@ interface MockProps {
   draggable?: boolean;
   eventHandlers?: Record<string, (event: unknown) => void>;
   icon?: unknown;
+  url?: unknown;
 }
 
 function toPoint(position: unknown): { lat: number; lng: number } {
@@ -114,7 +115,16 @@ export function MapContainer({ children, center, className }: MockProps) {
   );
 }
 
-export function TileLayer(): null {
+/** Tile layer URLs rendered by the current test render, in render order. */
+export const tileLayerUrls: string[] = [];
+
+/** Clears `tileLayerUrls`; call between renders in a test. */
+export function resetTileLayerUrls(): void {
+  tileLayerUrls.length = 0;
+}
+
+export function TileLayer({ url }: MockProps) {
+  if (typeof url === 'string') tileLayerUrls.push(url);
   return null;
 }
 

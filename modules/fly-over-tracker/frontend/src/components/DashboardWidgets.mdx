@@ -76,6 +76,8 @@ All widgets share these props:
 | `className`   | `string`                       | —       | Extra classes on the widget root                   |
 
 `FlyOverWidget`, `FlyOverListCard`, and `FlyOverClosestPanel` additionally accept
-`maxResults?: number` to cap their lists (omit to list all).
+`maxResults?: number` to cap their lists (omit to list all). The map-rendering widgets
+(`FlyOverWidget`, `FlyOverMapCard`) additionally accept `tileUrl?: string` to override the
+default Esri World Street Map basemap (Leaflet `{z}/{x}/{y}` placeholders).
 
 See each widget's page for the full props reference, live examples, and behavior notes.

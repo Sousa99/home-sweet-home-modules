@@ -10,12 +10,24 @@ import { cn } from '../lib/utils';
 
 /** Fraction of the circle bounding box added as margin on each side of the fit. */
 const FIT_PADDING_RATIO = 0.01;
-/** Maximum zoom the fit will request; matches the OSM tile layer ceiling (z19). */
+/** Maximum zoom the fit will request; matches the tile layer ceiling (z19). */
 const FIT_MAX_ZOOM = 19;
 /** Maximum reload attempts for a single failed tile. */
 const TILE_MAX_RETRIES = 3;
 /** Base delay before retrying a failed tile; grows linearly per attempt. */
 const TILE_RETRY_BASE_MS = 300;
+
+/**
+ * Default basemap. The public OSM tile server throttles bursts (random missing
+ * tiles while the auto-fit zooms) and CartoDB's anonymous tiles now require an
+ * API key, so this uses Esri's World Street Map — free, key-less and reliable.
+ * Overridable per-widget via the `tileUrl` prop.
+ */
+const DEFAULT_TILE_URL =
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+
+const TILE_ATTRIBUTION =
+  '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community';
 
 /**
  * Keeps Leaflet's viewport in sync with its container. The dashboard hosts the
@@ -94,6 +106,8 @@ export interface AircraftMapViewProps {
   aircraft?: Aircraft[];
   /** Extra classes applied to the map container. */
   className?: string;
+  /** Override the tile layer URL (Leaflet `{z}/{x}/{y}` placeholders). */
+  tileUrl?: string;
 }
 
 /**
@@ -108,6 +122,7 @@ export const AircraftMapView = ({
   radiusKm,
   aircraft = [],
   className,
+  tileUrl = DEFAULT_TILE_URL,
 }: AircraftMapViewProps): JSX.Element => {
   useEffect(() => {
     configureDefaultMarkerIcons();
@@ -127,8 +142,8 @@ export const AircraftMapView = ({
       <MapSizeSync />
       <MapFitController center={center} radiusKm={radiusKm} />
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+        attribution={TILE_ATTRIBUTION}
+        url={tileUrl}
         maxZoom={19}
         eventHandlers={{
           tileerror: (event) => {

@@ -53,5 +53,7 @@ import { FlyOverMapCard } from '@sousa99/fly-over-tracker-components';
   a refresh is in flight and clears when it completes.
 - **Layout** — `w-full`, `h-full` flex column: the map is `flex-1`. Mount it inside a
   container with a defined height.
+- **Basemap** — defaults to Esri World Street Map (key-less, reliable); override with the
+  optional `tileUrl` prop (Leaflet `{z}/{x}/{y}` placeholders).
 - **Requirements** — the host must provide the peer dependencies `react`, `react-dom`,
   `leaflet`, and `react-leaflet`.
