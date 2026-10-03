@@ -124,11 +124,29 @@ describe('AircraftMapView', () => {
     }
   });
 
-  it('re-fits when the container size changes', () => {
+  it('defers a resize re-fit while the fit animation is in flight', () => {
     vi.useFakeTimers();
     try {
       render(<AircraftMapView center={CENTER} radiusKm={50} />);
       expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+
+      // A resize lands while the fit is still animating → it must be ignored
+      // (invalidateSize would otherwise cancel the flyToBounds animation).
+      mapStore.size = { x: 900, y: 500 };
+      resizeObserverStore.instances[0]?.trigger();
+      vi.advanceTimersByTime(60);
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('re-fits when the container size changes after the fit settles', () => {
+    vi.useFakeTimers();
+    try {
+      render(<AircraftMapView center={CENTER} radiusKm={50} />);
+      mapStore.fire('zoomend');
+      mapStore.fire('moveend');
 
       mapStore.size = { x: 900, y: 500 };
       resizeObserverStore.instances[0]?.trigger();
