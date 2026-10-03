@@ -76,4 +76,26 @@ describe('MCP HTTP transport', () => {
       ]),
     );
   });
+
+  it('serves multiple independent clients without "already initialized"', async () => {
+    const first = await post(INITIALIZE);
+    expect(first.status).toBe(200);
+    expect(first.sessionId).toBeTruthy();
+
+    const second = await post(INITIALIZE);
+    expect(second.status).toBe(200);
+    expect(second.sessionId).toBeTruthy();
+    expect(second.sessionId).not.toBe(first.sessionId);
+
+    // The first session is still usable after a second client initialized.
+    await post(
+      { jsonrpc: '2.0', method: 'notifications/initialized' },
+      first.sessionId ?? undefined,
+    );
+    const list = await post(
+      { jsonrpc: '2.0', id: 3, method: 'tools/list' },
+      first.sessionId ?? undefined,
+    );
+    expect(list.status).toBe(200);
+  });
 });
