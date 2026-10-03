@@ -70,6 +70,10 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
   const fittedKey = useRef<string | null>(null);
   const lastSize = useRef<{ x: number; y: number } | null>(null);
 
+  const sizeKey = (size: { x: number; y: number }) => `${size.x}x${size.y}`;
+  const centerKey = (point: { lat: number; lng: number }) =>
+    `${point.lat.toFixed(4)},${point.lng.toFixed(4)}`;
+
   const log = useCallback(
     (message: string, ...rest: unknown[]) => {
       if (debug) console.info('[fly-over-map]', message, ...rest);
@@ -80,7 +84,7 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
   const fit = useCallback(
     (size: { x: number; y: number }) => {
       if (size.x <= 0 || size.y <= 0) {
-        log('fit skipped — container size not ready', size);
+        log('fit skipped — container size not ready', sizeKey(size));
         return;
       }
       const key = `${center.lat}|${center.lng}|${radiusKm}`;
@@ -90,7 +94,11 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
         return; // already fitted for this location at this size
       }
       fittedKey.current = key;
-      log('fit', { size, zoom: map.getZoom(), center: map.getCenter() });
+      log('fit', {
+        size: sizeKey(size),
+        zoom: map.getZoom(),
+        center: centerKey(map.getCenter()),
+      });
 
       const box = circleBounds(center, radiusKm);
       const dLat = (box.northeast.lat - box.southwest.lat) * FIT_PADDING_RATIO;
@@ -100,21 +108,40 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
         [clampLat(box.northeast.lat + dLat), box.northeast.lng + dLng],
       ];
       map.flyToBounds(corners, { maxZoom: FIT_MAX_ZOOM });
+
+      const onFitted = () => {
+        log('fitted', {
+          zoom: map.getZoom(),
+          center: centerKey(map.getCenter()),
+          size: sizeKey(map.getSize()),
+        });
+        map.off('zoomend', onFitted);
+      };
+      map.on('zoomend', onFitted);
     },
     [center.lat, center.lng, radiusKm, map, log],
   );
 
   useEffect(() => {
     const container = map.getContainer();
+    let tilesRequested = 0;
     let tilesLoaded = 0;
     let tilesError = 0;
 
+    const onLoadStart = () => {
+      tilesRequested++;
+    };
     const onTileLoad = () => {
       tilesLoaded++;
     };
     const onTileError = () => {
       tilesError++;
-      log('tileerror', { loaded: tilesLoaded, error: tilesError, retried: tileRetriedCount });
+      log('tileerror', {
+        requested: tilesRequested,
+        loaded: tilesLoaded,
+        error: tilesError,
+        retried: tileRetriedCount,
+      });
     };
 
     const sync = () => {
@@ -122,7 +149,7 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
       fit(map.getSize());
     };
 
-    log('mount', { size: map.getSize(), zoom: map.getZoom() });
+    log('mount', { size: sizeKey(map.getSize()), zoom: map.getZoom() });
 
     const onReady = () => {
       log('ready');
@@ -150,7 +177,7 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
     const onResize = () => {
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => {
-        log('resize', map.getSize());
+        log('resize', sizeKey(map.getSize()));
         sync();
       }, 50);
     };
@@ -158,12 +185,19 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
     observer?.observe(container);
 
     if (debug) {
+      map.on('tileloadstart', onLoadStart);
       map.on('tileload', onTileLoad);
       map.on('tileerror', onTileError);
       const interval = window.setInterval(() => {
-        log('tiles', { loaded: tilesLoaded, error: tilesError, retried: tileRetriedCount });
+        log('tiles', {
+          requested: tilesRequested,
+          loaded: tilesLoaded,
+          error: tilesError,
+          retried: tileRetriedCount,
+        });
       }, 3000);
       return () => {
+        map.off('tileloadstart', onLoadStart);
         map.off('tileload', onTileLoad);
         map.off('tileerror', onTileError);
         window.clearInterval(interval);
