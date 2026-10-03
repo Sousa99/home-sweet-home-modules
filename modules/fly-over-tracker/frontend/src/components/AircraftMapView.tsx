@@ -13,9 +13,9 @@ const FIT_PADDING_RATIO = 0.01;
 /** Maximum zoom the fit will request; matches the OSM tile layer ceiling (z19). */
 const FIT_MAX_ZOOM = 19;
 /** Maximum reload attempts for a single failed tile. */
-const TILE_MAX_RETRIES = 2;
-/** Delay before retrying a failed tile, so transient errors can clear. */
-const TILE_RETRY_DELAY_MS = 150;
+const TILE_MAX_RETRIES = 3;
+/** Base delay before retrying a failed tile; grows linearly per attempt. */
+const TILE_RETRY_BASE_MS = 300;
 
 /**
  * Keeps Leaflet's viewport in sync with its container. The dashboard hosts the
@@ -41,9 +41,10 @@ function MapSizeSync() {
 const tileRetries = new WeakMap<HTMLElement, number>();
 
 /**
- * Retry a failed tile a bounded number of times (transient OSM/network errors).
- * Re-pointing the src triggers a fresh request; permanently-429 tiles give up
- * after `TILE_MAX_RETRIES`.
+ * Retry a failed tile a bounded number of times with a growing delay, so
+ * transient errors and rate-limited (429) tiles get a chance to recover without
+ * hammering the tile server. Permanently failing tiles give up after
+ * `TILE_MAX_RETRIES`.
  */
 function retryFailedTile(tile: HTMLElement | undefined): void {
   if (!tile) return;
@@ -54,7 +55,7 @@ function retryFailedTile(tile: HTMLElement | undefined): void {
   tile.removeAttribute('src');
   window.setTimeout(() => {
     if (src) tile.setAttribute('src', src);
-  }, TILE_RETRY_DELAY_MS);
+  }, TILE_RETRY_BASE_MS * attempt);
 }
 
 /**
@@ -126,8 +127,8 @@ export const AircraftMapView = ({
       <MapSizeSync />
       <MapFitController center={center} radiusKm={radiusKm} />
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
         maxZoom={19}
         eventHandlers={{
           tileerror: (event) => {
