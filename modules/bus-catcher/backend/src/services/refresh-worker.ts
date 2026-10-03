@@ -1,6 +1,5 @@
 import { parentPort } from 'node:worker_threads';
 import { createIngestSqlite } from '../db/client';
-import { migrateDb } from '../db/migrate';
 import { unzipGtfs } from '../providers/carris-metropolitana/gtfs';
 import { ingestGtfsZip } from '../providers/carris-metropolitana/ingest';
 
@@ -14,7 +13,12 @@ parentPort?.on('message', async (message: RefreshWorkerMessage) => {
   const { dbPath, buffer, feedVersion } = message;
   try {
     const zip = unzipGtfs(buffer);
-    migrateDb(dbPath);
+    // The schema is migrated by the server at boot (`createBackend` →
+    // `migrateDb`), so the worker must NOT migrate concurrently: two
+    // connections racing migrations left the DB inconsistent ("table already
+    // exists") and crash-looped startup with an orphaned WAL. The ingest
+    // connection only writes; the final `wal_checkpoint(TRUNCATE)` folds the
+    // bulk insert into the main DB file.
     const sqlite = createIngestSqlite(dbPath);
     try {
       await ingestGtfsZip(sqlite, {

@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { Worker } from 'node:worker_threads';
 import { config } from '../config';
+import { migrateDb } from '../db/migrate';
 import { logger } from '../lib/logger';
 import { downloadGtfs } from '../providers/carris-metropolitana/gtfs';
 
@@ -56,9 +57,11 @@ export function createRefreshService(options: RefreshServiceOptions): RefreshSer
     refresh() {
       if (running) return { status: 'in_progress' };
       running = true;
-      // Download on the main thread (async, non-blocking); the heavy parse +
-      // atomic ingest runs on a worker thread so the server stays responsive.
+      // Ensure the schema exists on the main thread before the worker ingests.
+      // Migrating here is sequential and idempotent (never concurrent with the
+      // server's own boot migrate), so the worker itself must not migrate.
       current = (async () => {
+        migrateDb(dbPath);
         const buffer = await download(feedUrl);
         const feedVersion = feedVersionOf(buffer);
         await new Promise<void>((resolve, reject) => {
