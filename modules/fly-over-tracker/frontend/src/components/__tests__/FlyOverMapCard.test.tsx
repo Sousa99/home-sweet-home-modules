@@ -5,6 +5,7 @@ import { configureApiBaseUrl } from '../../api/baseUrl';
 import type { Aircraft, FlyOverResult, LocationQuery } from '../../api/types';
 import type { UseFlyOversQueryResult } from '../../hooks/useFlyOversQuery';
 import { FlyOverMapCard } from '../FlyOverMapCard';
+import { tileLayerUrls } from '../../test/react-leaflet-mock';
 
 vi.mock('../../hooks/useFlyOversQuery', () => ({
   useFlyOversQuery: vi.fn(),
@@ -82,6 +83,18 @@ describe('FlyOverMapCard', () => {
     expect(map).toHaveAttribute('data-center-lng', '2.3522');
     // The map card does not render the compact aircraft list cards.
     expect(screen.queryByText('8.2 km')).not.toBeInTheDocument();
+  });
+
+  it('passes a custom tileUrl to the tile layer', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    render(<FlyOverMapCard location={location} tileUrl="https://tiles.example/{z}/{x}/{y}.png" />);
+    expect(tileLayerUrls).toContain('https://tiles.example/{z}/{x}/{y}.png');
+  });
+
+  it('uses the default OpenStreetMap tiles when no tileUrl is set', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    render(<FlyOverMapCard location={location} />);
+    expect(tileLayerUrls[0]).toBe('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
   });
 
   it('shows an error banner when the fetch fails', () => {

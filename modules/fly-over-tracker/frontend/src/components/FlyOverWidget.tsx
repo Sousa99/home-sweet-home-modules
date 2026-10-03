@@ -22,6 +22,10 @@ export interface FlyOverWidgetProps {
   baseUrl?: string;
   /** Maximum number of aircraft to list, closest first; omit to list all. */
   maxResults?: number;
+  /** Override the tile layer URL (Leaflet `{z}/{x}/{y}` placeholders). */
+  tileUrl?: string;
+  /** Log map layout/tile diagnostics to the console (`[fly-over-map]`). */
+  debug?: boolean;
   /** Extra classes applied to the widget root. */
   className?: string;
 }
@@ -41,6 +45,8 @@ export const FlyOverWidget = ({
   autoRefresh = 'off',
   baseUrl = getApiBaseUrl(),
   maxResults,
+  tileUrl,
+  debug = false,
   className,
 }: FlyOverWidgetProps): JSX.Element => {
   const [queryClient] = useState(createWidgetQueryClient);
@@ -52,6 +58,8 @@ export const FlyOverWidget = ({
         autoRefresh={autoRefresh}
         baseUrl={baseUrl}
         maxResults={maxResults}
+        tileUrl={tileUrl}
+        debug={debug}
         className={className}
       />
     </QueryClientProvider>
@@ -63,6 +71,8 @@ function FlyOverWidgetContent({
   autoRefresh,
   baseUrl,
   maxResults,
+  tileUrl,
+  debug,
   className,
 }: FlyOverWidgetProps): JSX.Element {
   const { data, isLoading, isFetching, isError, error, refetch } = useFlyOversQuery({
@@ -92,7 +102,13 @@ function FlyOverWidgetContent({
       </div>
 
       <div className="min-h-0 flex-1">
-        <AircraftMapView center={center} radiusKm={location.radiusKm} aircraft={aircraft} />
+        <AircraftMapView
+          center={center}
+          radiusKm={location.radiusKm}
+          aircraft={aircraft}
+          tileUrl={tileUrl}
+          debug={debug}
+        />
       </div>
 
       <div className="mt-2 max-h-[40%] shrink-0 space-y-2 overflow-y-auto border-t border-slate-100 pt-2">
