@@ -91,6 +91,12 @@ describe('FlyOverMapCard', () => {
     expect(tileLayerUrls).toContain('https://tiles.example/{z}/{x}/{y}.png');
   });
 
+  it('uses the default OpenStreetMap tiles when no tileUrl is set', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    render(<FlyOverMapCard location={location} />);
+    expect(tileLayerUrls[0]).toBe('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+  });
+
   it('shows an error banner when the fetch fails', () => {
     mockedUseFlyOversQuery.mockReturnValue(
       makeState({

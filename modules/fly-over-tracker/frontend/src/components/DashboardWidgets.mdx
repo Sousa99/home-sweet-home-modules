@@ -78,6 +78,7 @@ All widgets share these props:
 `FlyOverWidget`, `FlyOverListCard`, and `FlyOverClosestPanel` additionally accept
 `maxResults?: number` to cap their lists (omit to list all). The map-rendering widgets
 (`FlyOverWidget`, `FlyOverMapCard`) additionally accept `tileUrl?: string` to override the
-default Esri World Street Map basemap (Leaflet `{z}/{x}/{y}` placeholders).
+default OpenStreetMap basemap (Leaflet `{z}/{x}/{y}` placeholders) and `debug?: boolean` to
+log layout/tile diagnostics to the console.
 
 See each widget's page for the full props reference, live examples, and behavior notes.

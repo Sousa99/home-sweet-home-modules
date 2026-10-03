@@ -36,11 +36,18 @@ export interface MockedFlyToBoundsCall {
 export interface MockedMap {
   flyToBounds: (bounds: unknown, options?: Record<string, unknown>) => void;
   getSize: () => { x: number; y: number };
+  getZoom: () => number;
   getCenter: () => { lat: number; lng: number };
   /** The container element Leaflet tracks (used by `invalidateSize`). */
   getContainer: () => HTMLElement;
-  /** Recomputes the viewport size (see `AircraftMapView`'s `MapSizeSync`). */
-  invalidateSize: () => void;
+  /** Recomputes the viewport size (see `AircraftMapView`'s layout controller). */
+  invalidateSize: (options?: unknown) => void;
+  /** Runs `fn` once the map is ready (the mock is immediately ready). */
+  whenReady: (fn: () => void) => void;
+  /** Subscribe to a Leaflet event (e.g. `tileload`). */
+  on: (type: string, fn: (event?: unknown) => void) => void;
+  /** Unsubscribe from a Leaflet event. */
+  off: (type: string, fn: (event?: unknown) => void) => void;
 }
 
 export interface MapStore {
@@ -48,29 +55,69 @@ export interface MapStore {
   map: MockedMap;
   /** Each `flyToBounds` invocation on the fake map, in call order. */
   flyToBoundsCalls: MockedFlyToBoundsCall[];
+  /** The container size reported by `getSize()` (configurable per test). */
+  size: { x: number; y: number };
+  /** The zoom reported by `getZoom()`. */
+  zoom: number;
+  /** Dispatch a Leaflet event to registered listeners. */
+  fire: (type: string) => void;
 }
+
+const listeners = new Map<string, Set<(event?: unknown) => void>>();
 
 function createMockedMap(): MockedMap {
   return {
     flyToBounds: (bounds, options) => {
       mapStore.flyToBoundsCalls.push({ bounds, options });
     },
-    getSize: () => ({ x: 800, y: 420 }),
+    getSize: () => ({ ...mapStore.size }),
+    getZoom: () => mapStore.zoom,
     getCenter: () => ({ lat: 0, lng: 0 }),
     getContainer: () => document.createElement('div'),
     invalidateSize: () => undefined,
+    whenReady: (fn) => fn(),
+    on: (type, fn) => {
+      const set = listeners.get(type) ?? new Set();
+      set.add(fn);
+      listeners.set(type, set);
+    },
+    off: (type, fn) => {
+      listeners.get(type)?.delete(fn);
+    },
   };
 }
 
-/** Map instance and fit calls recorded by the current test render. */
+/** Map instance, fit calls, size/zoom, and event dispatch for tests. */
 export const mapStore: MapStore = {
   map: createMockedMap(),
   flyToBoundsCalls: [],
+  size: { x: 800, y: 420 },
+  zoom: 10,
+  fire: (type) => {
+    for (const fn of listeners.get(type) ?? []) fn({ type });
+  },
 };
+
+export interface ResizeObserverMockInstance {
+  trigger: () => void;
+}
+
+/** Instances of the fake `ResizeObserver` (see `src/test/setup.ts`). */
+export const resizeObserverStore: { instances: ResizeObserverMockInstance[] } = {
+  instances: [],
+};
+
+/** Clears `resizeObserverStore`; call between renders in a test. */
+export function resetResizeObserverStore(): void {
+  resizeObserverStore.instances = [];
+}
 
 /** Clears `mapStore` and rebuilds a fresh fake map; call between renders. */
 export function resetMapStore(): void {
+  listeners.clear();
   mapStore.flyToBoundsCalls = [];
+  mapStore.size = { x: 800, y: 420 };
+  mapStore.zoom = 10;
   mapStore.map = createMockedMap();
 }
 

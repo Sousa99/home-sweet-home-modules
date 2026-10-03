@@ -1,5 +1,5 @@
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { JSX } from 'react';
 import { Circle, MapContainer, Marker, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import type { Aircraft, Center } from '../api/types';
@@ -17,38 +17,14 @@ const TILE_MAX_RETRIES = 3;
 /** Base delay before retrying a failed tile; grows linearly per attempt. */
 const TILE_RETRY_BASE_MS = 300;
 
-/**
- * Default basemap. The public OSM tile server throttles bursts (random missing
- * tiles while the auto-fit zooms) and CartoDB's anonymous tiles now require an
- * API key, so this uses Esri's World Street Map — free, key-less and reliable.
- * Overridable per-widget via the `tileUrl` prop.
- */
-const DEFAULT_TILE_URL =
-  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+/** Default basemap: the public OpenStreetMap tiles (key-less). */
+const DEFAULT_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 const TILE_ATTRIBUTION =
-  '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community';
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-/**
- * Keeps Leaflet's viewport in sync with its container. The dashboard hosts the
- * map inside a flex/grid cell whose size is only known after layout; if Leaflet
- * initializes at that moment it can compute a wrong (often 0) size and render
- * blank regions with only some tiles loaded. `invalidateSize()` on mount and on
- * every container resize fixes both the initial fit and later reflows.
- */
-function MapSizeSync() {
-  const map = useMap();
-  useEffect(() => {
-    const container = map.getContainer();
-    const sync = () => map.invalidateSize();
-    sync();
-    if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(sync);
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, [map]);
-  return null;
-}
+/** Number of tiles retried (debug diagnostics). */
+let tileRetriedCount = 0;
 
 const tileRetries = new WeakMap<HTMLElement, number>();
 
@@ -63,6 +39,7 @@ function retryFailedTile(tile: HTMLElement | undefined): void {
   const attempt = (tileRetries.get(tile) ?? 0) + 1;
   if (attempt > TILE_MAX_RETRIES) return;
   tileRetries.set(tile, attempt);
+  tileRetriedCount++;
   const src = tile.getAttribute('src');
   tile.removeAttribute('src');
   window.setTimeout(() => {
@@ -70,29 +47,138 @@ function retryFailedTile(tile: HTMLElement | undefined): void {
   }, TILE_RETRY_BASE_MS * attempt);
 }
 
+interface MapLayoutControllerProps {
+  center: Center;
+  radiusKm: number;
+  debug?: boolean;
+}
+
 /**
- * Moves the map view to the configured selection so the radius circle fills
- * most of the frame. Fits once per distinct center/radius (and on mount);
- * unrelated re-renders (e.g. aircraft updates) never refit the view.
+ * Keeps Leaflet's viewport correct inside a CSS grid/flex host. Leaflet reads
+ * its container size at init; in a dashboard the size can be wrong or zero at
+ * that moment (grid/flex settle after mount), so the auto-fit would target the
+ * wrong viewport and only some tiles would ever be requested.
+ *
+ * This controller defers the fit until the container reports a real size
+ * (re-checking across animation frames after `invalidateSize`), and re-fits
+ * whenever the container resizes (debounced `ResizeObserver`). When `debug` is
+ * set it logs the measured size/zoom/fits and tile load/error totals to the
+ * console.
  */
-function MapFitController({ center, radiusKm }: { center: Center; radiusKm: number }) {
+function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerProps) {
   const map = useMap();
-  const fitted = useRef<string | null>(null);
+  const fittedKey = useRef<string | null>(null);
+  const lastSize = useRef<{ x: number; y: number } | null>(null);
+
+  const log = useCallback(
+    (message: string, ...rest: unknown[]) => {
+      if (debug) console.info('[fly-over-map]', message, ...rest);
+    },
+    [debug],
+  );
+
+  const fit = useCallback(
+    (size: { x: number; y: number }) => {
+      if (size.x <= 0 || size.y <= 0) {
+        log('fit skipped — container size not ready', size);
+        return;
+      }
+      const key = `${center.lat}|${center.lng}|${radiusKm}`;
+      const previous = lastSize.current;
+      lastSize.current = size;
+      if (fittedKey.current === key && previous && previous.x === size.x && previous.y === size.y) {
+        return; // already fitted for this location at this size
+      }
+      fittedKey.current = key;
+      log('fit', { size, zoom: map.getZoom(), center: map.getCenter() });
+
+      const box = circleBounds(center, radiusKm);
+      const dLat = (box.northeast.lat - box.southwest.lat) * FIT_PADDING_RATIO;
+      const dLng = (box.northeast.lng - box.southwest.lng) * FIT_PADDING_RATIO;
+      const corners: [[number, number], [number, number]] = [
+        [clampLat(box.southwest.lat - dLat), box.southwest.lng - dLng],
+        [clampLat(box.northeast.lat + dLat), box.northeast.lng + dLng],
+      ];
+      map.flyToBounds(corners, { maxZoom: FIT_MAX_ZOOM });
+    },
+    [center.lat, center.lng, radiusKm, map, log],
+  );
 
   useEffect(() => {
-    const key = `${center.lat},${center.lng},${radiusKm}`;
-    if (fitted.current === key) return;
-    fitted.current = key;
+    const container = map.getContainer();
+    let tilesLoaded = 0;
+    let tilesError = 0;
 
-    const box = circleBounds(center, radiusKm);
-    const dLat = (box.northeast.lat - box.southwest.lat) * FIT_PADDING_RATIO;
-    const dLng = (box.northeast.lng - box.southwest.lng) * FIT_PADDING_RATIO;
-    const corners: [[number, number], [number, number]] = [
-      [clampLat(box.southwest.lat - dLat), box.southwest.lng - dLng],
-      [clampLat(box.northeast.lat + dLat), box.northeast.lng + dLng],
-    ];
-    map.flyToBounds(corners, { maxZoom: FIT_MAX_ZOOM });
-  }, [center.lat, center.lng, radiusKm, map]);
+    const onTileLoad = () => {
+      tilesLoaded++;
+    };
+    const onTileError = () => {
+      tilesError++;
+      log('tileerror', { loaded: tilesLoaded, error: tilesError, retried: tileRetriedCount });
+    };
+
+    const sync = () => {
+      map.invalidateSize({ animate: false });
+      fit(map.getSize());
+    };
+
+    log('mount', { size: map.getSize(), zoom: map.getZoom() });
+
+    const onReady = () => {
+      log('ready');
+      sync();
+    };
+    map.whenReady(onReady);
+
+    // Re-check across frames in case the size arrives late (flex/grid settling).
+    let frame = 0;
+    const MAX_FRAMES = 10;
+    const poll = () => {
+      frame++;
+      const size = map.getSize();
+      if (size.x > 0 && size.y > 0) {
+        map.invalidateSize({ animate: false });
+        fit(size);
+        return;
+      }
+      if (frame < MAX_FRAMES) requestAnimationFrame(poll);
+    };
+    const rafId = requestAnimationFrame(poll);
+
+    // Re-fit when the container resizes (debounced).
+    let resizeTimer = 0;
+    const onResize = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        log('resize', map.getSize());
+        sync();
+      }, 50);
+    };
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize);
+    observer?.observe(container);
+
+    if (debug) {
+      map.on('tileload', onTileLoad);
+      map.on('tileerror', onTileError);
+      const interval = window.setInterval(() => {
+        log('tiles', { loaded: tilesLoaded, error: tilesError, retried: tileRetriedCount });
+      }, 3000);
+      return () => {
+        map.off('tileload', onTileLoad);
+        map.off('tileerror', onTileError);
+        window.clearInterval(interval);
+        cancelAnimationFrame(rafId);
+        window.clearTimeout(resizeTimer);
+        observer?.disconnect();
+      };
+    }
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.clearTimeout(resizeTimer);
+      observer?.disconnect();
+    };
+  }, [map, fit, log]);
 
   return null;
 }
@@ -108,6 +194,8 @@ export interface AircraftMapViewProps {
   className?: string;
   /** Override the tile layer URL (Leaflet `{z}/{x}/{y}` placeholders). */
   tileUrl?: string;
+  /** Log map layout/tile diagnostics to the console (`[fly-over-map]`). */
+  debug?: boolean;
 }
 
 /**
@@ -123,6 +211,7 @@ export const AircraftMapView = ({
   aircraft = [],
   className,
   tileUrl = DEFAULT_TILE_URL,
+  debug = false,
 }: AircraftMapViewProps): JSX.Element => {
   useEffect(() => {
     configureDefaultMarkerIcons();
@@ -139,8 +228,7 @@ export const AircraftMapView = ({
         className,
       )}
     >
-      <MapSizeSync />
-      <MapFitController center={center} radiusKm={radiusKm} />
+      <MapLayoutController center={center} radiusKm={radiusKm} debug={debug} />
       <TileLayer
         attribution={TILE_ATTRIBUTION}
         url={tileUrl}

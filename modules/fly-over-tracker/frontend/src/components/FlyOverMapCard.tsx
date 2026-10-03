@@ -21,6 +21,8 @@ export interface FlyOverMapCardProps {
   baseUrl?: string;
   /** Override the tile layer URL (Leaflet `{z}/{x}/{y}` placeholders). */
   tileUrl?: string;
+  /** Log map layout/tile diagnostics to the console (`[fly-over-map]`). */
+  debug?: boolean;
   /** Extra classes applied to the card root. */
   className?: string;
 }
@@ -41,6 +43,7 @@ export const FlyOverMapCard = ({
   baseUrl = getApiBaseUrl(),
   className,
   tileUrl,
+  debug = false,
 }: FlyOverMapCardProps): JSX.Element => {
   const [queryClient] = useState(createWidgetQueryClient);
 
@@ -51,6 +54,7 @@ export const FlyOverMapCard = ({
         autoRefresh={autoRefresh}
         baseUrl={baseUrl}
         tileUrl={tileUrl}
+        debug={debug}
         className={className}
       />
     </QueryClientProvider>
@@ -62,6 +66,7 @@ function FlyOverMapCardContent({
   autoRefresh,
   baseUrl,
   tileUrl,
+  debug,
   className,
 }: FlyOverMapCardProps): JSX.Element {
   const { data, isFetching, isError, error, refetch } = useFlyOversQuery({
@@ -94,6 +99,7 @@ function FlyOverMapCardContent({
           radiusKm={location.radiusKm}
           aircraft={aircraft}
           tileUrl={tileUrl}
+          debug={debug}
         />
       </div>
 

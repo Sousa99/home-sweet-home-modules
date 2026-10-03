@@ -62,7 +62,8 @@ import { FlyOverWidget } from '@sousa99/fly-over-tracker-components';
 - **Separate map/list** — when a layout needs the map and the list in different regions,
   use `FlyOverMapCard` (map only) and `FlyOverListCard` (list only, with `maxResults`)
   instead of the combined `FlyOverWidget`.
-- **Basemap** — defaults to Esri World Street Map (key-less, reliable); override with the
-  optional `tileUrl` prop (Leaflet `{z}/{x}/{y}` placeholders).
+- **Basemap** — defaults to OpenStreetMap tiles; override with the optional `tileUrl` prop
+  (Leaflet `{z}/{x}/{y}` placeholders). Set `debug` to log layout/tile diagnostics to the
+  console.
 - **Requirements** — the host must provide the peer dependencies `react`, `react-dom`,
   `leaflet`, and `react-leaflet`.

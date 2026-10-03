@@ -1,7 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AircraftMapView } from '../AircraftMapView';
-import { mapStore, markerStore } from '../../test/react-leaflet-mock';
+import {
+  mapStore,
+  markerStore,
+  resizeObserverStore,
+  tileLayerUrls,
+} from '../../test/react-leaflet-mock';
 import { circleBounds } from '../../lib/location';
 import type { Aircraft } from '../../api/types';
 
@@ -102,5 +107,51 @@ describe('AircraftMapView', () => {
 
     rerender(<AircraftMapView center={{ lat: 49, lng: 3 }} radiusKm={80} />);
     expect(mapStore.flyToBoundsCalls).toHaveLength(3);
+  });
+
+  it('defers the fit until the container reports a real size', () => {
+    vi.useFakeTimers();
+    try {
+      mapStore.size = { x: 0, y: 0 };
+      render(<AircraftMapView center={CENTER} radiusKm={50} />);
+      expect(mapStore.flyToBoundsCalls).toHaveLength(0);
+
+      mapStore.size = { x: 800, y: 420 };
+      vi.advanceTimersByTime(40);
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('re-fits when the container size changes', () => {
+    vi.useFakeTimers();
+    try {
+      render(<AircraftMapView center={CENTER} radiusKm={50} />);
+      expect(mapStore.flyToBoundsCalls).toHaveLength(1);
+
+      mapStore.size = { x: 900, y: 500 };
+      resizeObserverStore.instances[0]?.trigger();
+      vi.advanceTimersByTime(60);
+      expect(mapStore.flyToBoundsCalls).toHaveLength(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('uses the default OpenStreetMap tiles', () => {
+    render(<AircraftMapView center={CENTER} radiusKm={50} />);
+    expect(tileLayerUrls[0]).toBe('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+  });
+
+  it('logs layout diagnostics to the console when debug is enabled', () => {
+    const spy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    try {
+      render(<AircraftMapView center={CENTER} radiusKm={50} debug />);
+      expect(spy).toHaveBeenCalledWith('[fly-over-map]', 'mount', expect.anything());
+      expect(spy).toHaveBeenCalledWith('[fly-over-map]', 'fit', expect.anything());
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
