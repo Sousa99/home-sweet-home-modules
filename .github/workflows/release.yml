@@ -76,6 +76,12 @@ jobs:
           echo "@sousa99:registry=https://npm.pkg.github.com/" >> "$HOME/.npmrc"
           pnpm install --frozen-lockfile
 
+      - name: 🏗️ Build component libraries
+        run: pnpm -r build:lib
+
+      - name: 🔍 Verify dist-lib output
+        run: node scripts/check-publishable-libs.mjs
+
       - name: 🔩 Set up QEMU
         uses: docker/setup-qemu-action@v3
 

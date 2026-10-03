@@ -186,6 +186,32 @@ jobs:
       - name: 📦 Library build (${{ matrix.module }})
         run: pnpm --filter ./modules/${{ matrix.module }}/frontend build:lib
 
+  check-libs:
+    name: 🔍 Check published libraries
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com/
+
+      - name: 📦 Install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build all component libraries
+        run: pnpm -r build:lib
+
+      - name: 🔍 Verify dist-lib output (guards empty publishes)
+        run: node scripts/check-publishable-libs.mjs
+
   compose-config:
     name: 🐳 Compose config
     runs-on: ubuntu-latest
@@ -245,7 +271,7 @@ jobs:
   check:
     name: ✅ Check
     runs-on: ubuntu-latest
-    needs: [format, lint, typecheck, test, build-backends, build-spas, build-libs, compose-config, actionlint, pr-format]
+    needs: [format, lint, typecheck, test, build-backends, build-spas, build-libs, check-libs, compose-config, actionlint, pr-format]
 
     steps:
       - name: ✅ All required checks passed
