@@ -69,6 +69,7 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
   const map = useMap();
   const fittedKey = useRef<string | null>(null);
   const lastSize = useRef<{ x: number; y: number } | null>(null);
+  const animatingRef = useRef(false);
 
   const sizeKey = (size: { x: number; y: number }) => `${size.x}x${size.y}`;
   const centerKey = (point: { lat: number; lng: number }) =>
@@ -107,20 +108,38 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
         [clampLat(box.southwest.lat - dLat), box.southwest.lng - dLng],
         [clampLat(box.northeast.lat + dLat), box.northeast.lng + dLng],
       ];
-      map.flyToBounds(corners, { maxZoom: FIT_MAX_ZOOM });
 
-      const onFitted = () => {
+      // When the fit animation settles, clear the animating flag, log the
+      // settled view, and re-run invalidateSize once so Leaflet recomputes the
+      // tile grid for the final size/zoom (filling any sparse cells left by a
+      // fractional-zoom mid-animation state).
+      const onSettled = () => {
+        animatingRef.current = false;
         log('fitted', {
           zoom: map.getZoom(),
           center: centerKey(map.getCenter()),
           size: sizeKey(map.getSize()),
         });
-        map.off('zoomend', onFitted);
+        map.off('moveend', onSettled);
+        map.off('zoomend', onSettled);
+        map.invalidateSize({ animate: false });
+        const settled = map.getSize();
+        if (settled.x > 0 && settled.y > 0 && (settled.x !== size.x || settled.y !== size.y)) {
+          fitRef.current(settled);
+        }
       };
-      map.on('zoomend', onFitted);
+      map.on('moveend', onSettled);
+      map.on('zoomend', onSettled);
+
+      animatingRef.current = true;
+      map.flyToBounds(corners, { maxZoom: FIT_MAX_ZOOM });
     },
     [center.lat, center.lng, radiusKm, map, log],
   );
+
+  // Always call the latest fit from async handlers (events, polls, resizes).
+  const fitRef = useRef(fit);
+  fitRef.current = fit;
 
   useEffect(() => {
     const container = map.getContainer();
@@ -144,16 +163,20 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
       });
     };
 
-    const sync = () => {
-      map.invalidateSize({ animate: false });
-      fit(map.getSize());
-    };
+    // Register diagnostics before the initial load so they count it.
+    if (debug) {
+      map.on('tileloadstart', onLoadStart);
+      map.on('tileload', onTileLoad);
+      map.on('tileerror', onTileError);
+    }
 
     log('mount', { size: sizeKey(map.getSize()), zoom: map.getZoom() });
 
     const onReady = () => {
       log('ready');
-      sync();
+      // Invalidate once, then fit — never while the fit animation is in flight.
+      map.invalidateSize({ animate: false });
+      fitRef.current(map.getSize());
     };
     map.whenReady(onReady);
 
@@ -162,10 +185,15 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
     const MAX_FRAMES = 10;
     const poll = () => {
       frame++;
+      if (animatingRef.current) {
+        // Never interrupt the fit animation (invalidateSize cancels it).
+        if (frame < MAX_FRAMES) requestAnimationFrame(poll);
+        return;
+      }
       const size = map.getSize();
       if (size.x > 0 && size.y > 0) {
         map.invalidateSize({ animate: false });
-        fit(size);
+        fitRef.current(size);
         return;
       }
       if (frame < MAX_FRAMES) requestAnimationFrame(poll);
@@ -177,18 +205,18 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
     const onResize = () => {
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => {
+        if (animatingRef.current) return; // never interrupt the fit animation
         log('resize', sizeKey(map.getSize()));
-        sync();
+        map.invalidateSize({ animate: false });
+        fitRef.current(map.getSize());
       }, 50);
     };
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize);
     observer?.observe(container);
 
+    let interval = 0;
     if (debug) {
-      map.on('tileloadstart', onLoadStart);
-      map.on('tileload', onTileLoad);
-      map.on('tileerror', onTileError);
-      const interval = window.setInterval(() => {
+      interval = window.setInterval(() => {
         log('tiles', {
           requested: tilesRequested,
           loaded: tilesLoaded,
@@ -196,23 +224,20 @@ function MapLayoutController({ center, radiusKm, debug }: MapLayoutControllerPro
           retried: tileRetriedCount,
         });
       }, 3000);
-      return () => {
-        map.off('tileloadstart', onLoadStart);
-        map.off('tileload', onTileLoad);
-        map.off('tileerror', onTileError);
-        window.clearInterval(interval);
-        cancelAnimationFrame(rafId);
-        window.clearTimeout(resizeTimer);
-        observer?.disconnect();
-      };
     }
 
     return () => {
       cancelAnimationFrame(rafId);
       window.clearTimeout(resizeTimer);
+      if (interval) window.clearInterval(interval);
       observer?.disconnect();
+      if (debug) {
+        map.off('tileloadstart', onLoadStart);
+        map.off('tileload', onTileLoad);
+        map.off('tileerror', onTileError);
+      }
     };
-  }, [map, fit, log]);
+  }, [map, log, center.lat, center.lng, radiusKm]);
 
   return null;
 }
