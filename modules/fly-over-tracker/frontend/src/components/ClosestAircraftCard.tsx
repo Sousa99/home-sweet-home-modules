@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { getApiBaseUrl } from '../api/baseUrl';
 import { useFlyOversQuery } from '../hooks/useFlyOversQuery';
 import type { Aircraft, LocationQuery } from '../api/types';
@@ -8,19 +8,8 @@ import { AircraftCard } from './AircraftCard';
 import { UpdatingIndicator } from './UpdatingIndicator';
 import { Button } from './ui/button';
 import type { RefreshRate } from './RefreshRateSelect';
+import { createWidgetQueryClient } from '../lib/widgetQueryClient';
 import { cn } from '../lib/utils';
-
-/** Isolated query client matching the SPA's config; see `FlyOverWidget`. */
-function createWidgetQueryClient(): QueryClient {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-        refetchOnWindowFocus: false,
-      },
-    },
-  });
-}
 
 /**
  * Deterministically select the closest aircraft to the configured location:
