@@ -27,9 +27,9 @@ All paths below are relative to `modules/bus-catcher/frontend/`. Tests are coloc
 
 **Purpose**: Confirm the baseline is green and the working files match the plan.
 
-- [ ] T001 Verify the workspace is installed and the bus-catcher frontend baseline gates pass:
+- [X] T001 Verify the workspace is installed and the bus-catcher frontend baseline gates pass:
       `pnpm --filter ./modules/bus-catcher/frontend test`, `typecheck`, `lint`
-- [ ] T002 [P] Read `specs/008-status-bar-placement/plan.md` + `research.md` and confirm the target
+- [X] T002 [P] Read `specs/008-status-bar-placement/plan.md` + `research.md` and confirm the target
       files (`src/components/StopCard.tsx`, `src/components/StopCard.test.tsx`,
       `src/components/StopCard.stories.tsx`, `src/components/StopCard.mdx`) match their current
       on-disk state (the status bar currently renders **inside** the `Card` at `StopCard.tsx`
@@ -43,7 +43,7 @@ All paths below are relative to `modules/bus-catcher/frontend/`. Tests are coloc
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T003 Confirm the current render structure in `src/components/StopCard.tsx` (the `mb-3`
+- [X] T003 Confirm the current render structure in `src/components/StopCard.tsx` (the `mb-3`
       `<div>` wrapping `<WidgetStatusBar>` inside the `Card`) and that the existing status-bar
       behavior tests in `src/components/StopCard.test.tsx` (last-updated time, `Not updated yet`,
       Refresh advances the time, updating indicator, error preserves the timestamp, recovery via
@@ -67,18 +67,18 @@ child, `card.contains(statusText) === false`, and the card interior's text conta
 
 ### Tests for User Story 1 (write FIRST, ensure they FAIL before implementation) ⚠️
 
-- [ ] T004 [US1] Write failing placement tests in `src/components/StopCard.test.tsx`: (a) the status
+- [X] T004 [US1] Write failing placement tests in `src/components/StopCard.test.tsx`: (a) the status
       bar (`role="status"` or `Last updated …` text) is a descendant of
       `container.querySelector('[data-testid="stop-card-widget"]')`'s **first child**; (b) the card
       (`getByRole('heading', { name: 'Sete Rios' }).closest('.rounded-xl')`) is a descendant of the
       root's **second child**; (c) `card.contains(statusText) === false` (FR-001, FR-002)
-- [ ] T005 [US1] Write a failing test in `src/components/StopCard.test.tsx`: the card interior's
+- [X] T005 [US1] Write a failing test in `src/components/StopCard.test.tsx`: the card interior's
       `textContent` contains no `Last updated`, `Not updated yet`, `Refresh`, or `Updating…` text
       (FR-002) — and the `missing` state renders the same bar-first/card-second structure
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Restructure `src/components/StopCard.tsx`: wrap the whole widget in a root
+- [X] T006 [US1] Restructure `src/components/StopCard.tsx`: wrap the whole widget in a root
       `<div data-testid="stop-card-widget" className="space-y-2">`; move `<WidgetStatusBar>` out of
       the `Card` to be the root's first child (removing the current `mb-3` wrapper div, lines
       ~125-134); the `Card` becomes the second child. Keep every `WidgetStatusBar` prop identical
@@ -101,7 +101,7 @@ widget advances only that widget's last-updated time.
 
 ### Tests for User Story 2 (write FIRST, ensure they FAIL before implementation) ⚠️
 
-- [ ] T007 [US2] Write a failing multi-widget test in `src/components/StopCard.test.tsx`: render two
+- [X] T007 [US2] Write a failing multi-widget test in `src/components/StopCard.test.tsx`: render two
       `StopCard`s (different `stopName`s), assert each widget root has its own status bar as first
       child and its own card as second child, and that triggering Refresh on one (advancing its
       `Last updated` time via a `Date.now` spy) does not change the other's displayed time
@@ -109,7 +109,7 @@ widget advances only that widget's last-updated time.
 
 ### Implementation for User Story 2
 
-- [ ] T008 [P] [US2] Add a multi-widget story to `src/components/StopCard.stories.tsx` (e.g. two
+- [X] T008 [P] [US2] Add a multi-widget story to `src/components/StopCard.stories.tsx` (e.g. two
       stops rendered together, `refetchIntervalMs: 0`) demonstrating bar-above-card attribution for
       visual QA in Storybook
 
@@ -127,11 +127,11 @@ the status bar are exactly as before (spec FR-005, per 005's contract).
 
 ### Implementation for User Story 3
 
-- [ ] T009 [P] [US3] Update the "Status bar" section of `src/components/StopCard.mdx`: change
+- [X] T009 [P] [US3] Update the "Status bar" section of `src/components/StopCard.mdx`: change
       "In the card header the widget renders…" to describe the bar rendering **above** the card as
       a separate block; keep the bullet descriptions of `Last updated`, `Updating…`, `Refresh`, and
       the failure notice unchanged
-- [ ] T010 [US3] Run `src/components/StopCard.test.tsx` and confirm every pre-existing status-bar
+- [X] T010 [US3] Run `src/components/StopCard.test.tsx` and confirm every pre-existing status-bar
       behavior test passes **unchanged** (FR-005 regression check — none of the existing assertions
       depend on the bar being inside the card); if any assertion implicitly relied on the old DOM
       position, adjust only that assertion's selector and note it here
@@ -144,10 +144,10 @@ the status bar are exactly as before (spec FR-005, per 005's contract).
 
 **Purpose**: Documentation, validation, and final gates across all stories.
 
-- [ ] T011 [P] Run the `specs/008-status-bar-placement/quickstart.md` validation scenarios
+- [X] T011 [P] Run the `specs/008-status-bar-placement/quickstart.md` validation scenarios
       end-to-end (placement component tests, existing-behavior regression, Storybook multi-widget
       check, `pnpm --filter ./modules/bus-catcher/frontend build:lib` export/surface check)
-- [ ] T012 Run the full gate suite from the repo root: `pnpm lint && pnpm format && pnpm typecheck && pnpm test`
+- [X] T012 Run the full gate suite from the repo root: `pnpm lint && pnpm format && pnpm typecheck && pnpm test`
 
 ---
 
