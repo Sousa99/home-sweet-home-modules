@@ -35,15 +35,15 @@ testable with injected fetchers (no live backend required).
 
 **Purpose**: Project initialization and basic module structure
 
-- [ ] T001 Create `modules/weather-psychic/` module scaffold: root `eslint.config.mjs`, `prettier.config.mjs`, `tsconfig.base.json` extending `@sousa99/homesweethome-config`, plus empty `backend/` and `frontend/` directories (git keep)
-- [ ] T002 [P] Create backend package manifest `modules/weather-psychic/backend/package.json` (`@sousa99/weather-psychic-backend`, type module, engines node>=24, scripts dev/dev:mcp/start/start:mcp/build/test/test:watch/typecheck, deps: hono, @hono/node-server, @hono/zod-validator, @modelcontextprotocol/sdk, zod, dotenv; devDeps: tsx, vitest, typescript, @types/node)
-- [ ] T003 [P] Create frontend package manifest `modules/weather-psychic/frontend/package.json` (`@sousa99/weather-psychic-components`, scripts dev/build/build:lib/build:css/storybook/build-storybook/test/test:watch/typecheck, exports `"."`→dist-lib and `"./styles.css"`, deps react/react-dom/react-router/lucide-react/@tanstack/react-query; devDeps vitest/jsdom/@storybook/react-vite+addon-docs/@tailwindcss/vite+cli/tailwindcss/vite-plugin-dts/@sousa99/homesweethome-components workspace:*)
-- [ ] T004 [P] Register the module's fixed release group `["@sousa99/weather-psychic-backend", "@sousa99/weather-psychic-components"]` in `.changeset/config.json`
-- [ ] T005 [P] Add `modules/weather-psychic/backend/tsconfig.json` and `modules/weather-psychic/backend/vitest.config.ts`
-- [ ] T006 [P] Add `modules/weather-psychic/frontend/vite.config.ts` (SPA dist-app, dev proxy `/api` → `http://localhost:3000`), `vite.lib.config.ts` (dist-lib + vite-plugin-dts, external react/react-dom/lucide-react), `vitest.config.ts`, `tsconfig.json`, and `index.html`
-- [ ] T007 [P] Add `modules/weather-psychic/frontend/.storybook/main.ts` (react-vite + addon-docs + Tailwind in viteFinal, stories glob `../src/**/*.mdx` + `*.stories.@(ts|tsx)`) and `.storybook/preview.ts` (imports `../src/index.css`)
-- [ ] T008 [P] Create `modules/weather-psychic/frontend/src/index.css` (Tailwind v4 `@import 'tailwindcss'`, `@source "../../../../packages/components/src"`, `@theme { --color-primary: #d97706 }`, fonts)
-- [ ] T009 [P] Create `modules/weather-psychic/frontend/src/test/setup.ts` (jest-dom/vitest + `cleanup` in `afterEach`)
+- [x] T001 Create `modules/weather-psychic/` module scaffold: root `eslint.config.mjs`, `prettier.config.mjs`, `tsconfig.base.json` extending `@sousa99/homesweethome-config`, plus empty `backend/` and `frontend/` directories (git keep)
+- [x] T002 [P] Create backend package manifest `modules/weather-psychic/backend/package.json` (`@sousa99/weather-psychic-backend`, type module, engines node>=24, scripts dev/dev:mcp/start/start:mcp/build/test/test:watch/typecheck, deps: hono, @hono/node-server, @hono/zod-validator, @modelcontextprotocol/sdk, zod, dotenv; devDeps: tsx, vitest, typescript, @types/node)
+- [x] T003 [P] Create frontend package manifest `modules/weather-psychic/frontend/package.json` (`@sousa99/weather-psychic-components`, scripts dev/build/build:lib/build:css/storybook/build-storybook/test/test:watch/typecheck, exports `"."`→dist-lib and `"./styles.css"`, deps react/react-dom/react-router/lucide-react/@tanstack/react-query; devDeps vitest/jsdom/@storybook/react-vite+addon-docs/@tailwindcss/vite+cli/tailwindcss/vite-plugin-dts/@sousa99/homesweethome-components workspace:*)
+- [x] T004 [P] Register the module's fixed release group `["@sousa99/weather-psychic-backend", "@sousa99/weather-psychic-components"]` in `.changeset/config.json`
+- [x] T005 [P] Add `modules/weather-psychic/backend/tsconfig.json` and `modules/weather-psychic/backend/vitest.config.ts`
+- [x] T006 [P] Add `modules/weather-psychic/frontend/vite.config.ts` (SPA dist-app, dev proxy `/api` → `http://localhost:3000`), `vite.lib.config.ts` (dist-lib + vite-plugin-dts, external react/react-dom/lucide-react), `vitest.config.ts`, `tsconfig.json`, and `index.html`
+- [x] T007 [P] Add `modules/weather-psychic/frontend/.storybook/main.ts` (react-vite + addon-docs + Tailwind in viteFinal, stories glob `../src/**/*.mdx` + `*.stories.@(ts|tsx)`) and `.storybook/preview.ts` (imports `../src/index.css`)
+- [x] T008 [P] Create `modules/weather-psychic/frontend/src/index.css` (Tailwind v4 `@import 'tailwindcss'`, `@source "../../../../packages/components/src"`, `@theme { --color-primary: #d97706 }`, fonts)
+- [x] T009 [P] Create `modules/weather-psychic/frontend/src/test/setup.ts` (jest-dom/vitest + `cleanup` in `afterEach`)
 
 ---
 
