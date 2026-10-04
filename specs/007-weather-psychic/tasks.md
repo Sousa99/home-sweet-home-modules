@@ -188,16 +188,16 @@ coordinate/query and assert the payloads deep-equal; a 400 is returned for inval
 
 ### Tests for User Story 5 ⚠️ (write FIRST, assert they FAIL)
 
-- [ ] T046 [P] [US5] Write contract test `modules/weather-psychic/backend/src/tests/contract/rest-mcp-parity.test.ts` (REST response deep-equals MCP tool response for same coordinate + query, mock feed)
-- [ ] T047 [P] [US5] Write contract test `modules/weather-psychic/backend/src/tests/contract/rest-contracts.test.ts` (200 shapes for health + weather + search, 400 validation, 404 unknown path)
+- [x] T046 [P] [US5] Write contract test `modules/weather-psychic/backend/src/tests/contract/rest-mcp-parity.test.ts` (REST response deep-equals MCP tool response for same coordinate + query, mock feed)
+- [x] T047 [P] [US5] Write contract test `modules/weather-psychic/backend/src/tests/contract/rest-contracts.test.ts` (200 shapes for health + weather + search, 400 validation, 404 unknown path)
 
 ### Implementation for User Story 5
 
-- [ ] T048 [P] [US5] Implement `modules/weather-psychic/backend/src/http/app.ts` (Hono app: CORS on `/api/*`, `onError`, `notFound`, mounts routes sub-app)
-- [ ] T049 [P] [US5] Implement `modules/weather-psychic/backend/src/http/routes.ts` (`weatherRoutes(service)`: `GET /api/health`, `GET /api/locations/search` via `LocationQuerySchema`, `GET /api/weather` via `ForecastQuerySchema` with `zValidator`)
-- [ ] T050 [P] [US5] Implement `modules/weather-psychic/backend/src/mcp/server.ts` (`createMcpApp`: tools `weather.search` + `weather.get_forecast` using the shared schemas; success/`isError` response helpers; streamable HTTP at `/mcp`)
-- [ ] T051 [P] [US5] Implement live provider `modules/weather-psychic/backend/src/feeds/openMeteo.ts` (`WeatherFeed` + `LocationFeed` against `api.open-meteo.com/v1/forecast` and `geocoding-api.open-meteo.com/v1/search`; `timezone` param for local-time; provider failure → `ProviderUnavailableError`)
-- [ ] T052 [US5] Implement dual-mode entry `modules/weather-psychic/backend/src/index.ts` (dotenv; require exactly one of `--http`/`--mcp`; select feed by `FEED` config; start REST or MCP server) — depends on T048-T051
+- [x] T048 [P] [US5] Implement `modules/weather-psychic/backend/src/http/app.ts` (Hono app: CORS on `/api/*`, `onError`, `notFound`, mounts routes sub-app)
+- [x] T049 [P] [US5] Implement `modules/weather-psychic/backend/src/http/routes.ts` (`weatherRoutes(service)`: `GET /api/health`, `GET /api/locations/search` via `LocationQuerySchema`, `GET /api/weather` via `ForecastQuerySchema` with `zValidator`)
+- [x] T050 [P] [US5] Implement `modules/weather-psychic/backend/src/mcp/server.ts` (`createMcpApp`: tools `weather.search` + `weather.get_forecast` using the shared schemas; success/`isError` response helpers; streamable HTTP at `/mcp`)
+- [x] T051 [P] [US5] Implement live provider `modules/weather-psychic/backend/src/feeds/openMeteo.ts` (`WeatherFeed` + `LocationFeed` against `api.open-meteo.com/v1/forecast` and `geocoding-api.open-meteo.com/v1/search`; `timezone` param for local-time; provider failure → `ProviderUnavailableError`)
+- [x] T052 [US5] Implement dual-mode entry `modules/weather-psychic/backend/src/index.ts` (dotenv; require exactly one of `--http`/`--mcp`; select feed by `FEED` config; start REST or MCP server) — depends on T048-T051
 
 **Checkpoint**: User Story 5 complete — REST and MCP are parity-tested and serve real weather
 
