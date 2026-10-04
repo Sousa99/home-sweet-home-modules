@@ -48,16 +48,17 @@ layout does not collapse.
 
 <Canvas of={TaskDeckStories.Empty} />
 
-## Slide and Gentle transitions
+## Slide and slide-up transitions
 
-The exiting card's horizontal travel is controlled by `transitionVariant`:
+The exiting card's travel is controlled by `transitionVariant`:
 
 - **`slide`** (default) — the exiting card pans the full 500px sideways, exactly today's animation.
-- **`gentle`** — the exiting card travels only 80px horizontally; duration, easing, rotation, stack
-  depth, and swipe-dismiss behavior are unchanged.
+- **`slide-up`** — the exiting card rises 48px vertically and fades, with **no sideways travel**, so it
+  sits calmly next to other widgets in a dense dashboard. The next card rises from the fanned stack
+  behind it. Duration, easing, rotation, stack depth, and swipe-dismiss behavior are unchanged.
 
 <Canvas of={TaskDeckStories.Slide} />
-<Canvas of={TaskDeckStories.Gentle} />
+<Canvas of={TaskDeckStories.SlideUp} />
 
 ## Compact and overridden size
 

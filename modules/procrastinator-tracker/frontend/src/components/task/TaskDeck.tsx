@@ -5,7 +5,7 @@ import { Badge, StatusBadge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { cn } from '../../lib/utils';
 import { hasActiveFilters } from '../../lib/taskFilters';
-import { resolveExitTravel, type TransitionVariant } from '../../lib/taskTransition';
+import { resolveExitPreset, type TransitionVariant } from '../../lib/taskTransition';
 import { Deck, DeckCards, DeckItem } from '../ui/deck/deck';
 import { TaskDeckEmpty } from './TaskDeckEmpty';
 
@@ -135,7 +135,7 @@ export function TaskDeck({
       ) : (
         <DeckCards
           autoRotateMs={autoRotateMs}
-          exitTravel={resolveExitTravel(transitionVariant)}
+          exitPreset={resolveExitPreset(transitionVariant)}
           loop={loop}
           onCurrentIndexChange={onCardChange}
           slideDurationMs={slideDurationMs}

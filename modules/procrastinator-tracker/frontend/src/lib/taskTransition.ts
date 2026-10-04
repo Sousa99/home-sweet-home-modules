@@ -1,10 +1,15 @@
-export type TransitionVariant = 'slide' | 'gentle';
+export type TransitionVariant = 'slide' | 'slide-up';
 
-const EXIT_TRAVEL: Record<TransitionVariant, number> = {
-  slide: 500,
-  gentle: 80,
+export interface ExitPreset {
+  x: number;
+  y: number;
+}
+
+const EXIT_PRESETS: Record<TransitionVariant, ExitPreset> = {
+  slide: { x: 500, y: 0 },
+  'slide-up': { x: 0, y: -48 },
 };
 
-export function resolveExitTravel(variant: TransitionVariant = 'slide'): number {
-  return EXIT_TRAVEL[variant];
+export function resolveExitPreset(variant: TransitionVariant = 'slide'): ExitPreset {
+  return EXIT_PRESETS[variant];
 }

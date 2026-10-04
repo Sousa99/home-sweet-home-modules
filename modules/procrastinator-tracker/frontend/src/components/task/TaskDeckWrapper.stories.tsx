@@ -46,9 +46,9 @@ const meta = {
     },
     transitionVariant: {
       control: 'inline-radio',
-      options: ['slide', 'gentle'],
+      options: ['slide', 'slide-up'],
       description:
-        'Exit travel style forwarded to the inner deck: `slide` (default) pans the exiting card the full 500px; `gentle` reduces horizontal travel to 80px.',
+        'Exit animation forwarded to the inner deck: `slide` (default) pans the exiting card the full 500px sideways; `slide-up` exits it vertically (48px up) with no sideways travel.',
     },
     renderCard: {
       control: false,
@@ -84,8 +84,8 @@ export const Empty: Story = {
   },
 };
 
-export const Gentle: Story = {
+export const SlideUp: Story = {
   args: {
-    transitionVariant: 'gentle',
+    transitionVariant: 'slide-up',
   },
 };

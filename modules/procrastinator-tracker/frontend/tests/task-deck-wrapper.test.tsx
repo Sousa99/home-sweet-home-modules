@@ -91,12 +91,12 @@ describe('TaskDeckWrapper', () => {
         dataSource={dataSource}
         refreshRateMs={0}
         autoRotateMs={0}
-        transitionVariant="gentle"
+        transitionVariant="slide-up"
       />,
     );
     await screen.findByText('Implement MCP tools');
     expect(taskDeckPropsSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ transitionVariant: 'gentle' }),
+      expect.objectContaining({ transitionVariant: 'slide-up' }),
     );
   });
 

@@ -47,13 +47,13 @@ collapse.
 
 <Canvas of={TaskDeckWrapperStories.Empty} />
 
-## Gentle transition
+## Slide-up transition
 
 `transitionVariant` is forwarded to the inner `TaskDeck`. The default `slide` reproduces today's
-wide 500px exit pan; `gentle` reduces the exiting card's horizontal travel to 80px while keeping
-duration, rotation, and swipe behavior identical.
+wide 500px exit pan; `slide-up` exits the card vertically (48px up, no sideways travel) while keeping
+duration, rotation, and swipe behavior identical — a good fit for dense dashboards.
 
-<Canvas of={TaskDeckWrapperStories.Gentle} />
+<Canvas of={TaskDeckWrapperStories.SlideUp} />
 
 ## Sizing
 

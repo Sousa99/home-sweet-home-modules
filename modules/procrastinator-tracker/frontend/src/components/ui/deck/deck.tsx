@@ -33,7 +33,7 @@ export type DeckCardsProps = HTMLAttributes<HTMLDivElement> & {
   autoRotateMs?: number;
   loop?: boolean;
   slideDurationMs?: number;
-  exitTravel?: number;
+  exitPreset?: { x: number; y: number };
 };
 
 export const DeckCards = ({
@@ -53,7 +53,7 @@ export const DeckCards = ({
   autoRotateMs = 0,
   loop = true,
   slideDurationMs = 500,
-  exitTravel = 500,
+  exitPreset = { x: 500, y: 0 },
   ...props
 }: DeckCardsProps) => {
   const childrenArray = Children.toArray(children) as ReactElement[];
@@ -163,7 +163,7 @@ export const DeckCards = ({
           return (
             <DeckCard
               exitDirection={exitDirection}
-              exitTravel={exitTravel}
+              exitPreset={exitPreset}
               key={cardKey}
               onDragStateChange={(dragging) => {
                 draggingRef.current = dragging;
@@ -216,7 +216,7 @@ type DeckCardProps = {
   exitDirection: 'left' | 'right' | null;
   onDragStateChange?: (dragging: boolean) => void;
   slideDurationMs: number;
-  exitTravel: number;
+  exitPreset: { x: number; y: number };
 };
 
 const DeckCard = ({
@@ -227,7 +227,7 @@ const DeckCard = ({
   exitDirection,
   onDragStateChange,
   slideDurationMs,
-  exitTravel,
+  exitPreset,
 }: DeckCardProps) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
@@ -248,18 +248,20 @@ const DeckCard = ({
   };
 
   let exitX = 0;
+  let exitY = 0;
 
   if (exitDirection === 'left') {
-    exitX = -exitTravel;
+    exitX = -exitPreset.x;
   } else if (exitDirection === 'right') {
-    exitX = exitTravel;
+    exitX = exitPreset.x;
   }
+  exitY = exitPreset.y;
 
   const castedChildren = children as ReactElement<HTMLAttributes<HTMLDivElement>>;
 
   return (
     <motion.div
-      animate={exitDirection ? { x: exitX, opacity: 0 } : undefined}
+      animate={exitDirection ? { x: exitX, y: exitY, opacity: 0 } : undefined}
       className="absolute inset-0 cursor-grab active:cursor-grabbing"
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
