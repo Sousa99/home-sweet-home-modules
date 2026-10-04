@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { CSSProperties } from 'react';
 import { TaskDeck } from './TaskDeck';
 import { sampleTasks } from './TaskDeck.fixtures';
 
@@ -114,6 +113,6 @@ export const Compact: Story = {};
 
 export const OverrideSize: Story = {
   args: {
-    style: { '--deck-height': '24rem' } as CSSProperties,
+    style: { '--deck-height': '24rem' },
   },
 };

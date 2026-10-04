@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import type { CSSProperties } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TaskDeck } from '../src/components/task/TaskDeck';
 import { sampleTasks } from '../src/components/task/TaskDeck.fixtures';
@@ -130,11 +129,7 @@ describe('TaskDeck', () => {
 
   it('lets a consumer style override the default --deck-height', () => {
     const { container } = render(
-      <TaskDeck
-        tasks={sampleTasks}
-        autoRotateMs={0}
-        style={{ '--deck-height': '24rem' } as CSSProperties}
-      />,
+      <TaskDeck tasks={sampleTasks} autoRotateMs={0} style={{ '--deck-height': '24rem' }} />,
     );
     const stage = container.firstElementChild as HTMLElement;
     expect(stage).toHaveStyle({ '--deck-height': '24rem' });

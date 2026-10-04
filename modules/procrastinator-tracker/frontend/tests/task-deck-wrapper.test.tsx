@@ -67,6 +67,47 @@ describe('TaskDeckWrapper', () => {
     expect(await screen.findByText(/No tasks yet/i)).toBeInTheDocument();
   });
 
+  it('shows the filter message when the active filters exclude everything', async () => {
+    const dataSource = vi.fn().mockResolvedValue([]);
+    render(
+      <TaskDeckWrapper
+        filters={{ status: 'in-progress' }}
+        dataSource={dataSource}
+        refreshRateMs={0}
+        autoRotateMs={0}
+      />,
+    );
+    expect(await screen.findByText(/No tasks match these filters/i)).toBeInTheDocument();
+  });
+
+  it('replaces the empty card with the deck when tasks become available', async () => {
+    const user = userEvent.setup();
+    const dataSource = vi.fn().mockResolvedValueOnce([]).mockResolvedValueOnce(sampleTasks);
+    render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
+    expect(await screen.findByText(/No tasks yet/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(await screen.findByText('Implement MCP tools')).toBeInTheDocument();
+    expect(screen.queryByTestId('task-deck-empty')).not.toBeInTheDocument();
+  });
+
+  it('forwards a --deck-height style override to the inner deck stage', async () => {
+    const dataSource = vi.fn().mockResolvedValue(sampleTasks);
+    render(
+      <TaskDeckWrapper
+        dataSource={dataSource}
+        refreshRateMs={0}
+        autoRotateMs={0}
+        style={{ '--deck-height': '24rem' }}
+      />,
+    );
+    await screen.findByText('Implement MCP tools');
+    const firstCard = screen.getAllByTestId('task-deck-card')[0] as HTMLElement;
+    const stage = firstCard.closest('[class~="isolate"]') as HTMLElement;
+    expect(stage).not.toBeNull();
+    expect(stage.style.getPropertyValue('--deck-height')).toBe('24rem');
+  });
+
   it('renders the shared TaskDeckEmpty card when the data source resolves empty', async () => {
     const dataSource = vi.fn().mockResolvedValue([]);
     render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);

@@ -13,6 +13,7 @@ export type {
 } from './api/client';
 export { TaskDeck, TaskDeckCard } from './components/task/TaskDeck';
 export type { TaskDeckProps } from './components/task/TaskDeck';
+export type { TransitionVariant } from './lib/taskTransition';
 export { TaskDeckEmpty } from './components/task/TaskDeckEmpty';
 export type { TaskDeckEmptyProps } from './components/task/TaskDeckEmpty';
 export { TaskDeckWrapper } from './components/task/TaskDeckWrapper';

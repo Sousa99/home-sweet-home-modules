@@ -4,7 +4,6 @@ import type { Task, TaskFilters } from '../../api/client';
 import { api } from '../../api/client';
 import { cn } from '../../lib/utils';
 import { hasActiveFilters } from '../../lib/taskFilters';
-import { type TransitionVariant } from '../../lib/taskTransition';
 import { TaskDeck, type TaskDeckProps } from './TaskDeck';
 import { TaskDeckEmpty } from './TaskDeckEmpty';
 
@@ -13,7 +12,6 @@ export interface TaskDeckWrapperProps extends Omit<TaskDeckProps, 'tasks'> {
   refreshRateMs?: number;
   baseUrl?: string;
   dataSource?: (filters: TaskFilters) => Promise<Task[]>;
-  transitionVariant?: TransitionVariant;
 }
 
 type LoadState =
@@ -134,6 +132,7 @@ export function TaskDeckWrapper({
             transitionVariant={transitionVariant}
             renderCard={renderCard}
             onCardChange={onCardChange}
+            style={style}
           />
         ))}
     </div>

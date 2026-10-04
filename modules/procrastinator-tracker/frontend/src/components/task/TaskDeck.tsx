@@ -20,7 +20,7 @@ export interface TaskDeckProps {
   renderCard?: (task: Task) => ReactNode;
   onCardChange?: (index: number) => void;
   className?: string;
-  style?: CSSProperties;
+  style?: CSSProperties & Record<`--${string}`, string | number>;
 }
 
 const EMPTY_FILTERS: TaskFilters = {};
