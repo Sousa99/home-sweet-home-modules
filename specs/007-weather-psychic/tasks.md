@@ -139,11 +139,11 @@ low/high).
 
 ### Tests for User Story 3 ⚠️ (write FIRST, assert they FAIL)
 
-- [ ] T036 [P] [US3] Write component test `modules/weather-psychic/frontend/src/components/DailyForecastCard.test.tsx` (starts tomorrow, today excluded, succinct per-day summary, 5-entry cap; `WidgetStatusBar` on top with `Last updated` + `Refresh`; `baseUrl` prop honored; error keeps last-known data)
+- [x] T036 [P] [US3] Write component test `modules/weather-psychic/frontend/src/components/DailyForecastCard.test.tsx` (starts tomorrow, today excluded, succinct per-day summary, 5-entry cap; `WidgetStatusBar` on top with `Last updated` + `Refresh`; `baseUrl` prop honored; error keeps last-known data)
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Implement `modules/weather-psychic/frontend/src/components/DailyForecastCard.tsx` (self-fetching, props `location`/`fetchForecast`/`baseUrl`/`refetchIntervalMs`/`className`; renders compact list from the `daily` slice; shared `WidgetStatusBar` on top per the status-bar contract, same `LoadState` wiring as `CurrentWeatherCard`)
+- [x] T037 [US3] Implement `modules/weather-psychic/frontend/src/components/DailyForecastCard.tsx` (self-fetching, props `location`/`fetchForecast`/`baseUrl`/`refetchIntervalMs`/`className`; renders compact list from the `daily` slice; shared `WidgetStatusBar` on top per the status-bar contract, same `LoadState` wiring as `CurrentWeatherCard`)
 
 **Checkpoint**: User Story 1, 2 AND 3 all work independently
 
