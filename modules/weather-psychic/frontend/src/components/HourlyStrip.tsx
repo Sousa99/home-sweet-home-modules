@@ -24,7 +24,7 @@ export interface HourlyStripProps {
 export function HourlyStrip({
   hourly,
   now,
-  speedPxPerSecond = 60,
+  speedPxPerSecond = 30,
   resetPauseMs = 1500,
 }: HourlyStripProps): JSX.Element {
   const { ref } = useAutoScroll<HTMLDivElement>({ speedPxPerSecond, resetPauseMs });
