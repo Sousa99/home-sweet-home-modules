@@ -161,17 +161,17 @@ change, and falls back on invalid values.
 
 ### Tests for User Story 4 ⚠️ (write FIRST, assert they FAIL)
 
-- [ ] T038 [P] [US4] Write component test `modules/weather-psychic/frontend/src/components/LocationSelector.test.tsx` (debounced search, result select → `onChange`)
-- [ ] T039 [P] [US4] Write hook test `modules/weather-psychic/frontend/src/lib/__tests__/useLocation.test.ts` (seed from stored `weather-psychic:location`, persist on change, invalid-value fallback)
-- [ ] T040 [P] [US4] Write SPA test `modules/weather-psychic/frontend/src/pages/DashboardPage.test.tsx` (selector + both widgets compose; choosing a location updates both widgets)
+- [x] T038 [P] [US4] Write component test `modules/weather-psychic/frontend/src/components/LocationSelector.test.tsx` (debounced search, result select → `onChange`)
+- [x] T039 [P] [US4] Write hook test `modules/weather-psychic/frontend/src/lib/__tests__/useLocation.test.ts` (seed from stored `weather-psychic:location`, persist on change, invalid-value fallback)
+- [x] T040 [P] [US4] Write SPA test `modules/weather-psychic/frontend/src/pages/DashboardPage.test.tsx` (selector + both widgets compose; choosing a location updates both widgets)
 
 ### Implementation for User Story 4
 
-- [ ] T041 [P] [US4] Implement `modules/weather-psychic/frontend/src/components/LocationSelector.tsx` (controlled `value`/`onChange`, injectable `searchLocations`, `baseUrl` per base-url contract, placeholder)
-- [ ] T042 [P] [US4] Implement `modules/weather-psychic/frontend/src/lib/useLocation.ts` (localStorage key `weather-psychic:location`, resolved `Location` persistence, invalid-value fallback)
-- [ ] T043 [P] [US4] Implement TanStack Query hooks `modules/weather-psychic/frontend/src/api/queries.ts` (`useSearchLocations`, `useForecast`, query keys, refetch cadence, optional `baseUrl` arg)
-- [ ] T044 [US4] Implement `modules/weather-psychic/frontend/src/pages/DashboardPage.tsx` composing `LocationSelector` (bound to `useLocation`) + `CurrentWeatherCard` + `DailyForecastCard`
-- [ ] T045 [US4] Wire the SPA shell: `modules/weather-psychic/frontend/src/App.tsx` (route `/` → `DashboardPage`) and `src/main.tsx` (`loadApiBaseUrl()` bootstrap + `QueryClientProvider`)
+- [x] T041 [P] [US4] Implement `modules/weather-psychic/frontend/src/components/LocationSelector.tsx` (controlled `value`/`onChange`, injectable `searchLocations`, `baseUrl` per base-url contract, placeholder)
+- [x] T042 [P] [US4] Implement `modules/weather-psychic/frontend/src/lib/useLocation.ts` (localStorage key `weather-psychic:location`, resolved `Location` persistence, invalid-value fallback)
+- [x] T043 [P] [US4] Implement TanStack Query hooks `modules/weather-psychic/frontend/src/api/queries.ts` (`useSearchLocations`, `useForecast`, query keys, refetch cadence, optional `baseUrl` arg)
+- [x] T044 [US4] Implement `modules/weather-psychic/frontend/src/pages/DashboardPage.tsx` composing `LocationSelector` (bound to `useLocation`) + `CurrentWeatherCard` + `DailyForecastCard`
+- [x] T045 [US4] Wire the SPA shell: `modules/weather-psychic/frontend/src/App.tsx` (route `/` → `DashboardPage`) and `src/main.tsx` (`loadApiBaseUrl()` bootstrap + `QueryClientProvider`)
 
 **Checkpoint**: User Story 4 fully functional — the SPA is complete and testable independently
 
