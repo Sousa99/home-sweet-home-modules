@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Forecast, Location } from '../api/types';
@@ -116,5 +116,36 @@ describe('CurrentWeatherCard', () => {
     expect(await screen.findByText('21°')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent(/network down/);
     expect(screen.getByText(/Last updated/)).toBeInTheDocument();
+  });
+
+  it('ignores a stale response that resolves after a newer location change', async () => {
+    let resolveOld: (f: Forecast) => void = () => undefined;
+    fetchForecast.mockImplementationOnce(
+      () => new Promise<Forecast>((resolve) => (resolveOld = resolve)),
+    );
+    fetchForecast.mockResolvedValueOnce(makeForecast());
+    const { rerender } = renderCard();
+
+    // First load is in flight; switch the location, which triggers a second load.
+    const MADRID_LOCATION: Location = {
+      ...LOCATION,
+      id: 3128760,
+      name: 'Madrid',
+      latitude: 40.4165,
+      longitude: -3.7026,
+    };
+    rerender(
+      <CurrentWeatherCard
+        location={MADRID_LOCATION}
+        fetchForecast={fetchForecast}
+        baseUrl="http://localhost:3104"
+      />,
+    );
+    await screen.findByText('21°');
+
+    // The stale (first) response resolves last — it must not overwrite the new location's data.
+    await act(async () => resolveOld(makeForecast()));
+    expect(fetchForecast).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('Madrid')).toBeInTheDocument();
   });
 });

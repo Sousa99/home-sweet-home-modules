@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { MockLocationFeed, MockWeatherFeed } from '../../feeds/mock';
 import { createApp } from '../../http/app';
 import { createLogger } from '../../lib/logger';
+import { ProviderUnavailableError } from '../../lib/errors';
 import { createWeatherService } from '../../services/weatherService';
+import type { WeatherFeed } from '../../feeds/types';
 
 const app = createApp({
   service: createWeatherService({
@@ -60,5 +62,24 @@ describe('REST endpoints', () => {
   it('returns 404 for an unknown path', async () => {
     const res = await app.request('/api/nope');
     expect(res.status).toBe(404);
+  });
+
+  it('returns 502 when the weather provider is unavailable', async () => {
+    const throwingFeed: WeatherFeed = {
+      getForecast: () => Promise.reject(new ProviderUnavailableError('Provider down')),
+    };
+    const failingApp = createApp({
+      service: createWeatherService({
+        weatherFeed: throwingFeed,
+        locationFeed: new MockLocationFeed(),
+      }),
+      logger: createLogger({ env: 'test' }),
+    });
+
+    const res = await failingApp.request('/api/weather?lat=38.7167&lng=-9.1333');
+    expect(res.status).toBe(502);
+    const body = (await res.json()) as { success: false; message: string };
+    expect(body.success).toBe(false);
+    expect(body.message).toBe('Provider down');
   });
 });
