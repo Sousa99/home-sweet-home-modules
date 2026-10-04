@@ -7,6 +7,7 @@ import { iconForWeather } from '../lib/conditions';
 import { formatHour, formatPercent, formatTemperature } from '../lib/format';
 import { cn } from '../lib/utils';
 import { Card } from './ui/card';
+import { HourlyStrip } from './HourlyStrip';
 
 /** The forecast-fetching capability, injectable for tests and Storybook. */
 export type FetchForecast = (input: { location: Location }) => Promise<Forecast>;
@@ -131,6 +132,13 @@ export const CurrentWeatherCard = ({
             <Detail label="UV index" value={String(current.uvIndex)} />
             <Detail label="Updated" value={formatHour(current.time)} />
           </dl>
+
+          <div className="mt-4 border-t border-slate-100 pt-3">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Hourly forecast
+            </h3>
+            <HourlyStrip hourly={data.hourly} now={data.current.time} />
+          </div>
         </div>
       )}
     </Card>

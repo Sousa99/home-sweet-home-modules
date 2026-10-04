@@ -1,17 +1,15 @@
 /**
- * Formatting helpers for the weather-psychic widgets. Pure functions using
- * locale-aware `Intl` formatting with a stable default locale so tests and
- * rendering are deterministic unless a locale is passed explicitly.
+ * Formatting helpers for the weather-psychic widgets. Pure functions.
+ *
+ * Timestamps are treated as **already-localized by the backend** (the provider
+ * returns local-time timestamps for the location's timezone). To render the
+ * wall-clock exactly as encoded — independent of the user's device timezone —
+ * parsing and formatting happen in the UTC frame. This keeps tests and
+ * rendering deterministic.
  */
 
-const DEFAULT_LOCALE = 'en-GB';
-
-function formatWith(locale: string): Intl.DateTimeFormat {
-  return new Intl.DateTimeFormat(locale, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
+function formatWith(locale: string, options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  return new Intl.DateTimeFormat(locale, { timeZone: 'UTC', ...options });
 }
 
 /** Format a temperature as a signed integer with the degree symbol. */
@@ -22,7 +20,8 @@ export function formatTemperature(celsius: number): string {
 /** Format an ISO-8601 timestamp as a short hour, e.g. "14:00". */
 export function formatHour(time: string): string {
   const date = new Date(time);
-  return new Intl.DateTimeFormat(DEFAULT_LOCALE, {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'UTC',
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
@@ -31,8 +30,12 @@ export function formatHour(time: string): string {
 
 /** Format an ISO-8601 date as a short day label, e.g. "Mon, 5 Oct". */
 export function formatDay(date: string): string {
-  const parsed = new Date(`${date}T00:00:00`);
-  return formatWith(DEFAULT_LOCALE).format(parsed);
+  const parsed = new Date(`${date}T00:00:00Z`);
+  return formatWith('en-GB', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  }).format(parsed);
 }
 
 /** Format a daily low/high pair, e.g. "14° / 22°". */

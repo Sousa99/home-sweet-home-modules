@@ -115,14 +115,14 @@ payload; verify the strip never shows it, advances on an interval, and stops at 
 
 ### Tests for User Story 2 ⚠️ (write FIRST, assert they FAIL)
 
-- [ ] T031 [P] [US2] Write hook test `modules/weather-psychic/frontend/src/lib/__tests__/useAutoScroll.test.ts` (advances on interval, stops at end, disabled under `prefers-reduced-motion`; use fake timers)
-- [ ] T032 [P] [US2] Write component test `modules/weather-psychic/frontend/src/components/HourlyStrip.test.tsx` (excludes current hour, auto-scrolls, end-of-data stops, reduced-motion)
+- [x] T031 [P] [US2] Write hook test `modules/weather-psychic/frontend/src/lib/__tests__/useAutoScroll.test.ts` (advances on interval, stops at end, disabled under `prefers-reduced-motion`; use fake timers)
+- [x] T032 [P] [US2] Write component test `modules/weather-psychic/frontend/src/components/HourlyStrip.test.tsx` (excludes current hour, auto-scrolls, end-of-data stops, reduced-motion)
 
 ### Implementation for User Story 2
 
-- [ ] T033 [US2] Implement `modules/weather-psychic/frontend/src/lib/useAutoScroll.ts` (timer-driven scroll-to-right advance; reduced-motion guard)
-- [ ] T034 [P] [US2] Implement `modules/weather-psychic/frontend/src/components/HourlyStrip.tsx` (horizontal overflow-x strip, seeded to start at next hour — current hour excluded)
-- [ ] T035 [US2] Integrate `HourlyStrip` into `CurrentWeatherCard.tsx` (render below current detail; re-seed on hour boundary)
+- [x] T033 [US2] Implement `modules/weather-psychic/frontend/src/lib/useAutoScroll.ts` (timer-driven scroll-to-right advance; reduced-motion guard)
+- [x] T034 [P] [US2] Implement `modules/weather-psychic/frontend/src/components/HourlyStrip.tsx` (horizontal overflow-x strip, seeded to start at next hour — current hour excluded)
+- [x] T035 [US2] Integrate `HourlyStrip` into `CurrentWeatherCard.tsx` (render below current detail; re-seed on hour boundary)
 
 **Checkpoint**: User Story 1 AND 2 both work independently
 
