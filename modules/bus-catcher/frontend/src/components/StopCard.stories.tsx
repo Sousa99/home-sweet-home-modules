@@ -169,3 +169,24 @@ export const CustomThresholds: Story = {
     fetchTimes: fetchLevel([15, 8, 3]),
   },
 };
+
+export const TwoStops: Story = {
+  render: () => (
+    <div className="space-y-4">
+      <StopCard
+        stopId="S1"
+        stopName="Sete Rios"
+        lines={['736']}
+        fetchTimes={fetchMixed}
+        refetchIntervalMs={0}
+      />
+      <StopCard
+        stopId="S2"
+        stopName="Algés"
+        lines={['3705']}
+        fetchTimes={fetchScheduleOnly}
+        refetchIntervalMs={0}
+      />
+    </div>
+  ),
+};

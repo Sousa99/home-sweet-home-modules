@@ -117,37 +117,37 @@ export function StopCard({
   const realtime = data?.realtime;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{stopName}</CardTitle>
-        {lines.length > 0 && <Badge>{lines.join(', ')}</Badge>}
-      </CardHeader>
-      <div className="mb-3">
-        <WidgetStatusBar
-          lastUpdatedAt={
-            state.status === 'error' || state.status === 'ready' ? state.lastUpdatedAt : null
-          }
-          updating={inFlight}
-          error={state.status === 'error' ? 'Stop not found in the current schedule.' : null}
-          onRefresh={missing ? undefined : refresh}
-        />
-      </div>
-      <CardContent>
-        {missing ? (
-          <p className="text-sm text-amber-700">
-            This stop no longer exists in the schedule — remove it in Config.
-          </p>
-        ) : state.status === 'loading' ? (
-          <p className="text-sm text-slate-500">Loading…</p>
-        ) : data === null ? null : (
-          <>
-            <StopTimesList times={times} thresholds={thresholds} />
-            <div className="mt-2">
-              <StopCoverage realtime={realtime} />
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+    <div data-testid="stop-card-widget" className="space-y-2">
+      <WidgetStatusBar
+        lastUpdatedAt={
+          state.status === 'error' || state.status === 'ready' ? state.lastUpdatedAt : null
+        }
+        updating={inFlight}
+        error={state.status === 'error' ? 'Stop not found in the current schedule.' : null}
+        onRefresh={missing ? undefined : refresh}
+      />
+      <Card>
+        <CardHeader>
+          <CardTitle>{stopName}</CardTitle>
+          {lines.length > 0 && <Badge>{lines.join(', ')}</Badge>}
+        </CardHeader>
+        <CardContent>
+          {missing ? (
+            <p className="text-sm text-amber-700">
+              This stop no longer exists in the schedule — remove it in Config.
+            </p>
+          ) : state.status === 'loading' ? (
+            <p className="text-sm text-slate-500">Loading…</p>
+          ) : data === null ? null : (
+            <>
+              <StopTimesList times={times} thresholds={thresholds} />
+              <div className="mt-2">
+                <StopCoverage realtime={realtime} />
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
