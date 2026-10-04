@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { WidgetStatusBar } from '@sousa99/homesweethome-components';
 import type { DepartureThresholds, StopTimesResponse } from '../api/types';
 import { api } from '../api/client';
 import { Badge } from './ui/badge';
@@ -45,7 +46,9 @@ export interface StopCardProps {
 }
 
 type LoadState =
-  { status: 'loading' } | { status: 'error' } | { status: 'ready'; data: StopTimesResponse };
+  | { status: 'loading' }
+  | { status: 'error'; data: StopTimesResponse | null; lastUpdatedAt: number | null }
+  | { status: 'ready'; data: StopTimesResponse; lastUpdatedAt: number };
 
 export function StopCard({
   stopId,
@@ -61,36 +64,57 @@ export function StopCard({
   const fetchRef = useRef<FetchStopTimes | undefined>(fetchTimes);
   fetchRef.current = fetchTimes;
   const [state, setState] = useState<LoadState>({ status: 'loading' });
+  const [inFlight, setInFlight] = useState(false);
+  const inFlightRef = useRef(false);
   const linesKey = lines.join(',');
+
+  const load = useCallback(async () => {
+    // Never start a conflicting load while one is already running (FR-002).
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    setInFlight(true);
+    try {
+      const fetchFn =
+        fetchRef.current ??
+        (({ stopId: id, limit: lim, lines: ln }) => api.getStopTimes(id, lim, ln, baseUrl));
+      const data = await fetchFn({ stopId, limit, lines });
+      setState({ status: 'ready', data, lastUpdatedAt: Date.now() });
+    } catch {
+      // A failed load keeps the last successful data and its timestamp (FR-006);
+      // the failure is surfaced by the status bar and Refresh can retry.
+      setState((prev) =>
+        prev.status === 'ready'
+          ? { status: 'error', data: prev.data, lastUpdatedAt: prev.lastUpdatedAt }
+          : { status: 'error', data: null, lastUpdatedAt: null },
+      );
+    } finally {
+      inFlightRef.current = false;
+      setInFlight(false);
+    }
+  }, [stopId, limit, linesKey, baseUrl]);
 
   useEffect(() => {
     if (missing) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const fetchFn =
-      fetchRef.current ??
-      (({ stopId: id, limit: lim, lines: ln }) => api.getStopTimes(id, lim, ln, baseUrl));
-    const load = async () => {
-      try {
-        const data = await fetchFn({ stopId, limit, lines });
-        if (!cancelled) setState({ status: 'ready', data });
-      } catch {
-        if (!cancelled) setState({ status: 'error' });
-      } finally {
-        if (refetchIntervalMs > 0 && !cancelled) {
-          timer = setTimeout(load, refetchIntervalMs);
-        }
+    const run = async () => {
+      await load();
+      if (!cancelled && refetchIntervalMs > 0) {
+        timer = setTimeout(run, refetchIntervalMs);
       }
     };
-    void load();
+    void run();
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [stopId, limit, linesKey, refetchIntervalMs, baseUrl, missing]);
+  }, [load, refetchIntervalMs, missing]);
 
-  const times = state.status === 'ready' ? state.data.times : [];
-  const realtime = state.status === 'ready' ? state.data.realtime : undefined;
+  const refresh = useCallback(() => void load(), [load]);
+
+  const data = state.status === 'ready' || state.status === 'error' ? state.data : null;
+  const times = data?.times ?? [];
+  const realtime = data?.realtime;
 
   return (
     <Card>
@@ -98,6 +122,16 @@ export function StopCard({
         <CardTitle>{stopName}</CardTitle>
         {lines.length > 0 && <Badge>{lines.join(', ')}</Badge>}
       </CardHeader>
+      <div className="mb-3">
+        <WidgetStatusBar
+          lastUpdatedAt={
+            state.status === 'error' || state.status === 'ready' ? state.lastUpdatedAt : null
+          }
+          updating={inFlight}
+          error={state.status === 'error' ? 'Stop not found in the current schedule.' : null}
+          onRefresh={missing ? undefined : refresh}
+        />
+      </div>
       <CardContent>
         {missing ? (
           <p className="text-sm text-amber-700">
@@ -105,9 +139,7 @@ export function StopCard({
           </p>
         ) : state.status === 'loading' ? (
           <p className="text-sm text-slate-500">Loading…</p>
-        ) : state.status === 'error' ? (
-          <p className="text-sm text-red-600">Stop not found in the current schedule.</p>
-        ) : (
+        ) : data === null ? null : (
           <>
             <StopTimesList times={times} thresholds={thresholds} />
             <div className="mt-2">

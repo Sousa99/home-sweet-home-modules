@@ -32,9 +32,9 @@ description: "Task list for Standardized Component Status implementation"
 
 **Purpose**: Scaffold the new workspace-internal shared package `@sousa99/homesweethome-components` (private, NOT versioned/published — see `research.md` §2).
 
-- [ ] T001 Create `packages/components/package.json` — name `@sousa99/homesweethome-components`, `private: true`, `version: 0.0.1` (workspace version), `type: module`, `engines.node >=24`, scripts `test` (`vitest run`) and `typecheck` (`tsc --noEmit`); NO `publishConfig`, NO changesets entry
-- [ ] T002 Create `packages/components/eslint.config.mjs`, `packages/components/prettier.config.mjs`, and `packages/components/tsconfig.json` extending the `@sousa99/homesweethome-config` presets (tsconfig adds `DOM`, `DOM.Iterable`, `jsx: react-jsx`, `types: ["vite/client"]`, `noEmit: true`)
-- [ ] T003 [P] Create `packages/components/vitest.config.ts` (jsdom environment, `@vitejs/plugin-react`, setup files) matching the module frontend test setups
+- [x] T001 Create `packages/components/package.json` — name `@sousa99/homesweethome-components`, `private: true`, `version: 0.0.1` (workspace version), `type: module`, `engines.node >=24`, scripts `test` (`vitest run`) and `typecheck` (`tsc --noEmit`); NO `publishConfig`, NO changesets entry
+- [x] T002 Create `packages/components/eslint.config.mjs`, `packages/components/prettier.config.mjs`, and `packages/components/tsconfig.json` extending the `@sousa99/homesweethome-config` presets (tsconfig adds `DOM`, `DOM.Iterable`, `jsx: react-jsx`, `types: ["vite/client"]`, `noEmit: true`)
+- [x] T003 [P] Create `packages/components/vitest.config.ts` (jsdom environment, `@vitejs/plugin-react`, setup files) matching the module frontend test setups
 
 ---
 
@@ -44,14 +44,14 @@ description: "Task list for Standardized Component Status implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 [P] Write FAILING tests for `formatLastUpdated` in `packages/components/src/__tests__/formatLastUpdated.test.ts` — `null` → `"Not updated yet"`; a timestamp → device-local 24h `HH:MM:SS` (zero-padded) matching the device clock
-- [ ] T005 [P] Write FAILING tests for `WidgetStatusBar` in `packages/components/src/__tests__/WidgetStatusBar.test.tsx` — renders `Last updated HH:MM:SS`; renders `Not updated yet` when `lastUpdatedAt` is null; shows the updating indicator ONLY while `updating`; disables the Refresh control while `updating`; calls `onRefresh` on press; surfaces `error` while keeping the last time; a11y `role="status"`/`role="alert"`/`aria-live="polite"` per `contracts/status-bar.md`
-- [ ] T006 Implement `formatLastUpdated` in `packages/components/src/formatLastUpdated.ts` (make T004 green)
-- [ ] T007 Implement `WidgetStatusBar` in `packages/components/src/WidgetStatusBar.tsx` with `WidgetStatusBarProps` (`lastUpdatedAt: number | null`, `updating?: boolean`, `error?: string | null`, `onRefresh?: () => void`, `className?: string`); wording `Last updated`, `Not updated yet`, `Updating…`, `Refresh` exactly per `contracts/status-bar.md` (make T005 green)
-- [ ] T008 Create `packages/components/src/index.ts` exporting `WidgetStatusBar`, `WidgetStatusBarProps`, and `formatLastUpdated` (the full published surface)
-- [ ] T009 [P] Add `"@sousa99/homesweethome-components": "workspace:*"` as a **devDependency** (not a runtime dependency) in `modules/fly-over-tracker/frontend/package.json`, `modules/bus-catcher/frontend/package.json`, and `modules/procrastinator-tracker/frontend/package.json` — it must be bundled, never advertised to consumers
-- [ ] T010 [P] Add `@source "../../../packages/components/src";` to `modules/fly-over-tracker/frontend/src/index.css`, `modules/bus-catcher/frontend/src/index.css`, and `modules/procrastinator-tracker/frontend/src/index.css` so Tailwind v4 emits the bar's utility classes in each module's stylesheet
-- [ ] T011 Run `pnpm install` and `pnpm --filter @sousa99/homesweethome-components test` — shared package tests green and the workspace links the dependency
+- [x] T004 [P] Write FAILING tests for `formatLastUpdated` in `packages/components/src/__tests__/formatLastUpdated.test.ts` — `null` → `"Not updated yet"`; a timestamp → device-local 24h `HH:MM:SS` (zero-padded) matching the device clock
+- [x] T005 [P] Write FAILING tests for `WidgetStatusBar` in `packages/components/src/__tests__/WidgetStatusBar.test.tsx` — renders `Last updated HH:MM:SS`; renders `Not updated yet` when `lastUpdatedAt` is null; shows the updating indicator ONLY while `updating`; disables the Refresh control while `updating`; calls `onRefresh` on press; surfaces `error` while keeping the last time; a11y `role="status"`/`role="alert"`/`aria-live="polite"` per `contracts/status-bar.md`
+- [x] T006 Implement `formatLastUpdated` in `packages/components/src/formatLastUpdated.ts` (make T004 green)
+- [x] T007 Implement `WidgetStatusBar` in `packages/components/src/WidgetStatusBar.tsx` with `WidgetStatusBarProps` (`lastUpdatedAt: number | null`, `updating?: boolean`, `error?: string | null`, `onRefresh?: () => void`, `className?: string`); wording `Last updated`, `Not updated yet`, `Updating…`, `Refresh` exactly per `contracts/status-bar.md` (make T005 green)
+- [x] T008 Create `packages/components/src/index.ts` exporting `WidgetStatusBar`, `WidgetStatusBarProps`, and `formatLastUpdated` (the full published surface)
+- [x] T009 [P] Add `"@sousa99/homesweethome-components": "workspace:*"` as a **devDependency** (not a runtime dependency) in `modules/fly-over-tracker/frontend/package.json`, `modules/bus-catcher/frontend/package.json`, and `modules/procrastinator-tracker/frontend/package.json` — it must be bundled, never advertised to consumers
+- [x] T010 [P] Add `@source "../../../packages/components/src";` to `modules/fly-over-tracker/frontend/src/index.css`, `modules/bus-catcher/frontend/src/index.css`, and `modules/procrastinator-tracker/frontend/src/index.css` so Tailwind v4 emits the bar's utility classes in each module's stylesheet
+- [x] T011 Run `pnpm install` and `pnpm --filter @sousa99/homesweethome-components test` — shared package tests green and the workspace links the dependency
 
 **Checkpoint**: Foundation ready — the shared status bar exists and is consumable; user story implementation can now begin in parallel.
 
@@ -67,19 +67,19 @@ description: "Task list for Standardized Component Status implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T012 [US1] Write FAILING tests in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverWidget.test.tsx`, `FlyOverMapCard.test.tsx`, `FlyOverListCard.test.tsx`, `FlyOverClosestPanel.test.tsx`, and `ClosestAircraftCard.test.tsx` — each asserts the standardized status area renders (`Last updated`, `Not updated yet` before first load, indicator while fetching, Refresh triggers refetch) and that the old count sentence is gone
-- [ ] T013 [US1] Write FAILING test in `modules/fly-over-tracker/frontend/src/hooks/__tests__/useFlyOversQuery.test.tsx` asserting the hook result exposes `dataUpdatedAt` (epoch ms of last successful data, null before first load)
+- [x] T012 [US1] Write FAILING tests in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverWidget.test.tsx`, `FlyOverMapCard.test.tsx`, `FlyOverListCard.test.tsx`, `FlyOverClosestPanel.test.tsx`, and `ClosestAircraftCard.test.tsx` — each asserts the standardized status area renders (`Last updated`, `Not updated yet` before first load, indicator while fetching, Refresh triggers refetch) and that the old count sentence is gone
+- [x] T013 [US1] Write FAILING test in `modules/fly-over-tracker/frontend/src/hooks/__tests__/useFlyOversQuery.test.tsx` asserting the hook result exposes `dataUpdatedAt` (epoch ms of last successful data, null before first load)
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Extend `useFlyOversQuery` in `modules/fly-over-tracker/frontend/src/hooks/useFlyOversQuery.ts` to return `dataUpdatedAt` from TanStack Query (`query.dataUpdatedAt`, `null` before first data) — make T013 green
-- [ ] T015 [P] [US1] In `modules/fly-over-tracker/frontend/src/components/FlyOverWidget.tsx`, replace the count/status header (`Aircraft over …` line, `UpdatingIndicator`, `Refresh` button) with `<WidgetStatusBar lastUpdatedAt={dataUpdatedAt} updating={isFetching} error={isError ? error?.message ?? 'Something went wrong.' : null} onRefresh={refetch} />`
-- [ ] T016 [P] [US1] Same replacement in `modules/fly-over-tracker/frontend/src/components/FlyOverMapCard.tsx`
-- [ ] T017 [P] [US1] Same replacement in `modules/fly-over-tracker/frontend/src/components/FlyOverListCard.tsx`
-- [ ] T018 [P] [US1] Same replacement in `modules/fly-over-tracker/frontend/src/components/FlyOverClosestPanel.tsx`
-- [ ] T019 [P] [US1] Same replacement in `modules/fly-over-tracker/frontend/src/components/ClosestAircraftCard.tsx`
-- [ ] T020 [US1] Remove the now-unused `modules/fly-over-tracker/frontend/src/components/UpdatingIndicator.tsx` and its test `modules/fly-over-tracker/frontend/src/components/__tests__/UpdatingIndicator.test.tsx` (not part of the published surface)
-- [ ] T021 [US1] Run `pnpm --filter @sousa99/fly-over-tracker-components test` and `pnpm --filter @sousa99/fly-over-tracker-components typecheck` — green
+- [x] T014 [US1] Extend `useFlyOversQuery` in `modules/fly-over-tracker/frontend/src/hooks/useFlyOversQuery.ts` to return `dataUpdatedAt` from TanStack Query (`query.dataUpdatedAt`, `null` before first data) — make T013 green
+- [x] T015 [P] [US1] In `modules/fly-over-tracker/frontend/src/components/FlyOverWidget.tsx`, replace the count/status header (`Aircraft over …` line, `UpdatingIndicator`, `Refresh` button) with `<WidgetStatusBar lastUpdatedAt={dataUpdatedAt} updating={isFetching} error={isError ? error?.message ?? 'Something went wrong.' : null} onRefresh={refetch} />`
+- [x] T016 [P] [US1] Same replacement in `modules/fly-over-tracker/frontend/src/components/FlyOverMapCard.tsx`
+- [x] T017 [P] [US1] Same replacement in `modules/fly-over-tracker/frontend/src/components/FlyOverListCard.tsx`
+- [x] T018 [P] [US1] Same replacement in `modules/fly-over-tracker/frontend/src/components/FlyOverClosestPanel.tsx`
+- [x] T019 [P] [US1] Same replacement in `modules/fly-over-tracker/frontend/src/components/ClosestAircraftCard.tsx`
+- [x] T020 [US1] Remove the now-unused `modules/fly-over-tracker/frontend/src/components/UpdatingIndicator.tsx` and its test `modules/fly-over-tracker/frontend/src/components/__tests__/UpdatingIndicator.test.tsx` (not part of the published surface)
+- [x] T021 [US1] Run `pnpm --filter @sousa99/fly-over-tracker-components test` and `pnpm --filter @sousa99/fly-over-tracker-components typecheck` — green
 
 **Checkpoint**: User Story 1 fully functional and testable independently (MVP for the reference module).
 
@@ -93,13 +93,13 @@ description: "Task list for Standardized Component Status implementation"
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T022 [US2] Write FAILING tests in `modules/bus-catcher/frontend/src/components/StopCard.test.tsx` — asserts the status area renders (`Last updated`, `Not updated yet` before first load), pressing Refresh re-runs the fetch and advances the time, and the indicator shows while loading
+- [x] T022 [US2] Write FAILING tests in `modules/bus-catcher/frontend/src/components/StopCard.test.tsx` — asserts the status area renders (`Last updated`, `Not updated yet` before first load), pressing Refresh re-runs the fetch and advances the time, and the indicator shows while loading
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Extend the `LoadState` in `modules/bus-catcher/frontend/src/components/StopCard.tsx` with `lastUpdatedAt: number` on `ready` (set `Date.now()` on each successful load) and an in-flight flag; add a refresh action that re-runs the current `load()` immediately (existing `refetchIntervalMs` polling stays)
-- [ ] T024 [US2] Render `<WidgetStatusBar lastUpdatedAt={state.kind === 'ready' ? state.lastUpdatedAt : null} updating={inFlight} error={state.kind === 'error' ? 'Stop not found in the current schedule.' : null} onRefresh={refresh} />` in the `Card` header of `modules/bus-catcher/frontend/src/components/StopCard.tsx`
-- [ ] T025 [US2] Run `pnpm --filter @sousa99/bus-catcher-components test` and typecheck — green
+- [x] T023 [US2] Extend the `LoadState` in `modules/bus-catcher/frontend/src/components/StopCard.tsx` with `lastUpdatedAt: number` on `ready` (set `Date.now()` on each successful load) and an in-flight flag; add a refresh action that re-runs the current `load()` immediately (existing `refetchIntervalMs` polling stays)
+- [x] T024 [US2] Render `<WidgetStatusBar lastUpdatedAt={state.kind === 'ready' ? state.lastUpdatedAt : null} updating={inFlight} error={state.kind === 'error' ? 'Stop not found in the current schedule.' : null} onRefresh={refresh} />` in the `Card` header of `modules/bus-catcher/frontend/src/components/StopCard.tsx`
+- [x] T025 [US2] Run `pnpm --filter @sousa99/bus-catcher-components test` and typecheck — green
 
 **Checkpoint**: User Stories 1 AND 2 both work independently.
 
@@ -113,13 +113,13 @@ description: "Task list for Standardized Component Status implementation"
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T026 [US3] Write FAILING tests in `modules/procrastinator-tracker/frontend/tests/task-deck-wrapper.test.tsx` — asserts the status area renders (`Last updated`, `Not updated yet` before first load), Refresh calls the `dataSource` again and advances the time, and the indicator shows while loading
+- [x] T026 [US3] Write FAILING tests in `modules/procrastinator-tracker/frontend/tests/task-deck-wrapper.test.tsx` — asserts the status area renders (`Last updated`, `Not updated yet` before first load), Refresh calls the `dataSource` again and advances the time, and the indicator shows while loading
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Extend the load state in `modules/procrastinator-tracker/frontend/src/components/task/TaskDeckWrapper.tsx` with `lastUpdatedAt: number` on `success` (set on each successful load) and an in-flight flag (the existing `inFlight` ref)
-- [ ] T028 [US3] Render `<WidgetStatusBar lastUpdatedAt={state.kind === 'success' ? state.lastUpdatedAt : null} updating={inFlight} error={state.kind === 'error' ? state.message : null} onRefresh={load} />` above the deck in `modules/procrastinator-tracker/frontend/src/components/task/TaskDeckWrapper.tsx`
-- [ ] T029 [US3] Run `pnpm --filter @sousa99/procrastinator-tracker-components test` and typecheck — green
+- [x] T027 [US3] Extend the load state in `modules/procrastinator-tracker/frontend/src/components/task/TaskDeckWrapper.tsx` with `lastUpdatedAt: number` on `success` (set on each successful load) and an in-flight flag (the existing `inFlight` ref)
+- [x] T028 [US3] Render `<WidgetStatusBar lastUpdatedAt={state.kind === 'success' ? state.lastUpdatedAt : null} updating={inFlight} error={state.kind === 'error' ? state.message : null} onRefresh={load} />` above the deck in `modules/procrastinator-tracker/frontend/src/components/task/TaskDeckWrapper.tsx`
+- [x] T029 [US3] Run `pnpm --filter @sousa99/procrastinator-tracker-components test` and typecheck — green
 
 **Checkpoint**: All three P1 stories complete; every published data-fetching widget across all modules has the full bar.
 
@@ -133,9 +133,9 @@ description: "Task list for Standardized Component Status implementation"
 
 ### Implementation for User Story 4
 
-- [ ] T030 [P] [US4] Update the Storybook documentation pages to document the standardized status bar: `modules/fly-over-tracker/frontend/src/components/DashboardWidgets.mdx` (and affected widget `.mdx`), `modules/bus-catcher/frontend/src/components/StopCard.mdx`, `modules/procrastinator-tracker/frontend/src/components/task/TaskDeckWrapper.mdx`
-- [ ] T031 [US4] Add cross-module consistency assertions: each widget test (fly-over x5, StopCard, TaskDeckWrapper) asserts the exact same status labels — `Last updated`, `Not updated yet`, `Updating…`, `Refresh`
-- [ ] T032 [US4] Run the three module suites + shared suite together (`pnpm --filter ... test` or root `pnpm test`) and visually verify via Storybook per `quickstart.md` scenario 3 — no per-module deviations
+- [x] T030 [P] [US4] Update the Storybook documentation pages to document the standardized status bar: `modules/fly-over-tracker/frontend/src/components/DashboardWidgets.mdx` (and affected widget `.mdx`), `modules/bus-catcher/frontend/src/components/StopCard.mdx`, `modules/procrastinator-tracker/frontend/src/components/task/TaskDeckWrapper.mdx`
+- [x] T031 [US4] Add cross-module consistency assertions: each widget test (fly-over x5, StopCard, TaskDeckWrapper) asserts the exact same status labels — `Last updated`, `Not updated yet`, `Updating…`, `Refresh`
+- [x] T032 [US4] Run the three module suites + shared suite together (`pnpm --filter ... test` or root `pnpm test`) and visually verify via Storybook per `quickstart.md` scenario 3 — no per-module deviations
 
 **Checkpoint**: Cross-module consistency verified — the ecosystem reads as one product family.
 
@@ -149,13 +149,13 @@ description: "Task list for Standardized Component Status implementation"
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T033 [P] [US5] Write FAILING tests across the widget suites (`modules/fly-over-tracker/frontend/src/components/__tests__/*.test.tsx`, `modules/bus-catcher/frontend/src/components/StopCard.test.tsx`, `modules/procrastinator-tracker/frontend/tests/task-deck-wrapper.test.tsx`) asserting: a failed refresh keeps the previous `Last updated` time and surfaces the error; a first-load failure shows `Not updated yet` + error; pressing Refresh after a failure retries and recovers
+- [x] T033 [P] [US5] Write FAILING tests across the widget suites (`modules/fly-over-tracker/frontend/src/components/__tests__/*.test.tsx`, `modules/bus-catcher/frontend/src/components/StopCard.test.tsx`, `modules/procrastinator-tracker/frontend/tests/task-deck-wrapper.test.tsx`) asserting: a failed refresh keeps the previous `Last updated` time and surfaces the error; a first-load failure shows `Not updated yet` + error; pressing Refresh after a failure retries and recovers
 
 ### Implementation for User Story 5
 
-- [ ] T034 [US5] Wire error messages into the `error` prop where missing: fly-over widgets (already via `isError`/`error?.message`), `StopCard.tsx` error branch, `TaskDeckWrapper.tsx` error branch — never fabricate a timestamp (FR-007)
-- [ ] T035 [US5] Verify the shared `WidgetStatusBar` failure behavior (keeps `lastUpdatedAt`, still renders `Refresh`) is exercised by the failing-first tests and make them green
-- [ ] T036 [US5] Run the full test suite (`pnpm test`) across the workspace — all green
+- [x] T034 [US5] Wire error messages into the `error` prop where missing: fly-over widgets (already via `isError`/`error?.message`), `StopCard.tsx` error branch, `TaskDeckWrapper.tsx` error branch — never fabricate a timestamp (FR-007)
+- [x] T035 [US5] Verify the shared `WidgetStatusBar` failure behavior (keeps `lastUpdatedAt`, still renders `Refresh`) is exercised by the failing-first tests and make them green
+- [x] T036 [US5] Run the full test suite (`pnpm test`) across the workspace — all green
 
 **Checkpoint**: Failure and empty states behave identically everywhere.
 
@@ -165,10 +165,10 @@ description: "Task list for Standardized Component Status implementation"
 
 **Purpose**: Release wiring, docs, and final validation that affect the whole feature.
 
-- [ ] T037 [P] Add changesets bumping the three module component packages (patch): `@sousa99/fly-over-tracker-components`, `@sousa99/bus-catcher-components`, `@sousa99/procrastinator-tracker-components` — the shared change ships inside them (`research.md` §2); the shared package itself gets NO changeset
-- [ ] T038 [P] Update module documentation for the standardized status bar: `modules/fly-over-tracker/README.md`, `modules/bus-catcher/README.md`, `modules/procrastinator-tracker/README.md` (and `docs/` guides if the module-standard doc references widget headers)
-- [ ] T039 Run the `quickstart.md` validation scenarios end-to-end (shared + module tests, Storybook consistency, SPA end-to-end, `build:lib` bundling check) and the full gates: `pnpm lint`, `pnpm format`, `pnpm typecheck`, `pnpm test`
-- [ ] T040 Verify hygiene: shared package is absent from `.changeset/config.json` and has no `publishConfig`; no dead code or leftover `UpdatingIndicator` references; all packages still extend the shared presets
+- [x] T037 [P] Add changesets bumping the three module component packages (patch): `@sousa99/fly-over-tracker-components`, `@sousa99/bus-catcher-components`, `@sousa99/procrastinator-tracker-components` — the shared change ships inside them (`research.md` §2); the shared package itself gets NO changeset
+- [x] T038 [P] Update module documentation for the standardized status bar: `modules/fly-over-tracker/README.md`, `modules/bus-catcher/README.md`, `modules/procrastinator-tracker/README.md` (and `docs/` guides if the module-standard doc references widget headers)
+- [x] T039 Run the `quickstart.md` validation scenarios end-to-end (shared + module tests, Storybook consistency, SPA end-to-end, `build:lib` bundling check) and the full gates: `pnpm lint`, `pnpm format`, `pnpm typecheck`, `pnpm test`
+- [x] T040 Verify hygiene: shared package is absent from `.changeset/config.json` and has no `publishConfig`; no dead code or leftover `UpdatingIndicator` references; all packages still extend the shared presets
 
 ---
 

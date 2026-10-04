@@ -60,6 +60,9 @@ import { FlyOverClosestPanel } from '@sousa99/fly-over-tracker-components';
 
 - **Single fetch** — the panel makes one `GET {baseUrl}/api/fly-overs` call per refresh
   and renders both the closest tile and the list from that result.
+- **Status bar** — the standardized status bar shows `Last updated {HH:MM:SS}` (or
+  `Not updated yet` before the first load), an `Updating…` indicator while a refresh is
+  in flight, a `Refresh` button, and a failure notice when the feed is down.
 - **No repetition** — the closest aircraft is shown once (the tile); the list contains
   every other aircraft in range, sorted closest first.
 - **Capping** — `maxResults` slices the remaining list; omit it to list everything after

@@ -17,6 +17,8 @@ export interface UseFlyOversQueryOptions {
 export interface UseFlyOversQueryResult {
   /** The latest result, or null before the first successful fetch. */
   data: FlyOverResult | null;
+  /** Epoch ms of the last successful fetch; null before any data has loaded. */
+  dataUpdatedAt: number | null;
   /** True only while the first fetch for the current query is in flight. */
   isLoading: boolean;
   /** True whenever a fetch is in flight, including background auto-refreshes. */
@@ -57,6 +59,9 @@ export const useFlyOversQuery = ({
 
   return {
     data: query.data ?? null,
+    // TanStack Query reports `dataUpdatedAt` as 0 before any data has been
+    // fetched; map that to null so the status bar shows "Not updated yet".
+    dataUpdatedAt: query.dataUpdatedAt > 0 ? query.dataUpdatedAt : null,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,

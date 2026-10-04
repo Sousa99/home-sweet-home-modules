@@ -60,6 +60,9 @@ import { FlyOverListCard } from '@sousa99/fly-over-tracker-components';
 
 - **Self-sufficient data** — fetches `GET {baseUrl}/api/fly-overs` and re-fetches
   automatically every `autoRefresh` seconds (`'off'` disables automatic refresh).
+- **Status bar** — the standardized status bar shows `Last updated {HH:MM:SS}` (or
+  `Not updated yet` before the first load), an `Updating…` indicator while a refresh is
+  in flight, a `Refresh` button, and a failure notice when the feed is down.
 - **Capping** — `maxResults` slices the already-distance-sorted list, so the closest
   aircraft are always the ones shown; omit it to list every aircraft in range.
 - **States** — loading, empty ("No aircraft within … km"), and error states render in

@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { WidgetStatusBar } from '@sousa99/homesweethome-components';
 import { getApiBaseUrl } from '../api/baseUrl';
 import { useFlyOversQuery } from '../hooks/useFlyOversQuery';
 import type { Aircraft, Center, LocationQuery } from '../api/types';
 import { AircraftMapView } from './AircraftMapView';
-import { UpdatingIndicator } from './UpdatingIndicator';
-import { Button } from './ui/button';
 import type { RefreshRate } from './RefreshRateSelect';
 import { createWidgetQueryClient } from '../lib/widgetQueryClient';
 import { cn } from '../lib/utils';
@@ -33,9 +32,9 @@ export interface FlyOverMapCardProps {
  * their reported positions. Unlike `FlyOverWidget` it renders no list, so a
  * host can place the map and the list (via `FlyOverListCard`) independently.
  * Fills its container, fetches and auto-refreshes its own data through
- * `useFlyOversQuery` (no host react-query setup required), shows a top-corner
- * updating indicator while a refresh is in flight, and exposes a manual
- * Refresh action.
+ * `useFlyOversQuery` (no host react-query setup required), and shows the
+ * standardized `WidgetStatusBar` (last-update time, updating indicator,
+ * manual Refresh, failure notice) above the map.
  */
 export const FlyOverMapCard = ({
   location,
@@ -69,7 +68,7 @@ function FlyOverMapCardContent({
   debug,
   className,
 }: FlyOverMapCardProps): JSX.Element {
-  const { data, isFetching, isError, error, refetch } = useFlyOversQuery({
+  const { data, dataUpdatedAt, isFetching, isError, error, refetch } = useFlyOversQuery({
     location,
     autoRefresh,
     baseUrl,
@@ -80,17 +79,13 @@ function FlyOverMapCardContent({
 
   return (
     <div className={cn('flex h-full w-full flex-col', className)}>
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
-        <p className="text-sm text-slate-600">
-          Aircraft over {location.lat.toFixed(4)}, {location.lng.toFixed(4)} (±
-          {location.radiusKm} km)
-        </p>
-        <div className="flex items-center gap-2">
-          <UpdatingIndicator visible={isFetching} />
-          <Button variant="ghost" size="sm" onClick={refetch}>
-            Refresh
-          </Button>
-        </div>
+      <div className="pb-2">
+        <WidgetStatusBar
+          lastUpdatedAt={dataUpdatedAt}
+          updating={isFetching}
+          error={isError ? (error?.message ?? 'Something went wrong.') : null}
+          onRefresh={refetch}
+        />
       </div>
 
       <div className="min-h-0 flex-1">
@@ -102,12 +97,6 @@ function FlyOverMapCardContent({
           debug={debug}
         />
       </div>
-
-      {isError && (
-        <p className="mt-2 rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
-          {error?.message ?? 'Something went wrong.'}
-        </p>
-      )}
     </div>
   );
 }

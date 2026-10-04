@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.59.1",
+    "@sousa99/homesweethome-components": "workspace:*",
     "@storybook/addon-docs": "^9.1.20",
     "@storybook/react": "^9.1.20",
     "@storybook/react-vite": "^9.1.20",

@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TaskDeckWrapper } from '../src/components/task/TaskDeckWrapper';
 import { sampleTasks } from '../src/components/task/TaskDeck.fixtures';
@@ -12,11 +13,15 @@ vi.mock('../src/api/client', () => ({
 }));
 
 describe('TaskDeckWrapper', () => {
+  let nowSpy: ReturnType<typeof vi.spyOn> | undefined;
+
   beforeEach(() => {
     vi.mocked(api.listTasks).mockReset();
   });
 
   afterEach(() => {
+    nowSpy?.mockRestore();
+    nowSpy = undefined;
     vi.useRealTimers();
   });
 
@@ -131,5 +136,97 @@ describe('TaskDeckWrapper', () => {
     expect(await screen.findByText('Implement MCP tools')).toBeInTheDocument();
     expect(dataSource).toHaveBeenCalledTimes(1);
     expect(api.listTasks).not.toHaveBeenCalled();
+  });
+
+  it('shows the standardized status bar with the last update time after a successful load', async () => {
+    const dataSource = vi.fn().mockResolvedValue(sampleTasks);
+    render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
+    await screen.findByText('Implement MCP tools');
+
+    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('shows "Not updated yet" before the first load completes', async () => {
+    const dataSource = vi.fn().mockImplementation(() => new Promise<Task[]>(() => {}));
+    render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
+
+    expect(screen.getByText('Not updated yet')).toBeInTheDocument();
+    expect(screen.queryByText(/Last updated \d{2}:\d{2}:\d{2}/)).not.toBeInTheDocument();
+  });
+
+  it('pressing Refresh reloads the deck and advances the last-updated time', async () => {
+    const t0 = new Date(2026, 9, 4, 14, 0, 0).getTime();
+    const t1 = new Date(2026, 9, 4, 14, 0, 5).getTime();
+    nowSpy = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    const dataSource = vi.fn().mockResolvedValue(sampleTasks);
+    render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
+    await screen.findByText('Implement MCP tools');
+    expect(dataSource).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Last updated 14:00:00')).toBeInTheDocument();
+
+    nowSpy.mockReturnValue(t1);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+    await waitFor(() => expect(dataSource).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText('Last updated 14:00:00')).not.toBeInTheDocument();
+    expect(screen.getByText('Last updated 14:00:05')).toBeInTheDocument();
+  });
+
+  it('shows the updating indicator while a refresh is in flight and clears it after', async () => {
+    const user = userEvent.setup();
+    let resolveRefresh!: (tasks: Task[]) => void;
+    const dataSource = vi
+      .fn()
+      .mockResolvedValueOnce(sampleTasks)
+      .mockImplementationOnce(
+        () =>
+          new Promise<Task[]>((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
+    render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
+    await screen.findByText('Implement MCP tools');
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(await screen.findByText('Updating…')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveRefresh(sampleTasks);
+    });
+    await waitFor(() => expect(screen.queryByText('Updating…')).not.toBeInTheDocument());
+  });
+
+  it('keeps the previous last-updated time and surfaces an error when a refresh fails', async () => {
+    const user = userEvent.setup();
+    const dataSource = vi
+      .fn()
+      .mockResolvedValueOnce(sampleTasks)
+      .mockRejectedValueOnce(new Error('boom'));
+    render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
+    await screen.findByText('Implement MCP tools');
+    const time = screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/).textContent as string;
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('boom');
+    expect(screen.getByText(time)).toBeInTheDocument();
+    expect(screen.getByText('Implement MCP tools')).toBeInTheDocument();
+  });
+
+  it('recovers via Refresh after a failure', async () => {
+    const user = userEvent.setup();
+    const dataSource = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(sampleTasks);
+    render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('boom');
+    expect(screen.getByText('Not updated yet')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(await screen.findByText('Implement MCP tools')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
   });
 });

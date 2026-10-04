@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { WidgetStatusBar } from '@sousa99/homesweethome-components';
 import { getApiBaseUrl } from '../api/baseUrl';
 import { useFlyOversQuery } from '../hooks/useFlyOversQuery';
 import type { Aircraft, Center, LocationQuery } from '../api/types';
 import { AircraftMapView } from './AircraftMapView';
 import { AircraftMapCard } from './AircraftMapCard';
-import { UpdatingIndicator } from './UpdatingIndicator';
-import { Button } from './ui/button';
 import type { RefreshRate } from './RefreshRateSelect';
 import { createWidgetQueryClient } from '../lib/widgetQueryClient';
 import { cn } from '../lib/utils';
@@ -36,9 +35,9 @@ export interface FlyOverWidgetProps {
  * (compact `AircraftMapCard`s). Fills the available width; the map expands to
  * the available vertical space and the list takes its natural height,
  * scrolling when it exceeds the space. Fetches and auto-refreshes its own data
- * through `useFlyOversQuery` (no host react-query setup required), shows a
- * top-corner updating indicator while a refresh is in flight, and exposes a
- * manual Refresh action.
+ * through `useFlyOversQuery` (no host react-query setup required), and shows
+ * the standardized `WidgetStatusBar` (last-update time, updating indicator,
+ * manual Refresh, failure notice) above the map.
  */
 export const FlyOverWidget = ({
   location,
@@ -75,7 +74,7 @@ function FlyOverWidgetContent({
   debug,
   className,
 }: FlyOverWidgetProps): JSX.Element {
-  const { data, isLoading, isFetching, isError, error, refetch } = useFlyOversQuery({
+  const { data, dataUpdatedAt, isLoading, isFetching, isError, error, refetch } = useFlyOversQuery({
     location,
     autoRefresh,
     baseUrl,
@@ -88,17 +87,13 @@ function FlyOverWidgetContent({
 
   return (
     <div className={cn('flex h-full w-full flex-col', className)}>
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
-        <p className="text-sm text-slate-600">
-          Aircraft over {location.lat.toFixed(4)}, {location.lng.toFixed(4)} (±
-          {location.radiusKm} km)
-        </p>
-        <div className="flex items-center gap-2">
-          <UpdatingIndicator visible={isFetching} />
-          <Button variant="ghost" size="sm" onClick={refetch}>
-            Refresh
-          </Button>
-        </div>
+      <div className="pb-2">
+        <WidgetStatusBar
+          lastUpdatedAt={dataUpdatedAt}
+          updating={isFetching}
+          error={isError ? (error?.message ?? 'Something went wrong.') : null}
+          onRefresh={refetch}
+        />
       </div>
 
       <div className="min-h-0 flex-1">
@@ -113,11 +108,6 @@ function FlyOverWidgetContent({
 
       <div className="mt-2 max-h-[40%] shrink-0 space-y-2 overflow-y-auto border-t border-slate-100 pt-2">
         {isLoading && <p className="text-center text-sm text-slate-500">Loading aircraft…</p>}
-        {isError && (
-          <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
-            {error?.message ?? 'Something went wrong.'}
-          </p>
-        )}
         {isEmpty && (
           <p className="text-center text-sm text-slate-500">
             No aircraft within {location.radiusKm} km of this location.
