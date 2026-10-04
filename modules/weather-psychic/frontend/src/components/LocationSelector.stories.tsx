@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { LocationSelector, type SearchLocations } from './LocationSelector';
 import { LISBON, MADRID } from './fixtures';
 
-const meta = {
+const meta: Meta<typeof LocationSelector> = {
   title: 'Weather/LocationSelector',
   component: LocationSelector,
   decorators: [
@@ -16,7 +16,7 @@ const meta = {
     value: { control: 'object' },
     placeholder: { control: 'text' },
   },
-} satisfies Meta<typeof LocationSelector>;
+};
 
 export default meta;
 

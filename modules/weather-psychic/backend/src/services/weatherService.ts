@@ -1,7 +1,7 @@
 import type { DailyEntry, Forecast, HourlyEntry, Location } from '../domain/types';
 import { ForecastQuerySchema, LocationQuerySchema } from '../domain/schemas';
 import type { LocationFeed, WeatherFeed } from '../feeds/types';
-import { ValidationError, formatZodError } from '../lib/errors';
+import { ProviderUnavailableError, ValidationError, formatZodError } from '../lib/errors';
 
 export interface WeatherServiceDeps {
   /** The weather feed (live Open-Meteo or mock). */
@@ -56,9 +56,11 @@ export function createWeatherService(deps: WeatherServiceDeps): WeatherService {
       }
       const { lat, lng } = parsed.data;
 
+      // `auto` makes Open-Meteo resolve the location's timezone from the coordinates,
+      // so timestamps come back in local wall-clock time regardless of the query path.
       const raw = await deps.weatherFeed.getForecast(lat, lng, 'auto');
       if (raw.current === null) {
-        throw new ValidationError('Provider returned no current conditions');
+        throw new ProviderUnavailableError('Provider returned no current conditions');
       }
       const reference = raw.current.time;
 

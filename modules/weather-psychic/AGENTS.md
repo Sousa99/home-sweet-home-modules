@@ -18,6 +18,7 @@ backend/    @sousa99/weather-psychic-backend    — one dual-mode package: REST 
 frontend/   @sousa99/weather-psychic-components — one package: SPA, Storybook, components library
 Dockerfile.backend / Dockerfile.frontend / Dockerfile.storybook — build inputs for the GHCR images
 deploy/     deployment manifests (nginx confs + templates + entrypoint scripts)
+docs/       module guides (configuration.md)
 ```
 
 ## Common commands (from the repo root)

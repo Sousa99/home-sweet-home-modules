@@ -63,6 +63,40 @@ describe('HourlyStrip', () => {
     expect(screen.getByText('04:00')).toBeInTheDocument();
   });
 
+  it('excludes the current hour using offset-less local timestamps (provider wall-clock)', () => {
+    // Open-Meteo returns offset-less local times, e.g. "2026-10-04T14:00".
+    const localHourly: HourlyEntry[] = [
+      {
+        time: '2026-10-04T14:00',
+        temperature: 21,
+        weatherCode: 2,
+        condition: 'Partly cloudy',
+        precipitationProbability: 0,
+        isDay: true,
+      },
+      {
+        time: '2026-10-04T15:00',
+        temperature: 22,
+        weatherCode: 2,
+        condition: 'Partly cloudy',
+        precipitationProbability: 0,
+        isDay: true,
+      },
+      {
+        time: '2026-10-04T16:00',
+        temperature: 23,
+        weatherCode: 3,
+        condition: 'Overcast',
+        precipitationProbability: 10,
+        isDay: true,
+      },
+    ];
+    render(<HourlyStrip hourly={localHourly} now="2026-10-04T15:00" />);
+    expect(screen.queryByText('15:00')).not.toBeInTheDocument();
+    expect(screen.getByText('14:00')).toBeInTheDocument();
+    expect(screen.getByText('16:00')).toBeInTheDocument();
+  });
+
   it('renders the auto-scrolling container', () => {
     render(<HourlyStrip hourly={makeHourly()} now={NOW} />);
     const container = screen.getByTestId('hourly-strip');

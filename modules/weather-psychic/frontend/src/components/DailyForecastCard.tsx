@@ -66,15 +66,19 @@ export const DailyForecastCard = ({
 
   const [state, setState] = useState<LoadState>(IDLE);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const requestIdRef = useRef(0);
 
   const load = useCallback(async () => {
     const fetcher = fetcherRef.current;
     if (fetcher === null) return;
+    const requestId = ++requestIdRef.current;
     setState((prev) => ({ ...prev, updating: true }));
     try {
       const data = await fetcher({ location });
+      if (requestId !== requestIdRef.current) return; // stale: a newer request superseded this
       setState({ data, error: null, lastUpdatedAt: Date.now(), updating: false });
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       setState((prev) => ({
         ...prev,
         error: err instanceof Error ? err.message : 'Something went wrong.',
@@ -97,7 +101,10 @@ export const DailyForecastCard = ({
 
   const { data, error, lastUpdatedAt, updating } = state;
 
-  const today = (now ?? new Date().toISOString()).slice(0, 10);
+  // Prefer the forecast's own localized timestamp (the backend localizes the
+  // current conditions); fall back to the injected `now` or the device clock.
+  const reference = data?.current?.time ?? now ?? new Date().toISOString();
+  const today = reference.slice(0, 10);
   const days: DailyEntry[] = (data?.daily ?? [])
     .filter((entry) => entry.date > today)
     .slice(0, maxDays);

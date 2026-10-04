@@ -19,7 +19,11 @@ One set of zod schemas (`backend/src/domain/schemas.ts`) is used by REST validat
 
 ## 2. REST API
 
-Base path `/api`. JSON bodies; errors use the shared `{ error: { code, message } }` shape.
+Base path `/api`. JSON bodies; errors use the shared envelope
+`{ success: false, message: string, errors?: FieldError[] }` (the same envelope the other modules
+use, e.g. fly-over-tracker). Error codes are mapped to HTTP statuses: `validation_error` → 400,
+`provider_unavailable` → 502, unknown → 500. No error code or `retryable` flag is serialized in the
+body — the status code is the contract.
 
 ### `GET /api/health`
 
@@ -30,7 +34,8 @@ Base path `/api`. JSON bodies; errors use the shared `{ error: { code, message }
 Search for places by name (uses the provider geocoding feed).
 
 - **200**: `{ results: Location[] }` (empty array when no matches).
-- **400**: `validation_error` when `query` is missing or shorter than 2 chars.
+- **400**: `{ success: false, message: 'Invalid location query', errors }` when `query` is missing
+  or shorter than 2 chars.
 
 ### `GET /api/weather?lat=<number>&lng=<number>`
 
@@ -39,18 +44,19 @@ Current + hourly + daily forecast for a coordinate.
 - **200**: `Forecast` (`{ location, current, hourly, daily, generatedAt }`). The `hourly` array's
   first entry is the next local hour (current hour excluded, FR-003); the `daily` array's first
   entry is tomorrow (current day excluded, FR-005). `generatedAt` is the server generation time.
-- **400**: `validation_error` when `lat`/`lng` are missing, non-numeric, or out of range.
-- **502**: `provider_unavailable` when the upstream weather provider is unreachable or fails
-  (transient), with a `retryable: true` flag; **500** `internal_error` otherwise.
+- **400**: `{ success: false, message: 'Invalid forecast query', errors }` when `lat`/`lng` are
+  missing, non-numeric, or out of range.
+- **502**: `{ success: false, message }` when the upstream weather provider is unreachable or fails
+  (transient); **500** `{ success: false, message: 'Unexpected internal error' }` otherwise.
 
 ### Errors (all REST endpoints)
 
-| Status | Code | Meaning |
-|--------|------|---------|
-| 400 | `validation_error` | Invalid/missing query params. |
-| 404 | `not_found` | Unknown path. |
-| 502 | `provider_unavailable` | Upstream provider failure (retryable). |
-| 500 | `internal_error` | Unexpected failure. |
+| Status | Message | Meaning |
+|--------|---------|---------|
+| 400 | `Invalid forecast query` / `Invalid location query` | Invalid/missing query params (with `errors` field detail). |
+| 404 | `Not found` | Unknown path. |
+| 502 | provider-failure message | Upstream provider failure (transient). |
+| 500 | `Unexpected internal error` | Unexpected failure (masked). |
 
 ## 3. MCP server
 
@@ -63,7 +69,7 @@ the same shared schemas:
 | `weather.get_forecast` | `{ lat: number, lng: number }` | `Forecast` (same shape as `GET /api/weather`) |
 
 Responses: success = `{ content: [{ type: 'text', text: JSON.stringify(value) }] }`; failure =
-`{ isError: true, content: [{ type: 'text', text: JSON.stringify({ error: { code, message } }) }] }`.
+`{ isError: true, content: [{ type: 'text', text: JSON.stringify({ success: false, message }) }] }`.
 The tool result payloads are byte-for-byte the same objects the REST endpoints return (parity
 tested in `backend/src/tests/contract/`).
 

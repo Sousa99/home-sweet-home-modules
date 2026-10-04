@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CurrentWeatherCard, type FetchForecast } from './CurrentWeatherCard';
 import { fixtureForecast, LISBON, MADRID } from './fixtures';
 
-const meta = {
+const meta: Meta<typeof CurrentWeatherCard> = {
   title: 'Weather/CurrentWeatherCard',
   component: CurrentWeatherCard,
   decorators: [
@@ -17,7 +17,7 @@ const meta = {
     baseUrl: { control: 'text' },
     refetchIntervalMs: { control: 'number' },
   },
-} satisfies Meta<typeof CurrentWeatherCard>;
+};
 
 export default meta;
 

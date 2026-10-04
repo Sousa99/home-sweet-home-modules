@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DailyForecastCard, type FetchForecast } from './DailyForecastCard';
 import { fixtureForecast, LISBON, MADRID } from './fixtures';
 
-const meta = {
+const meta: Meta<typeof DailyForecastCard> = {
   title: 'Weather/DailyForecastCard',
   component: DailyForecastCard,
   decorators: [
@@ -17,7 +17,7 @@ const meta = {
     baseUrl: { control: 'text' },
     maxDays: { control: 'number' },
   },
-} satisfies Meta<typeof DailyForecastCard>;
+};
 
 export default meta;
 

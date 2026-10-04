@@ -20,7 +20,7 @@ publishable components library with two widgets plus a location selector.
 | Layer | Technology |
 |-------|------------|
 | Backend | Node 24, Hono, zod, MCP TypeScript SDK (`@modelcontextprotocol/server` + `@modelcontextprotocol/hono`), pino |
-| Frontend | Vite, React 19, Tailwind CSS v4, TanStack Query, React Router, lucide-react |
+| Frontend | Vite, React 19, Tailwind CSS v4, React Router, lucide-react |
 | Tooling | pnpm 11, TypeScript, ESLint (flat config), Prettier, Vitest, Testing Library |
 
 The backend is a single codebase with a **dual-mode entry**: `--http` serves the REST API on

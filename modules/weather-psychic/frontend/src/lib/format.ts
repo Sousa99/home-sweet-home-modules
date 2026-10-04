@@ -12,6 +12,16 @@ function formatWith(locale: string, options?: Intl.DateTimeFormatOptions): Intl.
   return new Intl.DateTimeFormat(locale, { timeZone: 'UTC', ...options });
 }
 
+/**
+ * Parse a timestamp as an absolute instant, treating offset-less local
+ * wall-clock strings (the provider's localized times) as UTC so the encoded
+ * hour renders unchanged. Strings carrying an explicit offset/`Z` parse as-is.
+ */
+function parseTimestamp(value: string): Date {
+  const hasOffset = /(Z|[+-]\d{2}:?\d{2})$/.test(value);
+  return new Date(hasOffset ? value : `${value}Z`);
+}
+
 /** Format a temperature as a signed integer with the degree symbol. */
 export function formatTemperature(celsius: number): string {
   return `${Math.round(celsius)}°`;
@@ -19,7 +29,7 @@ export function formatTemperature(celsius: number): string {
 
 /** Format an ISO-8601 timestamp as a short hour, e.g. "14:00". */
 export function formatHour(time: string): string {
-  const date = new Date(time);
+  const date = parseTimestamp(time);
   return new Intl.DateTimeFormat('en-GB', {
     timeZone: 'UTC',
     hour: '2-digit',

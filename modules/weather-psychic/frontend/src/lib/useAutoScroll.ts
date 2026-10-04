@@ -41,6 +41,9 @@ export function useAutoScroll<T extends HTMLElement>({
   }, []);
 
   useEffect(() => {
+    // Under reduced motion, never start the loop at all.
+    if (prefersReducedMotion.current) return undefined;
+
     let rafId = 0;
     let lastTime: number | null = null;
     let pausedUntil = 0;
@@ -48,15 +51,10 @@ export function useAutoScroll<T extends HTMLElement>({
 
     const frame = (time: number) => {
       const el = ref.current;
-      if (el === null || prefersReducedMotion.current) {
-        rafId = requestAnimationFrame(frame);
-        return;
-      }
+      // Guard re-checks the flag so a mid-scroll preference change stops motion.
+      if (el === null || prefersReducedMotion.current) return;
       const maxScrollLeft = el.scrollWidth - el.clientWidth;
-      if (maxScrollLeft <= 0) {
-        rafId = requestAnimationFrame(frame);
-        return;
-      }
+      if (maxScrollLeft <= 0) return;
 
       // While paused at the end, hold position; when the pause elapses, snap
       // back to the left and resume the loop.

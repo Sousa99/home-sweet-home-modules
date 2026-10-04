@@ -49,6 +49,8 @@ Compact, succinct list of the upcoming days.
 | `fetchForecast` | `(input: { location: Location }) => Promise<Forecast>` | default client | Injectable data fetcher. |
 | `baseUrl` | `string` | `''` | Overrides the resolved API base URL. |
 | `refetchIntervalMs` | `number` | `900000` | Auto-refresh cadence; `0` disables. |
+| `maxDays` | `number` | `5` | Maximum number of days to list. |
+| `now` | `string` (ISO) | device clock | Current time used to determine "today"; defaults to the device clock. |
 | `className` | `string` | `undefined` | Extra classes for the widget root. |
 
 Behavior:

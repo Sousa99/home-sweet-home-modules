@@ -12,6 +12,7 @@ and an **independent release cycle**.
 | [fly-over-tracker](./modules/fly-over-tracker/README.md) | Track which aircraft are flying over a given location | REST + MCP | React SPA + components |
 | [procrastinator-tracker](./modules/procrastinator-tracker/README.md) | Local-first task tracker (REST + MCP + SQLite) | REST + MCP | React SPA + components |
 | [bus-catcher](./modules/bus-catcher/README.md) | Bus arrival tracking for Lisbon's Carris Metropolitana | REST + MCP | React SPA + components |
+| [weather-psychic](./modules/weather-psychic/README.md) | Current weather + forecast widgets (hourly + daily) | REST + MCP | React SPA + components |
 
 Every module shares the same shape:
 

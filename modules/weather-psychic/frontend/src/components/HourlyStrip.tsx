@@ -29,7 +29,7 @@ export function HourlyStrip({
 }: HourlyStripProps): JSX.Element {
   const { ref } = useAutoScroll<HTMLDivElement>({ speedPxPerSecond, resetPauseMs });
 
-  const currentHour = now !== undefined ? new Date(now).toISOString().slice(0, 13) : null;
+  const currentHour = now !== undefined ? now.slice(0, 13) : null;
   const entries = hourly.filter(
     (entry) => currentHour === null || entry.time.slice(0, 13) !== currentHour,
   );
