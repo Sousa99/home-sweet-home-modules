@@ -55,26 +55,26 @@ testable with injected fetchers (no live backend required).
 
 ### Backend foundation
 
-- [ ] T010 [P] Create shared domain types `modules/weather-psychic/backend/src/domain/types.ts` (`Location`, `CurrentWeather`, `HourlyEntry`, `DailyEntry`, `Forecast` per `data-model.md`)
-- [ ] T011 Create shared zod schemas `modules/weather-psychic/backend/src/domain/schemas.ts` (`LocationSchema`, `LocationQuerySchema`, `ForecastQuerySchema`, `CurrentWeatherSchema`, `HourlyEntrySchema`, `DailyEntrySchema`, `ForecastSchema`; lat/lng ranges, query min 2 chars) — depends on T010
-- [ ] T012 [P] Create WMO-code mapping `modules/weather-psychic/backend/src/lib/conditions.ts` (weather_code 0–99 → `{ label, iconKey }`)
-- [ ] T013 [P] Create zod-validated config `modules/weather-psychic/backend/src/lib/config.ts` (`PORT` 3000, `MCP_PORT` 3001, `HOST`, `FEED` = `mock|open-meteo`)
-- [ ] T014 [P] Create shared error taxonomy `modules/weather-psychic/backend/src/lib/errors.ts` (`AppError`, `ValidationError`, `ProviderUnavailableError`, `toErrorResponse` → `{ error: { code, message } }`, `errorStatus`)
-- [ ] T015 [P] Create minimal JSON logger `modules/weather-psychic/backend/src/lib/logger.ts`
-- [ ] T016 [P] Create feed seam `modules/weather-psychic/backend/src/feeds/types.ts` (`WeatherFeed`, `LocationFeed` interfaces)
-- [ ] T017 [P] Create deterministic mock feed `modules/weather-psychic/backend/src/feeds/mock.ts` (fixed fixture locations + forecast, offline/hermetic)
-- [ ] T018 Create weather service `modules/weather-psychic/backend/src/services/weatherService.ts` (validate against shared schemas → call feed → shape output: hourly starts at next local hour excluding current hour, daily starts tomorrow excluding today, ascending order, `generatedAt`) — depends on T011, T016, T017, T012
-- [ ] T019 [P] Write WMO-mapping unit test `modules/weather-psychic/backend/src/tests/unit/conditions.test.ts` FIRST (fixture covers 0, 2, 3, 45, 61, 80, 95; assert it fails before T012)
-- [ ] T020 [P] Write service unit test `modules/weather-psychic/backend/src/tests/unit/weather-service.test.ts` FIRST (hourly excludes current hour, daily excludes today, ascending order, `generatedAt` present; assert it fails before T018)
+- [x] T010 [P] Create shared domain types `modules/weather-psychic/backend/src/domain/types.ts` (`Location`, `CurrentWeather`, `HourlyEntry`, `DailyEntry`, `Forecast` per `data-model.md`)
+- [x] T011 Create shared zod schemas `modules/weather-psychic/backend/src/domain/schemas.ts` (`LocationSchema`, `LocationQuerySchema`, `ForecastQuerySchema`, `CurrentWeatherSchema`, `HourlyEntrySchema`, `DailyEntrySchema`, `ForecastSchema`; lat/lng ranges, query min 2 chars) — depends on T010
+- [x] T012 [P] Create WMO-code mapping `modules/weather-psychic/backend/src/lib/conditions.ts` (weather_code 0–99 → `{ label, iconKey }`)
+- [x] T013 [P] Create zod-validated config `modules/weather-psychic/backend/src/lib/config.ts` (`PORT` 3000, `MCP_PORT` 3001, `HOST`, `FEED` = `mock|open-meteo`)
+- [x] T014 [P] Create shared error taxonomy `modules/weather-psychic/backend/src/lib/errors.ts` (`AppError`, `ValidationError`, `ProviderUnavailableError`, `toErrorResponse` → `{ error: { code, message } }`, `errorStatus`)
+- [x] T015 [P] Create minimal JSON logger `modules/weather-psychic/backend/src/lib/logger.ts`
+- [x] T016 [P] Create feed seam `modules/weather-psychic/backend/src/feeds/types.ts` (`WeatherFeed`, `LocationFeed` interfaces)
+- [x] T017 [P] Create deterministic mock feed `modules/weather-psychic/backend/src/feeds/mock.ts` (fixed fixture locations + forecast, offline/hermetic)
+- [x] T018 Create weather service `modules/weather-psychic/backend/src/services/weatherService.ts` (validate against shared schemas → call feed → shape output: hourly starts at next local hour excluding current hour, daily starts tomorrow excluding today, ascending order, `generatedAt`) — depends on T011, T016, T017, T012
+- [x] T019 [P] Write WMO-mapping unit test `modules/weather-psychic/backend/src/tests/unit/conditions.test.ts` FIRST (fixture covers 0, 2, 3, 45, 61, 80, 95; assert it fails before T012)
+- [x] T020 [P] Write service unit test `modules/weather-psychic/backend/src/tests/unit/weather-service.test.ts` FIRST (hourly excludes current hour, daily excludes today, ascending order, `generatedAt` present; assert it fails before T018)
 
 ### Frontend foundation
 
-- [ ] T021 [P] Create shared response types `modules/weather-psychic/frontend/src/api/types.ts` mirroring backend schemas
-- [ ] T022 [P] Create base-url loader `modules/weather-psychic/frontend/src/api/baseUrl.ts` per the [base-url contract](../004-local-setup-standardization/contracts/base-url.md) (`loadApiBaseUrl`/`getApiBaseUrl`, `/config.json` + `API_BASE_URL` env, fallback same-origin `/api`; precedence `baseUrl` prop > env > same-origin)
-- [ ] T023 Create API client `modules/weather-psychic/frontend/src/api/client.ts` (`request<T>()` + typed `ApiError`, `api.searchLocations(query)`, `api.getForecast({ lat, lng })`, optional `baseUrl` arg per base-url contract) — depends on T022, T021
-- [ ] T024 [P] Create frontend WMO-condition mapping `modules/weather-psychic/frontend/src/lib/conditions.ts` (code → label + icon key, mirrored from backend fixture)
-- [ ] T025 [P] Create formatting helpers `modules/weather-psychic/frontend/src/lib/format.ts` (temperature, time, day-name formatting via `Intl`)
-- [ ] T026 [P] Write unit tests `modules/weather-psychic/frontend/src/lib/__tests__/conditions.test.ts`, `format.test.ts`, and `baseUrl.test.ts` FIRST (assert they fail before T024/T025/T022; `baseUrl.test.ts` locks the base-url precedence contract)
+- [x] T021 [P] Create shared response types `modules/weather-psychic/frontend/src/api/types.ts` mirroring backend schemas
+- [x] T022 [P] Create base-url loader `modules/weather-psychic/frontend/src/api/baseUrl.ts` per the [base-url contract](../004-local-setup-standardization/contracts/base-url.md) (`loadApiBaseUrl`/`getApiBaseUrl`, `/config.json` + `API_BASE_URL` env, fallback same-origin `/api`; precedence `baseUrl` prop > env > same-origin)
+- [x] T023 Create API client `modules/weather-psychic/frontend/src/api/client.ts` (`request<T>()` + typed `ApiError`, `api.searchLocations(query)`, `api.getForecast({ lat, lng })`, optional `baseUrl` arg per base-url contract) — depends on T022, T021
+- [x] T024 [P] Create frontend WMO-condition mapping `modules/weather-psychic/frontend/src/lib/conditions.ts` (code → label + icon key, mirrored from backend fixture)
+- [x] T025 [P] Create formatting helpers `modules/weather-psychic/frontend/src/lib/format.ts` (temperature, time, day-name formatting via `Intl`)
+- [x] T026 [P] Write unit tests `modules/weather-psychic/frontend/src/lib/__tests__/conditions.test.ts`, `format.test.ts`, and `baseUrl.test.ts` FIRST (assert they fail before T024/T025/T022; `baseUrl.test.ts` locks the base-url precedence contract)
 
 **Checkpoint**: Foundation ready — user story implementation can now begin in parallel
 
