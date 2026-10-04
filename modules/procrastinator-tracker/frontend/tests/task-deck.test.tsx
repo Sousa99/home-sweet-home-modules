@@ -102,4 +102,36 @@ describe('TaskDeck', () => {
     );
     expect(screen.getByText(`custom-${top?.title}`)).toBeInTheDocument();
   });
+
+  it('renders an empty card (not null) when there are no tasks', () => {
+    render(<TaskDeck tasks={[]} autoRotateMs={0} />);
+    const empty = screen.getByTestId('task-deck-empty');
+    expect(empty).toBeInTheDocument();
+    expect(empty).toHaveTextContent('No tasks yet.');
+  });
+
+  it('renders the empty card with a filter message when all tasks are filtered out', () => {
+    const tasks = [
+      makeTask({ id: 1, title: 'In progress', status: 'in-progress' }),
+      makeTask({ id: 2, title: 'Started', status: 'started' }),
+    ];
+    render(<TaskDeck tasks={tasks} filters={{ status: 'finished' }} autoRotateMs={0} />);
+    const empty = screen.getByTestId('task-deck-empty');
+    expect(empty).toBeInTheDocument();
+    expect(empty).toHaveTextContent('No tasks match these filters.');
+  });
+
+  it('applies the compact 16rem stage height via --deck-height by default', () => {
+    const { container } = render(<TaskDeck tasks={sampleTasks} autoRotateMs={0} />);
+    const stage = container.firstElementChild as HTMLElement;
+    expect(stage).toHaveStyle({ '--deck-height': '16rem' });
+  });
+
+  it('lets a consumer style override the default --deck-height', () => {
+    const { container } = render(
+      <TaskDeck tasks={sampleTasks} autoRotateMs={0} style={{ '--deck-height': '24rem' }} />,
+    );
+    const stage = container.firstElementChild as HTMLElement;
+    expect(stage).toHaveStyle({ '--deck-height': '24rem' });
+  });
 });

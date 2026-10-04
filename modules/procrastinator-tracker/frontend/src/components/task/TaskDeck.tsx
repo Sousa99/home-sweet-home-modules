@@ -1,10 +1,13 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { CalendarDays, Flame, MapPin } from 'lucide-react';
 import type { Task, TaskFilters } from '../../api/client';
 import { Badge, StatusBadge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { cn } from '../../lib/utils';
+import { hasActiveFilters } from '../../lib/taskFilters';
+import { resolveExitPreset, type TransitionVariant } from '../../lib/taskTransition';
 import { Deck, DeckCards, DeckItem } from '../ui/deck/deck';
+import { TaskDeckEmpty } from './TaskDeckEmpty';
 
 export interface TaskDeckProps {
   tasks: Task[];
@@ -13,9 +16,11 @@ export interface TaskDeckProps {
   loop?: boolean;
   stackSize?: number;
   slideDurationMs?: number;
+  transitionVariant?: TransitionVariant;
   renderCard?: (task: Task) => ReactNode;
   onCardChange?: (index: number) => void;
   className?: string;
+  style?: CSSProperties & Record<`--${string}`, string | number>;
 }
 
 const EMPTY_FILTERS: TaskFilters = {};
@@ -109,30 +114,40 @@ export function TaskDeck({
   loop = true,
   stackSize = 3,
   slideDurationMs = 500,
+  transitionVariant = 'slide',
   renderCard,
   onCardChange,
   className,
+  style,
 }: TaskDeckProps) {
   const render = renderCard ?? ((task: Task) => <TaskDeckCard task={task} />);
   const visible = tasks.filter((task) => matchesFilters(task, filters)).sort(sortByUrgency);
 
-  if (visible.length === 0) return null;
-
   return (
-    <Deck className={cn('h-[24rem] w-full sm:h-[26rem]', className)}>
-      <DeckCards
-        autoRotateMs={autoRotateMs}
-        loop={loop}
-        onCurrentIndexChange={onCardChange}
-        slideDurationMs={slideDurationMs}
-        stackSize={stackSize}
-      >
-        {visible.map((task) => (
-          <DeckItem className="p-0" data-testid="task-deck-card" key={task.id}>
-            {render(task)}
-          </DeckItem>
-        ))}
-      </DeckCards>
+    <Deck
+      className={cn('h-[var(--deck-height)] w-full', className)}
+      style={{ '--deck-height': '16rem', ...style } as CSSProperties}
+    >
+      {visible.length === 0 ? (
+        <TaskDeckEmpty
+          message={hasActiveFilters(filters) ? 'No tasks match these filters.' : 'No tasks yet.'}
+        />
+      ) : (
+        <DeckCards
+          autoRotateMs={autoRotateMs}
+          exitPreset={resolveExitPreset(transitionVariant)}
+          loop={loop}
+          onCurrentIndexChange={onCardChange}
+          slideDurationMs={slideDurationMs}
+          stackSize={stackSize}
+        >
+          {visible.map((task) => (
+            <DeckItem className="p-0" data-testid="task-deck-card" key={task.id}>
+              {render(task)}
+            </DeckItem>
+          ))}
+        </DeckCards>
+      )}
     </Deck>
   );
 }

@@ -3,7 +3,9 @@ import { WidgetStatusBar } from '@sousa99/homesweethome-components';
 import type { Task, TaskFilters } from '../../api/client';
 import { api } from '../../api/client';
 import { cn } from '../../lib/utils';
+import { hasActiveFilters } from '../../lib/taskFilters';
 import { TaskDeck, type TaskDeckProps } from './TaskDeck';
+import { TaskDeckEmpty } from './TaskDeckEmpty';
 
 export interface TaskDeckWrapperProps extends Omit<TaskDeckProps, 'tasks'> {
   filters?: TaskFilters;
@@ -17,9 +19,6 @@ type LoadState =
   | { kind: 'error'; message: string; tasks: Task[] | null; lastUpdatedAt: number | null }
   | { kind: 'success'; tasks: Task[]; lastUpdatedAt: number };
 
-const hasActiveFilters = (filters: TaskFilters): boolean =>
-  Object.values(filters).some((value) => value !== undefined);
-
 const EMPTY_FILTERS: TaskFilters = {};
 
 export function TaskDeckWrapper({
@@ -31,9 +30,11 @@ export function TaskDeckWrapper({
   loop = true,
   stackSize = 3,
   slideDurationMs = 500,
+  transitionVariant = 'slide',
   renderCard,
   onCardChange,
   className,
+  style,
 }: TaskDeckWrapperProps) {
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
   const [updating, setUpdating] = useState(false);
@@ -101,7 +102,7 @@ export function TaskDeckWrapper({
   const tasks = state.kind === 'success' || state.kind === 'error' ? state.tasks : null;
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn('space-y-3', className)} style={style}>
       <WidgetStatusBar
         lastUpdatedAt={
           state.kind === 'success' || state.kind === 'error' ? state.lastUpdatedAt : null
@@ -113,9 +114,13 @@ export function TaskDeckWrapper({
       {state.kind === 'loading' && <p className="text-sm text-slate-400">Loading tasks…</p>}
       {tasks !== null &&
         (tasks.length === 0 ? (
-          <p className="rounded-xl bg-white/60 py-8 text-center text-sm text-slate-400">
-            {hasActiveFilters(filters) ? 'No tasks match these filters.' : 'No tasks yet.'}
-          </p>
+          <div className="h-[var(--deck-height,16rem)] w-full">
+            <TaskDeckEmpty
+              message={
+                hasActiveFilters(filters) ? 'No tasks match these filters.' : 'No tasks yet.'
+              }
+            />
+          </div>
         ) : (
           <TaskDeck
             tasks={tasks}
@@ -124,8 +129,10 @@ export function TaskDeckWrapper({
             loop={loop}
             stackSize={stackSize}
             slideDurationMs={slideDurationMs}
+            transitionVariant={transitionVariant}
             renderCard={renderCard}
             onCardChange={onCardChange}
+            style={style}
           />
         ))}
     </div>
