@@ -38,6 +38,37 @@ With `loop` disabled, the deck stops at the last card instead of wrapping back t
 
 <Canvas of={TaskDeckStories.NoLoop} />
 
+## Empty
+
+When the visible task set is empty — the dataset has no tasks **or** every task is excluded by the
+active filters — `TaskDeck` renders a visible card-styled empty state instead of blank space. The
+message adapts to the cause: `No tasks yet.` for an empty dataset, `No tasks match these filters.`
+when filters exclude everything. The empty card keeps the deck's compact stage height, so the
+layout does not collapse.
+
+<Canvas of={TaskDeckStories.Empty} />
+
+## Slide and Gentle transitions
+
+The exiting card's horizontal travel is controlled by `transitionVariant`:
+
+- **`slide`** (default) — the exiting card pans the full 500px sideways, exactly today's animation.
+- **`gentle`** — the exiting card travels only 80px horizontally; duration, easing, rotation, stack
+  depth, and swipe-dismiss behavior are unchanged.
+
+<Canvas of={TaskDeckStories.Slide} />
+<Canvas of={TaskDeckStories.Gentle} />
+
+## Compact and overridden size
+
+The deck stage defaults to a compact **16rem** height, applied through the CSS custom property
+`--deck-height`. Consumers can grow the stage with the existing `style` surface — any value set on
+`--deck-height` in the supplied `style` wins over the default. Long task descriptions stay
+truncated via `line-clamp` regardless of the stage height.
+
+<Canvas of={TaskDeckStories.Compact} />
+<Canvas of={TaskDeckStories.OverrideSize} />
+
 ## Props
 
 <ArgTypes of={TaskDeckStories} />

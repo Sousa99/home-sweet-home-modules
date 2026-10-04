@@ -33,6 +33,7 @@ export type DeckCardsProps = HTMLAttributes<HTMLDivElement> & {
   autoRotateMs?: number;
   loop?: boolean;
   slideDurationMs?: number;
+  exitTravel?: number;
 };
 
 export const DeckCards = ({
@@ -52,6 +53,7 @@ export const DeckCards = ({
   autoRotateMs = 0,
   loop = true,
   slideDurationMs = 500,
+  exitTravel = 500,
   ...props
 }: DeckCardsProps) => {
   const childrenArray = Children.toArray(children) as ReactElement[];
@@ -161,6 +163,7 @@ export const DeckCards = ({
           return (
             <DeckCard
               exitDirection={exitDirection}
+              exitTravel={exitTravel}
               key={cardKey}
               onDragStateChange={(dragging) => {
                 draggingRef.current = dragging;
@@ -213,6 +216,7 @@ type DeckCardProps = {
   exitDirection: 'left' | 'right' | null;
   onDragStateChange?: (dragging: boolean) => void;
   slideDurationMs: number;
+  exitTravel: number;
 };
 
 const DeckCard = ({
@@ -223,6 +227,7 @@ const DeckCard = ({
   exitDirection,
   onDragStateChange,
   slideDurationMs,
+  exitTravel,
 }: DeckCardProps) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
@@ -245,9 +250,9 @@ const DeckCard = ({
   let exitX = 0;
 
   if (exitDirection === 'left') {
-    exitX = -500;
+    exitX = -exitTravel;
   } else if (exitDirection === 'right') {
-    exitX = 500;
+    exitX = exitTravel;
   }
 
   const castedChildren = children as ReactElement<HTMLAttributes<HTMLDivElement>>;

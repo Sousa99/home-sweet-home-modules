@@ -12,11 +12,26 @@ vi.mock('../src/api/client', () => ({
   },
 }));
 
+const { taskDeckPropsSpy } = vi.hoisted(() => ({ taskDeckPropsSpy: vi.fn() }));
+
+vi.mock('../src/components/task/TaskDeck', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/components/task/TaskDeck')>();
+  const React = await import('react');
+  return {
+    ...actual,
+    TaskDeck: (props: React.ComponentProps<typeof actual.TaskDeck>) => {
+      taskDeckPropsSpy(props);
+      return React.createElement(actual.TaskDeck, props);
+    },
+  };
+});
+
 describe('TaskDeckWrapper', () => {
   let nowSpy: ReturnType<typeof vi.spyOn> | undefined;
 
   beforeEach(() => {
     vi.mocked(api.listTasks).mockReset();
+    taskDeckPropsSpy.mockClear();
   });
 
   afterEach(() => {
@@ -50,6 +65,39 @@ describe('TaskDeckWrapper', () => {
     const dataSource = vi.fn().mockResolvedValue([]);
     render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
     expect(await screen.findByText(/No tasks yet/i)).toBeInTheDocument();
+  });
+
+  it('renders the shared TaskDeckEmpty card when the data source resolves empty', async () => {
+    const dataSource = vi.fn().mockResolvedValue([]);
+    render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
+    const empty = await screen.findByTestId('task-deck-empty');
+    expect(empty).toBeInTheDocument();
+    expect(empty).toHaveTextContent(/No tasks yet/i);
+  });
+
+  it('defaults the transitionVariant to slide when not provided', async () => {
+    const dataSource = vi.fn().mockResolvedValue(sampleTasks);
+    render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
+    await screen.findByText('Implement MCP tools');
+    expect(taskDeckPropsSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ transitionVariant: 'slide' }),
+    );
+  });
+
+  it('forwards the transitionVariant to the inner TaskDeck', async () => {
+    const dataSource = vi.fn().mockResolvedValue(sampleTasks);
+    render(
+      <TaskDeckWrapper
+        dataSource={dataSource}
+        refreshRateMs={0}
+        autoRotateMs={0}
+        transitionVariant="gentle"
+      />,
+    );
+    await screen.findByText('Implement MCP tools');
+    expect(taskDeckPropsSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ transitionVariant: 'gentle' }),
+    );
   });
 
   it('shows an error state when the data source rejects', async () => {

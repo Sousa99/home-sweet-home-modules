@@ -44,6 +44,12 @@ const meta = {
       control: { type: 'number', min: 100, max: 2000, step: 100 },
       description: 'Duration (ms) of the swipe/exit card animation.',
     },
+    transitionVariant: {
+      control: 'inline-radio',
+      options: ['slide', 'gentle'],
+      description:
+        'Exit travel style forwarded to the inner deck: `slide` (default) pans the exiting card the full 500px; `gentle` reduces horizontal travel to 80px.',
+    },
     renderCard: {
       control: false,
       description: 'Optional per-card render override; defaults to a full TaskDeckCard.',
@@ -51,6 +57,11 @@ const meta = {
     className: {
       control: 'text',
       description: 'Optional class names for the wrapper.',
+    },
+    style: {
+      control: 'object',
+      description:
+        'Optional inline styles for the wrapper root; a `--deck-height` value here cascades to the empty card container (e.g. `{ "--deck-height": "24rem" }`).',
     },
   },
 } satisfies Meta<typeof TaskDeckWrapper>;
@@ -64,5 +75,17 @@ export const Default: Story = {};
 export const AutoRotating: Story = {
   args: {
     autoRotateMs: 2000,
+  },
+};
+
+export const Empty: Story = {
+  args: {
+    dataSource: async () => [],
+  },
+};
+
+export const Gentle: Story = {
+  args: {
+    transitionVariant: 'gentle',
   },
 };

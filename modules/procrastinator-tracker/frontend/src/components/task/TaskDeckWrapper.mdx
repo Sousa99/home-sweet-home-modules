@@ -38,6 +38,29 @@ The deck advances automatically on `autoRotateMs` (2s in this story).
 
 <Canvas of={TaskDeckWrapperStories.AutoRotating} />
 
+## Empty
+
+When the fetched dataset is empty, the wrapper renders the shared card-styled empty state
+(`TaskDeckEmpty`) with `No tasks yet.` — or `No tasks match these filters.` when the active
+filters exclude everything. The empty card keeps the deck's compact height so the layout does not
+collapse.
+
+<Canvas of={TaskDeckWrapperStories.Empty} />
+
+## Gentle transition
+
+`transitionVariant` is forwarded to the inner `TaskDeck`. The default `slide` reproduces today's
+wide 500px exit pan; `gentle` reduces the exiting card's horizontal travel to 80px while keeping
+duration, rotation, and swipe behavior identical.
+
+<Canvas of={TaskDeckWrapperStories.Gentle} />
+
+## Sizing
+
+The wrapper accepts a `style` passthrough on its root container. The deck inside defaults to a
+compact 16rem stage (CSS custom property `--deck-height`); consumers can grow it by passing e.g.
+`style={{ '--deck-height': '24rem' }}` — the value cascades to the empty-card container too.
+
 ## Props
 
 <ArgTypes of={TaskDeckWrapperStories} />

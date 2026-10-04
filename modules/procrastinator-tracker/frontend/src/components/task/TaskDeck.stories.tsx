@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { CSSProperties } from 'react';
 import { TaskDeck } from './TaskDeck';
 import { sampleTasks } from './TaskDeck.fixtures';
 
@@ -39,6 +40,12 @@ const meta = {
       control: { type: 'number', min: 100, max: 2000, step: 100 },
       description: 'Duration (ms) of the swipe/exit card animation.',
     },
+    transitionVariant: {
+      control: 'inline-radio',
+      options: ['slide', 'gentle'],
+      description:
+        'Exit travel style: `slide` (default) pans the exiting card the full 500px; `gentle` reduces horizontal travel to 80px.',
+    },
     renderCard: {
       control: false,
       description: 'Optional per-card render override; defaults to a full TaskDeckCard.',
@@ -51,6 +58,11 @@ const meta = {
     className: {
       control: 'text',
       description: 'Optional class names for the deck stage.',
+    },
+    style: {
+      control: 'object',
+      description:
+        'Optional inline styles for the deck stage; use `--deck-height` to override the compact 16rem default (e.g. `{ "--deck-height": "24rem" }`).',
     },
   },
 } satisfies Meta<typeof TaskDeck>;
@@ -77,5 +89,31 @@ export const NoLoop: Story = {
   args: {
     loop: false,
     stackSize: 3,
+  },
+};
+
+export const Empty: Story = {
+  args: {
+    tasks: [],
+  },
+};
+
+export const Slide: Story = {
+  args: {
+    transitionVariant: 'slide',
+  },
+};
+
+export const Gentle: Story = {
+  args: {
+    transitionVariant: 'gentle',
+  },
+};
+
+export const Compact: Story = {};
+
+export const OverrideSize: Story = {
+  args: {
+    style: { '--deck-height': '24rem' } as CSSProperties,
   },
 };
