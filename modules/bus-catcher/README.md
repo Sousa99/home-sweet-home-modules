@@ -116,7 +116,7 @@ function NextBus() {
 
 `StopCard` fetches the next arrivals itself, polling on `refetchIntervalMs` (default `15000`). Its
 header shows the standardized status bar shared by every Home Sweet Home data widget:
-`Last updated {HH:MM:SS}` (or `Not updated yet` before the first load), an `Updating…` indicator
+`Last updated {YYYY-MM-DD HH:MM:SS <zone>}` (or `Not updated yet` before the first load), an `Updating…` indicator
 while loading, a `Refresh` button that re-runs the load immediately, and a failure notice that
 keeps the last successful time. The optional `baseUrl` prop points the built-in client at a remote
 backend; when empty it targets the same-origin `/api` path. See the `StopCard.mdx` workbench page

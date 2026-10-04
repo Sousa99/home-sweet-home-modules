@@ -36,26 +36,31 @@ No other symbols are part of the public surface. `WidgetStatusBar` and
 
 The status bar renders a single row containing (in order):
 
-1. **Last-updated status**: text `Last updated {HH:MM:SS}` (device-local, 24-hour) when
-   `lastUpdatedAt` is set; `Not updated yet` when `null`. Served as the primary status.
-2. **Updating indicator**: a small spinner + `Updating…` chip rendered **only** while
-   `updating` is true; absent otherwise.
-3. **Refresh control**: a button labelled `Refresh` that calls `onRefresh`. Disabled
-   while `updating` (no duplicate concurrent loads).
-4. **Failure notice**: when `error` is non-null, an error message is surfaced in the
+1. **Last-updated status**: text `Last updated {YYYY-MM-DD HH:MM:SS <zone>}` (device-local,
+   full timestamp: date, 24-hour time, and timezone) when `lastUpdatedAt` is set;
+   `Not updated yet` when `null`. Served as the primary status on the left.
+2. **Right-aligned controls**: the updating indicator and the Refresh control are grouped
+   and aligned to the right (`ml-auto`):
+   - **Updating indicator**: a small spinner + `Updating…` chip rendered **only** while
+     `updating` is true; absent otherwise.
+   - **Refresh control**: a button labelled `Refresh` that calls `onRefresh`. Disabled
+     while `updating` (no duplicate concurrent loads).
+3. **Failure notice**: when `error` is non-null, an error message is surfaced in the
    status area (e.g. a red-role alert). It does not replace the `Last updated` value or
    the Refresh control — the user can retry.
 
 ### Identical-by-construction guarantee (FR-004)
 
-Wording (`Last updated`, `Not updated yet`, `Updating…`, `Refresh`), the 24-hour local
-time format, layout, and behavior are defined once in this component. All widgets render
-the exact same bar; no per-module overrides or alternate markup are permitted.
+Wording (`Last updated`, `Not updated yet`, `Updating…`, `Refresh`), the full-timestamp
+format, the right-aligned controls, and behavior are defined once in this component. All
+widgets render the exact same bar; no per-module overrides or alternate markup are
+permitted.
 
 ## Accessibility contract (FR-008)
 
-- The status area and the updating indicator use a polite live region (`role="status"`,
-  `aria-live="polite"`) so assistive tech announces updates.
+- The last-updated status and the updating indicator each live in a polite live region
+  (`role="status"`, `aria-live="polite"`), so assistive tech announces both the timestamp
+  and updates.
 - The Refresh control is a real `<button>` with an accessible name (`Refresh`).
 - The failure notice uses `role="alert"` so failures are announced promptly.
 - The updating indicator has an accessible label (`Updating…`) and is hidden from
@@ -66,8 +71,9 @@ the exact same bar; no per-module overrides or alternate markup are permitted.
 `formatLastUpdated(timestamp: number | null): string`
 
 - `null` → `"Not updated yet"`.
-- a number → the device-local time rendered as `HH:MM:SS` (24-hour, zero-padded),
-  e.g. `14:32:05`.
+- a number → the device-local full timestamp rendered as `YYYY-MM-DD HH:MM:SS <zone>`
+  (24-hour, zero-padded), e.g. `2026-10-04 14:32:05 GMT+1`. The zone is the short local
+  timezone name (e.g. `GMT+1`), with a `UTC±HH:MM` fallback if no name is available.
 
 Pure function; unit-tested in the shared package.
 

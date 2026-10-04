@@ -177,7 +177,9 @@ describe('StopCard widget', () => {
     render(<StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />);
     await screen.findByText('Cais');
 
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
   });
@@ -187,7 +189,9 @@ describe('StopCard widget', () => {
     render(<StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />);
 
     expect(screen.getByText('Not updated yet')).toBeInTheDocument();
-    expect(screen.queryByText(/Last updated \d{2}:\d{2}:\d{2}/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).not.toBeInTheDocument();
   });
 
   it('pressing Refresh re-runs the fetch and advances the last-updated time', async () => {
@@ -199,14 +203,14 @@ describe('StopCard widget', () => {
     render(<StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />);
     await screen.findByText('Cais');
     expect(mockedGetStopTimes).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('Last updated 14:00:00')).toBeInTheDocument();
+    expect(screen.getByText(/Last updated 2026-10-04 14:00:00 .+/)).toBeInTheDocument();
 
     nowSpyLocal.mockReturnValue(t1);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     await waitFor(() => expect(mockedGetStopTimes).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText('Last updated 14:00:00')).not.toBeInTheDocument();
-    expect(screen.getByText('Last updated 14:00:05')).toBeInTheDocument();
+    expect(screen.queryByText(/Last updated 2026-10-04 14:00:00 .+/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Last updated 2026-10-04 14:00:05 .+/)).toBeInTheDocument();
   });
 
   it('shows the updating indicator while a refresh is in flight and clears it after', async () => {
@@ -237,7 +241,8 @@ describe('StopCard widget', () => {
       .mockRejectedValueOnce(new Error('not found'));
     render(<StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />);
     await screen.findByText('Cais');
-    const time = screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/).textContent as string;
+    const time = screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+      .textContent as string;
 
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -261,6 +266,8 @@ describe('StopCard widget', () => {
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     expect(await screen.findByText('Cais')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
   });
 });

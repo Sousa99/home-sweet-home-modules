@@ -41,7 +41,7 @@ modes share the same service/feed/cache layer — no separate backend packages. 
 - **Map mode** — a Leaflet map with aircraft markers, plus a list view; both share one query.
 - **Refresh-rate control** — auto-refresh at a chosen cadence, with stale/updating indicators.
 - **Standardized status bar** — every widget shows the shared status bar (`Last updated
-  {HH:MM:SS}` or `Not updated yet`, an `Updating…` indicator, a manual `Refresh` button, and a
+  {YYYY-MM-DD HH:MM:SS <zone>}` or `Not updated yet`, an `Updating…` indicator, a manual `Refresh` button, and a
   failure notice that keeps the last successful time) — identical wording and behavior across
   all Home Sweet Home modules.
 - **Graceful degradation** — bounded retries on upstream `429`, clear user-facing errors when the
@@ -133,7 +133,7 @@ function WatchAircraft() {
 ```
 
 Both widgets fetch and auto-refresh their own data (an isolated TanStack Query client — no host
-wiring required). Each shows the standardized status bar (`Last updated {HH:MM:SS}` — or
+wiring required). Each shows the standardized status bar (`Last updated {YYYY-MM-DD HH:MM:SS <zone>}` — or
 `Not updated yet` before the first load — plus an `Updating…` indicator, a `Refresh` button, and
 a failure notice when the feed is down). The optional `baseUrl` prop points the built-in client
 at a remote backend; when empty it targets the runtime-configured value (`/config.json` /

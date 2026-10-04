@@ -18,15 +18,15 @@ export interface WidgetStatusBarProps {
 /**
  * The standardized status bar shared by every published data-fetching widget
  * across the Home Sweet Home modules. A controlled, presentational component:
- * it renders the local time of the last successful update (or
- * "Not updated yet"), a transient "Updating…" indicator while a load is in
- * flight, a Refresh control, and an optional failure notice — with identical
- * wording, layout, and behavior by construction (FR-004).
+ * it renders the full device-local timestamp of the last successful update (or
+ * "Not updated yet") on the left, a right-aligned "Updating…" indicator while a
+ * load is in flight and a Refresh control, plus an optional failure notice —
+ * with identical wording, layout, and behavior by construction (FR-004).
  *
- * Accessibility: the status area is a polite live region
- * (`role="status"` + `aria-live="polite"`); the failure notice uses
- * `role="alert"`; the Refresh control is a real `<button>` with the accessible
- * name "Refresh" and is disabled while updating.
+ * Accessibility: the timestamp status and the updating indicator each live in a
+ * polite live region (`role="status"` + `aria-live="polite"`); the failure
+ * notice uses `role="alert"`; the Refresh control is a real `<button>` with the
+ * accessible name "Refresh" and is disabled while updating.
  */
 export const WidgetStatusBar = ({
   lastUpdatedAt,
@@ -44,12 +44,18 @@ export const WidgetStatusBar = ({
         className,
       )}
     >
-      <span role="status" aria-live="polite" className="inline-flex flex-wrap items-center gap-2">
+      <span role="status" aria-live="polite" className="min-w-0">
         {lastUpdatedAt === null
           ? 'Not updated yet'
           : `Last updated ${formatLastUpdated(lastUpdatedAt)}`}
+      </span>
+      <span data-testid="status-bar-controls" className="ml-auto inline-flex items-center gap-2">
         {updating && (
-          <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 shadow-sm">
+          <span
+            role="status"
+            aria-live="polite"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 shadow-sm"
+          >
             <span
               className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-primary/40 border-t-primary"
               aria-hidden="true"
@@ -57,18 +63,22 @@ export const WidgetStatusBar = ({
             Updating…
           </span>
         )}
+        {onRefresh !== undefined && (
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={updating}
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:pointer-events-none disabled:opacity-50"
+          >
+            Refresh
+          </button>
+        )}
       </span>
-      {onRefresh !== undefined && (
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={updating}
-          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:pointer-events-none disabled:opacity-50"
-        >
-          Refresh
-        </button>
+      {hasError && (
+        <p role="alert" className="w-full">
+          {error}
+        </p>
       )}
-      {hasError && <p role="alert">{error}</p>}
     </div>
   );
 };

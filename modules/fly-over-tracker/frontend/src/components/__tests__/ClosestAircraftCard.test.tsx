@@ -127,7 +127,9 @@ describe('ClosestAircraftCard', () => {
     mockedUseFlyOversQuery.mockReturnValue(makeState({}));
     render(<ClosestAircraftCard location={location} />);
 
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
   });
@@ -152,7 +154,9 @@ describe('ClosestAircraftCard', () => {
     render(<ClosestAircraftCard location={location} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('temporarily unavailable');
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     expect(refetch).toHaveBeenCalledTimes(1);
@@ -177,7 +181,9 @@ describe('ClosestAircraftCard', () => {
     const { rerender } = render(<ClosestAircraftCard location={location} />);
     mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: true }));
     rerender(<ClosestAircraftCard location={location} />);
-    expect(screen.getByRole('status')).toHaveTextContent('Updating…');
+    expect(
+      screen.getAllByRole('status').some((region) => region.textContent?.includes('Updating…')),
+    ).toBe(true);
 
     mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: false }));
     rerender(<ClosestAircraftCard location={location} />);

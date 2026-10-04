@@ -83,7 +83,9 @@ describe('FlyOverListCard', () => {
     expect(screen.getByText('RYR45A')).toBeInTheDocument();
     expect(screen.getByText('TAP123')).toBeInTheDocument();
     expect(screen.queryByText(/aircraft over/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
   });
 
   it('caps the list to maxResults, closest first, and reports the total', () => {
@@ -132,7 +134,9 @@ describe('FlyOverListCard', () => {
     const { rerender } = render(<FlyOverListCard location={location} />);
     mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: true }));
     rerender(<FlyOverListCard location={location} />);
-    expect(screen.getByRole('status')).toHaveTextContent('Updating…');
+    expect(
+      screen.getAllByRole('status').some((region) => region.textContent?.includes('Updating…')),
+    ).toBe(true);
 
     mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: false }));
     rerender(<FlyOverListCard location={location} />);
@@ -153,7 +157,9 @@ describe('FlyOverListCard', () => {
     mockedUseFlyOversQuery.mockReturnValue(makeState({}));
     render(<FlyOverListCard location={location} />);
 
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
   });
@@ -171,7 +177,9 @@ describe('FlyOverListCard', () => {
     render(<FlyOverListCard location={location} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('temporarily unavailable');
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     expect(refetch).toHaveBeenCalledTimes(1);

@@ -57,7 +57,7 @@ import { ClosestAircraftCard } from '@sousa99/fly-over-tracker-components';
   the choice is stable regardless of result ordering.
 - **Smooth transition** — the card content is keyed by the closest aircraft's `icao24`
   and animates in on change (no abrupt replacement, no stale content).
-- **Status bar** — the standardized status bar shows `Last updated {HH:MM:SS}` (or
+- **Status bar** — the standardized status bar shows `Last updated {YYYY-MM-DD HH:MM:SS <zone>}` (or
   `Not updated yet` before the first load), an `Updating…` indicator while a refresh is
   in flight, a `Refresh` button, and a failure notice when the feed is down.
 - **States** — loading, empty ("No aircraft within … km"), and error states render in

@@ -143,7 +143,9 @@ describe('TaskDeckWrapper', () => {
     render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
     await screen.findByText('Implement MCP tools');
 
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
   });
@@ -153,7 +155,9 @@ describe('TaskDeckWrapper', () => {
     render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
 
     expect(screen.getByText('Not updated yet')).toBeInTheDocument();
-    expect(screen.queryByText(/Last updated \d{2}:\d{2}:\d{2}/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).not.toBeInTheDocument();
   });
 
   it('pressing Refresh reloads the deck and advances the last-updated time', async () => {
@@ -164,14 +168,14 @@ describe('TaskDeckWrapper', () => {
     render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
     await screen.findByText('Implement MCP tools');
     expect(dataSource).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('Last updated 14:00:00')).toBeInTheDocument();
+    expect(screen.getByText(/Last updated 2026-10-04 14:00:00 .+/)).toBeInTheDocument();
 
     nowSpy.mockReturnValue(t1);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     await waitFor(() => expect(dataSource).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText('Last updated 14:00:00')).not.toBeInTheDocument();
-    expect(screen.getByText('Last updated 14:00:05')).toBeInTheDocument();
+    expect(screen.queryByText(/Last updated 2026-10-04 14:00:00 .+/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Last updated 2026-10-04 14:00:05 .+/)).toBeInTheDocument();
   });
 
   it('shows the updating indicator while a refresh is in flight and clears it after', async () => {
@@ -206,7 +210,8 @@ describe('TaskDeckWrapper', () => {
       .mockRejectedValueOnce(new Error('boom'));
     render(<TaskDeckWrapper dataSource={dataSource} refreshRateMs={0} autoRotateMs={0} />);
     await screen.findByText('Implement MCP tools');
-    const time = screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/).textContent as string;
+    const time = screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)
+      .textContent as string;
 
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('boom');
@@ -227,6 +232,8 @@ describe('TaskDeckWrapper', () => {
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     expect(await screen.findByText('Implement MCP tools')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
   });
 });

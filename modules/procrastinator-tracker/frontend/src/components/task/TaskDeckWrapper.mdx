@@ -22,9 +22,9 @@ Above the deck the wrapper renders the **standardized status bar** shared by eve
 Sweet Home data widget (the internal `@sousa99/homesweethome-components`
 `WidgetStatusBar`):
 
-- **`Last updated {HH:MM:SS}`** — the device-local 24-hour time of the last successful
-  load; shows **`Not updated yet`** before the first load completes. Every successful
-  load (polling or manual) advances it.
+- **`Last updated {YYYY-MM-DD HH:MM:SS <zone>}`** — the device-local full timestamp (date, 24-hour
+  time, and timezone) of the last successful load; shows **`Not updated yet`** before the first load
+  completes. Every successful load (polling or manual) advances it.
 - **`Updating…`** — a transient indicator (polite live region) shown only while a load
   is in flight.
 - **`Refresh`** — a manual refresh button that reloads the deck immediately (disabled

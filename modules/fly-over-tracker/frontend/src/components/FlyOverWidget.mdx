@@ -50,7 +50,7 @@ import { FlyOverWidget } from '@sousa99/fly-over-tracker-components';
 
 - **Self-sufficient data** — fetches `GET {baseUrl}/api/fly-overs` and re-fetches
   automatically every `autoRefresh` seconds (`'off'` disables automatic refresh).
-- **Status bar** — the standardized status bar shows `Last updated {HH:MM:SS}` (or
+- **Status bar** — the standardized status bar shows `Last updated {YYYY-MM-DD HH:MM:SS <zone>}` (or
   `Not updated yet` before the first load), an `Updating…` indicator while a refresh is
   in flight, a `Refresh` button, and a failure notice when the feed is down.
 - **States** — loading, empty ("No aircraft within … km"), and error states render in

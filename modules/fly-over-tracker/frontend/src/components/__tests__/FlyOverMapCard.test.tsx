@@ -117,7 +117,9 @@ describe('FlyOverMapCard', () => {
     mockedUseFlyOversQuery.mockReturnValue(makeState({}));
     render(<FlyOverMapCard location={location} />);
 
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
   });
@@ -143,7 +145,9 @@ describe('FlyOverMapCard', () => {
     render(<FlyOverMapCard location={location} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('temporarily unavailable');
-    expect(screen.getByText(/Last updated \d{2}:\d{2}:\d{2}/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     expect(refetch).toHaveBeenCalledTimes(1);
@@ -153,7 +157,9 @@ describe('FlyOverMapCard', () => {
     const { rerender } = render(<FlyOverMapCard location={location} />);
     mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: true }));
     rerender(<FlyOverMapCard location={location} />);
-    expect(screen.getByRole('status')).toHaveTextContent('Updating…');
+    expect(
+      screen.getAllByRole('status').some((region) => region.textContent?.includes('Updating…')),
+    ).toBe(true);
 
     mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: false }));
     rerender(<FlyOverMapCard location={location} />);

@@ -1,14 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WidgetStatusBar } from '../WidgetStatusBar';
 
 const fixedTime = new Date(2026, 9, 4, 14, 32, 5).getTime();
+const LAST_UPDATED = /Last updated 2026-10-04 14:32:05/;
 
 describe('WidgetStatusBar', () => {
-  it('renders "Last updated HH:MM:SS" when lastUpdatedAt is set', () => {
+  it('renders "Last updated <full timestamp>" when lastUpdatedAt is set', () => {
     render(<WidgetStatusBar lastUpdatedAt={fixedTime} />);
-    expect(screen.getByText('Last updated 14:32:05')).toBeInTheDocument();
+    expect(screen.getByText(LAST_UPDATED)).toBeInTheDocument();
   });
 
   it('renders "Not updated yet" when lastUpdatedAt is null', () => {
@@ -26,7 +27,7 @@ describe('WidgetStatusBar', () => {
 
   it('keeps the last-updated time visible while updating', () => {
     render(<WidgetStatusBar lastUpdatedAt={fixedTime} updating />);
-    expect(screen.getByText('Last updated 14:32:05')).toBeInTheDocument();
+    expect(screen.getByText(LAST_UPDATED)).toBeInTheDocument();
     expect(screen.getByText('Updating…')).toBeInTheDocument();
   });
 
@@ -46,10 +47,18 @@ describe('WidgetStatusBar', () => {
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled();
   });
 
+  it('aligns the updating indicator and Refresh control to the right', () => {
+    render(<WidgetStatusBar lastUpdatedAt={fixedTime} updating onRefresh={vi.fn()} />);
+    const controls = screen.getByTestId('status-bar-controls');
+    expect(controls).toHaveClass('ml-auto');
+    expect(within(controls).getByText('Updating…')).toBeInTheDocument();
+    expect(within(controls).getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
+  });
+
   it('surfaces an error while keeping the last-updated time', () => {
     render(<WidgetStatusBar lastUpdatedAt={fixedTime} error="Feed is down" />);
     expect(screen.getByRole('alert')).toHaveTextContent('Feed is down');
-    expect(screen.getByText('Last updated 14:32:05')).toBeInTheDocument();
+    expect(screen.getByText(LAST_UPDATED)).toBeInTheDocument();
   });
 
   it('still renders Refresh alongside an error so the user can retry', () => {
@@ -73,12 +82,14 @@ describe('WidgetStatusBar', () => {
     render(<WidgetStatusBar lastUpdatedAt={fixedTime} />);
     const status = screen.getByRole('status');
     expect(status).toHaveAttribute('aria-live', 'polite');
-    expect(status).toHaveTextContent('Last updated 14:32:05');
+    expect(status).toHaveTextContent('Last updated 2026-10-04 14:32:05');
   });
 
-  it('announces the updating indicator inside the polite live region', () => {
+  it('announces the updating indicator inside a polite live region', () => {
     render(<WidgetStatusBar lastUpdatedAt={fixedTime} updating />);
-    expect(screen.getByRole('status')).toHaveTextContent('Updating…');
+    const liveRegions = screen.getAllByRole('status');
+    expect(liveRegions.some((region) => region.textContent?.includes('Updating…'))).toBe(true);
+    expect(liveRegions.every((region) => region.getAttribute('aria-live') === 'polite')).toBe(true);
   });
 
   it('applies the className prop to the root', () => {
