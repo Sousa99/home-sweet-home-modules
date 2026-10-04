@@ -213,10 +213,10 @@ and the selector; read the written docs page.
 
 ### Implementation for User Story 6
 
-- [ ] T053 [P] [US6] Create `CurrentWeatherCard.stories.tsx` (fixture `fetchForecast` variants: loading, ready, empty, error, reduced-motion)
-- [ ] T054 [P] [US6] Create `DailyForecastCard.stories.tsx` (fixture variants: loading, ready, error, today-excluded)
-- [ ] T055 [P] [US6] Create `LocationSelector.stories.tsx` (fixture `searchLocations`, search + select flow)
-- [ ] T056 [P] [US6] Create written docs page `modules/weather-psychic/frontend/src/components/WeatherPsychic.mdx` (Meta/Canvas/ArgTypes covering both widgets + selector, embed snippet)
+- [x] T053 [P] [US6] Create `CurrentWeatherCard.stories.tsx` (fixture `fetchForecast` variants: loading, ready, empty, error, reduced-motion)
+- [x] T054 [P] [US6] Create `DailyForecastCard.stories.tsx` (fixture variants: loading, ready, error, today-excluded)
+- [x] T055 [P] [US6] Create `LocationSelector.stories.tsx` (fixture `searchLocations`, search + select flow)
+- [x] T056 [P] [US6] Create written docs page `modules/weather-psychic/frontend/src/components/WeatherPsychic.mdx` (Meta/Canvas/ArgTypes covering both widgets + selector, embed snippet)
 
 **Checkpoint**: All user stories independently functional and documented
 
