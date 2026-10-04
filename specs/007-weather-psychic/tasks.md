@@ -92,13 +92,13 @@ widget keeps last-known data.
 
 ### Tests for User Story 1 ⚠️ (write FIRST, assert they FAIL)
 
-- [ ] T027 [P] [US1] Write component test `modules/weather-psychic/frontend/src/components/CurrentWeatherCard.test.tsx` (detailed current data renders; `WidgetStatusBar` on top shows `Last updated` from `lastUpdatedAt` + `Refresh` wired to refetch; `baseUrl` prop honored per the [base-url contract](../004-local-setup-standardization/contracts/base-url.md); error keeps last-known data)
+- [x] T027 [P] [US1] Write component test `modules/weather-psychic/frontend/src/components/CurrentWeatherCard.test.tsx` (detailed current data renders; `WidgetStatusBar` on top shows `Last updated` from `lastUpdatedAt` + `Refresh` wired to refetch; `baseUrl` prop honored per the [base-url contract](../004-local-setup-standardization/contracts/base-url.md); error keeps last-known data)
 
 ### Implementation for User Story 1
 
-- [ ] T028 [P] [US1] Create UI primitives `modules/weather-psychic/frontend/src/components/ui/` (`Card`, `Badge`; amber/slate tokens)
-- [ ] T029 [US1] Implement `modules/weather-psychic/frontend/src/components/CurrentWeatherCard.tsx` (self-fetching via default client or injected `fetchForecast`, props `location`/`fetchForecast`/`baseUrl`/`refetchIntervalMs`/`className` per `contracts/frontend-api.md`; renders the current-weather detail section with icon by `weatherCode`+`isDay`)
-- [ ] T030 [US1] Integrate the shared `WidgetStatusBar` (`@sousa99/homesweethome-components`, per the [status-bar contract](../005-standardized-component-status/contracts/status-bar.md)) rendered on TOP of `CurrentWeatherCard.tsx` + a discriminated `LoadState` (loading/error/ready, keeps last-known data on error) deriving the `lastUpdatedAt`/`updating`/`error`/`onRefresh` props; `baseUrl` forwarded to the default client
+- [x] T028 [P] [US1] Create UI primitives `modules/weather-psychic/frontend/src/components/ui/` (`Card`, `Badge`; amber/slate tokens)
+- [x] T029 [US1] Implement `modules/weather-psychic/frontend/src/components/CurrentWeatherCard.tsx` (self-fetching via default client or injected `fetchForecast`, props `location`/`fetchForecast`/`baseUrl`/`refetchIntervalMs`/`className` per `contracts/frontend-api.md`; renders the current-weather detail section with icon by `weatherCode`+`isDay`)
+- [x] T030 [US1] Integrate the shared `WidgetStatusBar` (`@sousa99/homesweethome-components`, per the [status-bar contract](../005-standardized-component-status/contracts/status-bar.md)) rendered on TOP of `CurrentWeatherCard.tsx` + a discriminated `LoadState` (loading/error/ready, keeps last-known data on error) deriving the `lastUpdatedAt`/`updating`/`error`/`onRefresh` props; `baseUrl` forwarded to the default client
 
 **Checkpoint**: User Story 1 fully functional and testable independently
 
