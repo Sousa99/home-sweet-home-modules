@@ -9,17 +9,25 @@ export interface HourlyStripProps {
   hourly: HourlyEntry[];
   /** Current time used to exclude the current hour from the strip. */
   now?: string;
-  /** Milliseconds between each auto-scroll advance. */
-  intervalMs?: number;
+  /** Smooth scroll speed in pixels per second. */
+  speedPxPerSecond?: number;
+  /** Pause in ms at the end before resetting to the left. */
+  resetPauseMs?: number;
 }
 
 /**
  * The auto-scrolling hourly forecast strip: a horizontal, overflow-x container
- * that advances to the right on an interval (respecting reduced motion) and
- * always excludes the current hour — the strip shows the coming hours only.
+ * that scrolls smoothly to the right, pauses at the end, then resets to the
+ * left and loops (respecting reduced motion). The current hour is always
+ * excluded — the strip shows the coming hours only.
  */
-export function HourlyStrip({ hourly, now, intervalMs = 1500 }: HourlyStripProps): JSX.Element {
-  const { ref } = useAutoScroll<HTMLDivElement>({ intervalMs, stepPx: 120 });
+export function HourlyStrip({
+  hourly,
+  now,
+  speedPxPerSecond = 60,
+  resetPauseMs = 1500,
+}: HourlyStripProps): JSX.Element {
+  const { ref } = useAutoScroll<HTMLDivElement>({ speedPxPerSecond, resetPauseMs });
 
   const currentHour = now !== undefined ? new Date(now).toISOString().slice(0, 13) : null;
   const entries = hourly.filter(

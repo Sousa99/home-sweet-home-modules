@@ -33,8 +33,8 @@ Behavior:
 - Renders the current conditions in a detailed, graphic format (temperature, condition, feels-like,
   humidity, wind, precipitation probability, UV; icon driven by `weatherCode` + `isDay`).
 - Below it, an hourly strip of the coming hours **excluding the current hour** (FR-003) that
-  auto-scrolls to the right over time, stops/wraps gracefully at the end of data (FR-004), and
-  respects `prefers-reduced-motion`.
+  scrolls smoothly to the right, pauses at the end, then resets to the left and loops (FR-004),
+  respecting `prefers-reduced-motion` (no scrolling under reduced motion).
 - Honors the [base-url contract](../004-local-setup-standardization/contracts/base-url.md): the
   `baseUrl` prop is forwarded to the default client; on error keeps last-known data and reports the
   failure.
