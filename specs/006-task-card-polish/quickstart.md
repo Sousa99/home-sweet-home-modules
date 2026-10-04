@@ -15,9 +15,9 @@ implementation lives in `tasks.md` and the implementation phase.
 
 | # | Scenario | Proves |
 |---|----------|--------|
-| 1 | Deck component tests pass | Empty state at the deck level, gentle-variant travel, compact `--deck-height` + override ([`contracts/task-deck-api.md`](./contracts/task-deck-api.md)) |
+| 1 | Deck component tests pass | Empty state at the deck level, slide-up variant preset, compact `--deck-height` + override ([`contracts/task-deck-api.md`](./contracts/task-deck-api.md)) |
 | 2 | Wrapper component tests pass | Empty state at the wrapper level (message preserved), `transitionVariant` passthrough |
-| 3 | Manual Storybook check | Empty card, gentle transition, and compact/override look correct in a widget row |
+| 3 | Manual Storybook check | Empty card, slide-up transition, and compact/override look correct in a widget row |
 | 4 | Manual SPA check | Empty state appears when the household has no tasks and recovers when tasks appear |
 | 5 | Default-unchanged check | Existing consumers see today's wide pan, today's size overrides, and today's exports |
 
@@ -32,8 +32,8 @@ pnpm --filter @sousa99/procrastinator-tracker-components typecheck
 
 **Expected**: `tests/task-deck.test.tsx` passes including the new cases — empty array and a
 fully-filtered-out set both render `TaskDeckEmpty` (`data-testid="task-deck-empty"`, message
-`No tasks yet.` / `No tasks match these filters.`), the gentle variant resolves to the reduced
-travel (80px vs the default 500px), the stage carries `--deck-height: 16rem`, and a
+`No tasks yet.` / `No tasks match these filters.`), the slide-up variant resolves the vertical exit
+preset (`{ x: 0, y: -48 }` vs the default `{ x: 500, y: 0 }`), the stage carries `--deck-height: 16rem`, and a
 `style={{ '--deck-height': '24rem' }}` override is honored. All pre-existing deck tests still pass
 (wide pan remains the default).
 
@@ -52,9 +52,8 @@ pnpm --filter ./modules/procrastinator-tracker/frontend storybook   # :6006
 Open `Task/TaskDeck` and `Task/TaskDeck (self-fetching)`:
 
 - **Empty**: a card-styled empty state with an icon + message fills the compact stage (not blank).
-- **Gentle transition**: with `transitionVariant="gentle"`, advancing cards slide mostly in place
-  with far less sideways travel than the default `slide` story; manual swipes still dismiss
-  left/right.
+- **Slide-up transition**: with `transitionVariant="slide-up"`, advancing cards rise vertically
+  (~48px) and fade with no sideways travel; manual swipes still dismiss left/right.
 - **Compact + override**: default deck is noticeably shorter than the pre-change 24–26rem; a story
   passing `style={{ '--deck-height': '24rem' }}` shows a larger card.
 
@@ -67,7 +66,7 @@ pnpm --filter ./modules/procrastinator-tracker/frontend dev         # SPA on :51
 
 Create no tasks (or filter to none): the dashboard widget shows the empty card, not blank space.
 Add a task: the deck reappears. Place two widgets side by side (e.g. two decks): the compact default
-fits the row and the gentle variant is calmer next to other widgets.
+fits the row and the slide-up variant sits calmly next to other widgets.
 
 ### 5. Default-unchanged check (SC-004)
 

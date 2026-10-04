@@ -19,7 +19,7 @@ restyle or replace empty-state messaging.
 
 | Prop | Type | Required | Default | Change |
 |------|------|----------|---------|--------|
-| `transitionVariant` | `'slide' \| 'gentle'` | no | `'slide'` | **NEW.** `slide` = today's wide pan (exitTravel 500); `gentle` = reduced sideways travel (exitTravel 80). |
+| `transitionVariant` | `'slide' \| 'slide-up'` | no | `'slide'` | **NEW.** `slide` = today's wide pan (exit x 500); `slide-up` = vertical exit (48px up, no sideways travel). |
 | `style` | `CSSProperties` | no | — | **NEW passthrough.** Forwarded to the stage; used to override the compact `--deck-height` (e.g. `{ '--deck-height': '24rem' }`). |
 
 All existing props (`tasks`, `filters`, `autoRotateMs`, `loop`, `stackSize`, `slideDurationMs`,
@@ -33,7 +33,7 @@ stacked cards and `data-testid="task-deck-empty"` on the empty card.
 
 | Prop | Type | Required | Default | Change |
 |------|------|----------|---------|--------|
-| `transitionVariant` | `'slide' \| 'gentle'` | no | `'slide'` | **NEW.** Forwarded to the inner `TaskDeck`. |
+| `transitionVariant` | `'slide' \| 'slide-up'` | no | `'slide'` | **NEW.** Forwarded to the inner `TaskDeck`. |
 | `style` | `CSSProperties` | no | — | **NEW passthrough.** Forwarded to the root container. |
 
 All existing props (`filters`, `refreshRateMs`, `baseUrl`, `dataSource`, `autoRotateMs`, `loop`,
@@ -47,14 +47,14 @@ All existing props (`filters`, `refreshRateMs`, `baseUrl`, `dataSource`, `autoRo
 
 | Prop | Type | Required | Default | Change |
 |------|------|----------|---------|--------|
-| `exitTravel` | number (px) | no | `500` | **NEW.** Horizontal travel of the exiting card during `indexChangeDirection`/auto-advance exits. `500` reproduces today's ±500px. Not part of the published surface (not exported from `src/index.ts`). |
+| `exitPreset` | `{ x: number; y: number }` | no | `{ x: 500, y: 0 }` | **NEW.** Exit vector of the top card during `indexChangeDirection`/auto-advance exits. `slide` → `{ x: 500, y: 0 }` (reproduces today's ±500px pan); `slide-up` → `{ x: 0, y: -48 }` (vertical exit). Not part of the published surface (not exported from `src/index.ts`). |
 
 ## Behavior guarantees
 
-- **Default is unchanged** (SC-004): `transitionVariant='slide'` and `exitTravel=500` reproduce the
+- **Default is unchanged** (SC-004): `transitionVariant='slide'` and `exitPreset={x:500,y:0}` reproduce the
   current ±500px pan, 500ms duration, rotation, stack depth, and swipe threshold.
-- **Gentle variant** (FR-004): only the exiting card's horizontal travel changes (→ 80px); duration,
-  easing, rotation, stack behavior, loop, and auto-rotate are identical.
+- **Slide-up variant** (FR-004): the exiting card rises 48px vertically and fades with **no** sideways
+  travel; duration, easing, rotation, stack behavior, loop, and auto-rotate are identical.
 - **Swipe always works** (FR-004): manual drag-dismiss left/right is untouched in both variants.
 - **Empty state** (FR-001/FR-002/FR-008): a visible card with a friendly message renders at both
   published levels whenever no tasks are displayable; it does not collapse the stage height and
@@ -72,9 +72,9 @@ All existing props (`filters`, `refreshRateMs`, `baseUrl`, `dataSource`, `autoRo
 ## Validation
 
 - `tests/task-deck.test.tsx`: empty state (empty array + fully filtered) renders the empty card and
-  not `null`; gentle variant resolves `exitTravel 80`; compact stage carries `--deck-height: 16rem`;
-  an override style is honored; all existing tests still pass (defaults unchanged).
+  not `null`; the slide-up variant resolves the vertical exit preset `{ x: 0, y: -48 }`; compact stage
+  carries `--deck-height: 16rem`; an override style is honored; all existing tests still pass (defaults unchanged).
 - `tests/task-deck-wrapper.test.tsx`: empty case renders `TaskDeckEmpty` with preserved message;
   `transitionVariant` is forwarded to the inner deck; existing status-bar/refresh tests still pass.
-- Storybook stories document `Empty`, `Gentle transition`, and `Compact + override` (see
+- Storybook stories document `Empty`, `Slide-up transition`, and `Compact + override` (see
   `quickstart.md`).

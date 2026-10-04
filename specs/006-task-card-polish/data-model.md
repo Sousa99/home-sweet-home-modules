@@ -28,10 +28,10 @@ Controls how the top card exits during an automatic advance or index change.
 
 | Field | Type | Default | Rules |
 |-------|------|---------|-------|
-| `transitionVariant` | `'slide' \| 'gentle'` | `'slide'` | Published-level switch. `gentle` selects a small exit travel. |
-| `exitTravel` | number (px) | `500` | Raw-deck-level travel distance for the exiting card. `gentle` → `80`. Only horizontal travel of the exiting card changes; duration (`slideDurationMs`, default 500ms), easing, rotation, stack scale/depth, and swipe threshold are unchanged (FR-004). |
+| `transitionVariant` | `'slide' \| 'slide-up'` | `'slide'` | Published-level switch. `slide-up` selects a vertical exit with no sideways travel. |
+| `exitPreset` | `{ x: number; y: number }` | `{ x: 500, y: 0 }` | Raw-deck-level exit vector of the top card. `slide` → `{ x: 500, y: 0 }`; `slide-up` → `{ x: 0, y: -48 }`. Only the exiting card's travel changes; duration (`slideDurationMs`, default 500ms), easing, rotation, stack scale/depth, and swipe threshold are unchanged (FR-004). |
 
-**Mapping** (single source of truth, unit-tested): `slide → 500`, `gentle → 80`.
+**Mapping** (single source of truth, unit-tested): `slide → { x: 500, y: 0 }`, `slide-up → { x: 0, y: -48 }`.
 
 ## Entity: DeckStageSize
 

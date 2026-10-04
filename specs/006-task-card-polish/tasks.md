@@ -272,3 +272,12 @@ With multiple developers:
 - Commit after each task or logical group (delegate to `github-helper`)
 - Stop at any checkpoint to validate the story independently
 - Backend, MCP, and the `WidgetStatusBar` (from `005`) are out of scope and must not change
+
+## Revision (post-implementation)
+
+- **2026-10-04 — US2 revised**: the original `gentle` variant (80px horizontal exit) was replaced by
+  **`slide-up`** (`transitionVariant: 'slide' | 'slide-up'`). The published API now maps
+  `'slide' → exitPreset { x: 500, y: 0 }` and `'slide-up' → exitPreset { x: 0, y: -48 }` (vertical
+  exit, no sideways travel — better fit for dense side-by-side dashboards). The raw deck prop is
+  `exitPreset: { x, y }` instead of `exitTravel`. Tests, stories, docs, and the changeset wording
+  were updated to match; the 80px `gentle` variant was removed before the PR merged.

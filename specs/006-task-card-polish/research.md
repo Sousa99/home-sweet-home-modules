@@ -39,34 +39,38 @@ component.
 
 ---
 
-## 2. Gentle transition mechanism
+## 2. Transition mechanism (revised: slide-up)
 
-**Decision**: Add a numeric `exitTravel` prop to the low-level `DeckCards`/`DeckCard` (default
-`500`, reproducing today's ±500px pan exactly) and a semantic `transitionVariant: 'slide' | 'gentle'`
-prop (default `'slide'`) on `TaskDeck`/`TaskDeckWrapper`. `gentle` maps to an `exitTravel` of `80`
-(≈15% of the default). The exiting card's travel is the only thing that changes.
+**Decision**: The low-level `DeckCards`/`DeckCard` accept an `exitPreset: { x: number; y: number }`
+prop (default `{ x: 500, y: 0 }`, reproducing today's ±500px pan exactly) and the published
+`TaskDeck`/`TaskDeckWrapper` expose `transitionVariant: 'slide' | 'slide-up'` (default `'slide'`).
+`slide-up` maps to `{ x: 0, y: -48 }` — the exiting card rises 48px vertically and fades with **no
+sideways travel**.
+
+**Why revised**: the original `gentle` variant (80px horizontal travel) was rejected in review as an
+"uncanny middle" — too little travel to read as a slide, too much to read as a fade. In a dense,
+side-by-side dashboard any sideways motion reads as a twitch. A vertical exit uses the stack's own
+geometry (the next card is fanned below at `yOffset`), so the handoff reads naturally while nothing
+moves horizontally.
 
 **Evidence (current animation)**:
-- `ui/deck/deck.tsx:245-251` — `exitX` is hard-coded `-500` / `500` when `exitDirection` is set.
-- `ui/deck/deck.tsx:256-270` — exit is animated via `animate={{ x: exitX, opacity: 0 }}`; duration
-  comes from `slideDurationMs` (default 500ms). Rotation, scale, stack depth, and drag/opacity
-  mapping (threshold 150) are independent of `exitX`.
-- `deck.tsx` already exposes `indexChangeDirection` (which way cards exit) but no distance knob.
+- `ui/deck/deck.tsx` — the top card exits via `animate={{ x: exitX, opacity: 0 }}`; `exitX` was
+  hard-coded to `±500`. `slideDurationMs` (default 500ms), rotation, scale, stack depth, and the
+  drag/opacity mapping (threshold 150) are independent of the exit travel.
+- `deck.tsx` already exposes `indexChangeDirection` (which way cards exit) but no exit vector.
 
 **Rationale**:
-- `exitTravel` on the raw deck is the minimal additive primitive; `transitionVariant` is the
+- `exitPreset` on the raw deck is the minimal additive primitive; `transitionVariant` is the
   documented, user-facing switch on the published components (FR-004/FR-005).
-- `80`px keeps a perceptible slide so the transition still feels animated ("pans a bit less", per
-  the user), while staying well under half of the default's 500px (SC-003).
+- `y: -48` keeps a perceptible, directional reveal while eliminating sideways motion (SC-003:
+  horizontal travel is zero, far under half the default).
 - Defaults reproduce current behavior bit-for-bit, satisfying SC-004 (no change for existing
-  consumers). Swipe dismissal (manual drag past threshold) is untouched — `exitTravel` only shapes
-  the automatic/`indexChangeDirection` exit animation.
+  consumers). Swipe dismissal (manual drag past threshold) is untouched.
 
 **Alternatives considered**:
-- A `transitionVariant` enum only, no numeric knob — rejected: the raw deck stays flexible, and
-  the numeric default makes the "unchanged" guarantee explicit and testable.
-- A percentage/easing-based preset ("pan" vs "fade") — rejected: the user asked specifically for
-  less sideways travel, not a different easing; keeping easing identical is a constraint.
+- A numeric `exitTravel` (the original `gentle`, 80px) — rejected as described above.
+- A pure fade (scale 0.9 + opacity, no travel) — rejected as calmer but losing the directional deck
+  handoff; `slide-up` keeps a clear "next card comes up" cue.
 - Changing the default travel itself — rejected: SC-004 requires existing consumers to see no change.
 
 ---
@@ -120,8 +124,8 @@ the two existing wrapper empty-state assertions are kept (message text unchanged
   `TaskDeckEmpty` is additive (SC-004: no removal/rename).
 
 **Rationale**:
-- New tests: deck empty state renders the card (both empty-array and fully-filtered cases), gentle
-  variant resolves to the smaller `exitTravel` (asserted via a resolvable mapping or a rendered
+- New tests: deck empty state renders the card (both empty-array and fully-filtered cases), slide-up
+  variant resolves to the vertical exit preset `{ x: 0, y: -48 }` (asserted via a resolvable mapping or a rendered
   prop), compact stage carries `--deck-height: 16rem`, and an override style/class is honored.
 - The `DeckEmpty` primitive stays unused in the codebase (pre-existing dead code, out of scope;
   a later nitpicker pass may remove it).
@@ -138,7 +142,7 @@ by measuring motion — jsdom cannot measure layout, and motion's `animate` targ
 - The existing suites (`task-deck.test.tsx`, `task-deck-wrapper.test.tsx`) already render the deck
   and wrapper with `autoRotateMs={0}` and fake timers; new tests reuse the same patterns.
 - `--deck-height` is asserted via `getComputedStyle`/`style` on the stage element; empty state via
-  the `task-deck-empty` test id and message text; gentle variant via the resolved travel value
+  the `task-deck-empty` test id and message text; slide-up variant via the resolved exit preset value
   (unit function or prop passthrough check).
 
 ---
@@ -148,7 +152,7 @@ by measuring motion — jsdom cannot measure layout, and motion's `animate` targ
 | Unknown | Decision |
 |---------|----------|
 | Where empty state lives | One shared `TaskDeckEmpty` used by both `TaskDeck` and `TaskDeckWrapper`; messages preserved; deck stops returning `null` |
-| Gentle transition mechanism | `exitTravel` (default 500) on raw `DeckCards`; `transitionVariant: 'slide'\|'gentle'` (default `slide`) on published components; gentle = 80px |
+| Transition mechanism | `exitPreset` (default `{x:500,y:0}`) on raw `DeckCards`; `transitionVariant: 'slide'\|'slide-up'` (default `slide`) on published components; slide-up = vertical 48px exit with no sideways travel |
 | Compact size + override | Stage height via CSS var `--deck-height` (default `16rem`); override through existing `style`/`className` surface; `style` forwarded additively |
 | Backward compatibility | All new props/export additive with current-behavior defaults; existing tests preserved/extended |
 | Testing | Vitest + RTL in `tests/`; travel asserted at mapping boundary, size via CSS var, empty via test id + message |
