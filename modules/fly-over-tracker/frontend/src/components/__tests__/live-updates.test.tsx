@@ -153,7 +153,11 @@ describe('live updates across dashboard widgets', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
       await flush();
       expect(mockedGetFlyOvers).toHaveBeenCalledTimes(2);
-      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Updating…'));
+      await waitFor(() =>
+        expect(
+          screen.getAllByRole('status').some((region) => region.textContent?.includes('Updating…')),
+        ).toBe(true),
+      );
 
       await act(async () => {
         resolveRefetch(result([ryr]));

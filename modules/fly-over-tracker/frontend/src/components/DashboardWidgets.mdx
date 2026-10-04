@@ -82,3 +82,19 @@ default OpenStreetMap basemap (Leaflet `{z}/{x}/{y}` placeholders) and `debug?: 
 log layout/tile diagnostics to the console.
 
 See each widget's page for the full props reference, live examples, and behavior notes.
+
+## Status bar
+
+Every widget renders the **standardized status bar** above its content — the same shared
+component (`WidgetStatusBar` from the internal `@sousa99/homesweethome-components` package)
+used across all Home Sweet Home modules, so wording, layout, and behavior are identical by
+construction:
+
+- **`Last updated {YYYY-MM-DD HH:MM:SS <zone>}`** — the device-local full timestamp (date, 24-hour
+  time, and timezone) of the last successful load; shows **`Not updated yet`** before the first load
+  completes.
+- **`Updating…`** — a transient indicator (with a polite live region) shown only while a
+  refresh is in flight.
+- **`Refresh`** — a manual refresh button (disabled while updating).
+- A **failure notice** (`role="alert"`) when the latest load failed — the last successful
+  time stays visible and `Refresh` retries.

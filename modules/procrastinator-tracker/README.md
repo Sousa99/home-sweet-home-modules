@@ -121,10 +121,13 @@ function PendingTasks() {
 ```
 
 `TaskDeckWrapper` fetches and refreshes the task list itself (`refreshRateMs`, default `30000`).
-The optional `baseUrl` prop points the built-in client at a remote backend; when empty it targets
-the same-origin `/api` path. `react`, `react-dom`, `motion`, and `lucide-react` are peer
-dependencies (consumers provide them). See the `TaskDeckWrapper.mdx` workbench page for the full
-prop reference.
+Above the deck it shows the standardized status bar shared by every Home Sweet Home data widget:
+`Last updated {YYYY-MM-DD HH:MM:SS <zone>}` (or `Not updated yet` before the first load), an `Updating…` indicator
+while loading, a `Refresh` button that reloads the deck, and a failure notice that keeps the last
+successful time. The optional `baseUrl` prop points the built-in client at a remote backend; when
+empty it targets the same-origin `/api` path. `react`, `react-dom`, `motion`, and `lucide-react`
+are peer dependencies (consumers provide them). See the `TaskDeckWrapper.mdx` workbench page for
+the full prop reference.
 
 ## 📚 Learn More
 

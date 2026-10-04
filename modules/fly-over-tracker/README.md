@@ -40,6 +40,10 @@ modes share the same service/feed/cache layer — no separate backend packages. 
   `icao24` tie-break).
 - **Map mode** — a Leaflet map with aircraft markers, plus a list view; both share one query.
 - **Refresh-rate control** — auto-refresh at a chosen cadence, with stale/updating indicators.
+- **Standardized status bar** — every widget shows the shared status bar (`Last updated
+  {YYYY-MM-DD HH:MM:SS <zone>}` or `Not updated yet`, an `Updating…` indicator, a manual `Refresh` button, and a
+  failure notice that keeps the last successful time) — identical wording and behavior across
+  all Home Sweet Home modules.
 - **Graceful degradation** — bounded retries on upstream `429`, clear user-facing errors when the
   feed is down, and `FEED=mock` for deterministic offline development.
 - **REST API and MCP tool** — the same service powers both; the MCP `planes_over` tool reuses the
@@ -129,11 +133,14 @@ function WatchAircraft() {
 ```
 
 Both widgets fetch and auto-refresh their own data (an isolated TanStack Query client — no host
-wiring required). The optional `baseUrl` prop points the built-in client at a remote backend; when
-empty it targets the runtime-configured value (`/config.json` / `API_BASE_URL`) or the same-origin
-`/api` path. `FlyOverWidget` fills the available width and expands the map into the available
-vertical space; `ClosestAircraftCard` fills the width and only the height its content needs. See
-the `FlyOverWidget.mdx` / `ClosestAircraftCard.mdx` workbench pages for the full prop reference.
+wiring required). Each shows the standardized status bar (`Last updated {YYYY-MM-DD HH:MM:SS <zone>}` — or
+`Not updated yet` before the first load — plus an `Updating…` indicator, a `Refresh` button, and
+a failure notice when the feed is down). The optional `baseUrl` prop points the built-in client
+at a remote backend; when empty it targets the runtime-configured value (`/config.json` /
+`API_BASE_URL`) or the same-origin `/api` path. `FlyOverWidget` fills the available width and
+expands the map into the available vertical space; `ClosestAircraftCard` fills the width and only
+the height its content needs. See the `FlyOverWidget.mdx` / `ClosestAircraftCard.mdx` workbench
+pages for the full prop reference.
 
 ## 📚 Learn More
 

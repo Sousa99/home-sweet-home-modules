@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { WidgetStatusBar } from '@sousa99/homesweethome-components';
 import { getApiBaseUrl } from '../api/baseUrl';
 import { useFlyOversQuery } from '../hooks/useFlyOversQuery';
 import type { Aircraft, LocationQuery } from '../api/types';
 import { AircraftCard } from './AircraftCard';
 import { AircraftMapCard } from './AircraftMapCard';
-import { UpdatingIndicator } from './UpdatingIndicator';
-import { Button } from './ui/button';
 import type { RefreshRate } from './RefreshRateSelect';
 import { createWidgetQueryClient } from '../lib/widgetQueryClient';
 import { selectClosest } from '../lib/closest';
@@ -34,8 +33,9 @@ export interface FlyOverClosestPanelProps {
  * no map, so a host can pair it with `FlyOverMapCard` for a two-region layout.
  *
  * Fetches once through `useFlyOversQuery` (no host react-query setup required),
- * shows a top-corner updating indicator while a refresh is in flight, exposes a
- * manual Refresh action, and caps the list with `maxResults`.
+ * and shows the standardized `WidgetStatusBar` (last-update time, updating
+ * indicator, manual Refresh, failure notice) above the content, capping the
+ * list with `maxResults`.
  */
 export const FlyOverClosestPanel = ({
   location,
@@ -66,7 +66,7 @@ function FlyOverClosestPanelContent({
   maxResults,
   className,
 }: FlyOverClosestPanelProps): JSX.Element {
-  const { data, isLoading, isFetching, isError, error, refetch } = useFlyOversQuery({
+  const { data, dataUpdatedAt, isLoading, isFetching, isError, error, refetch } = useFlyOversQuery({
     location,
     autoRefresh,
     baseUrl,
@@ -80,28 +80,16 @@ function FlyOverClosestPanelContent({
 
   return (
     <div className={cn('flex h-full w-full flex-col', className)}>
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
-        <p className="text-sm text-slate-600">
-          {data === null
-            ? `Aircraft over ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)} (±
-              ${location.radiusKm} km)`
-            : `${data.count} aircraft over ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)} (±
-              ${location.radiusKm} km)`}
-        </p>
-        <div className="flex items-center gap-2">
-          <UpdatingIndicator visible={isFetching} />
-          <Button variant="ghost" size="sm" onClick={refetch}>
-            Refresh
-          </Button>
-        </div>
+      <div className="pb-2">
+        <WidgetStatusBar
+          lastUpdatedAt={dataUpdatedAt}
+          updating={isFetching}
+          error={isError ? (error?.message ?? 'Something went wrong.') : null}
+          onRefresh={refetch}
+        />
       </div>
 
       {isLoading && <p className="text-center text-sm text-slate-500">Loading aircraft…</p>}
-      {isError && (
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
-          {error?.message ?? 'Something went wrong.'}
-        </p>
-      )}
       {isEmpty && (
         <p className="text-center text-sm text-slate-500">
           No aircraft within {location.radiusKm} km of this location.

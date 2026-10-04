@@ -56,6 +56,7 @@ function result(aircraftList: Aircraft[]): FlyOverResult {
 function makeState(overrides: Partial<UseFlyOversQueryResult>): UseFlyOversQueryResult {
   return {
     data: result([dlh, ryr, tap]),
+    dataUpdatedAt: 1_726_900_000,
     isLoading: false,
     isFetching: false,
     isError: false,
@@ -82,7 +83,10 @@ describe('FlyOverClosestPanel', () => {
     expect(screen.getAllByText('DLH400')).toHaveLength(1);
     expect(screen.getByText('RYR45A')).toBeInTheDocument();
     expect(screen.getByText('TAP123')).toBeInTheDocument();
-    expect(screen.getByText(/3 aircraft over/)).toBeInTheDocument();
+    expect(screen.queryByText(/aircraft over/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
   });
 
   it('caps the list to maxResults after the closest tile', () => {
@@ -107,10 +111,13 @@ describe('FlyOverClosestPanel', () => {
   });
 
   it('shows a loading hint while the first fetch is pending', () => {
-    mockedUseFlyOversQuery.mockReturnValue(makeState({ data: null, isLoading: true }));
+    mockedUseFlyOversQuery.mockReturnValue(
+      makeState({ data: null, dataUpdatedAt: null, isLoading: true }),
+    );
     render(<FlyOverClosestPanel location={location} />);
 
     expect(screen.getByText('Loading aircraft…')).toBeInTheDocument();
+    expect(screen.getByText('Not updated yet')).toBeInTheDocument();
   });
 
   it('shows an empty state when no aircraft are in range', () => {
@@ -124,6 +131,7 @@ describe('FlyOverClosestPanel', () => {
     mockedUseFlyOversQuery.mockReturnValue(
       makeState({
         data: null,
+        dataUpdatedAt: null,
         isError: true,
         error: new Error('Aircraft feed is temporarily unavailable'),
       }),
@@ -131,6 +139,20 @@ describe('FlyOverClosestPanel', () => {
     render(<FlyOverClosestPanel location={location} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('temporarily unavailable');
+    expect(screen.getByText('Not updated yet')).toBeInTheDocument();
+  });
+
+  it('shows the updating indicator only while a refresh is in flight', () => {
+    const { rerender } = render(<FlyOverClosestPanel location={location} />);
+    mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: true }));
+    rerender(<FlyOverClosestPanel location={location} />);
+    expect(
+      screen.getAllByRole('status').some((region) => region.textContent?.includes('Updating…')),
+    ).toBe(true);
+
+    mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: false }));
+    rerender(<FlyOverClosestPanel location={location} />);
+    expect(screen.queryByText('Updating…')).not.toBeInTheDocument();
   });
 
   it('triggers a refetch from the manual refresh button', async () => {
@@ -138,6 +160,38 @@ describe('FlyOverClosestPanel', () => {
     const refetch = vi.fn();
     mockedUseFlyOversQuery.mockReturnValue(makeState({ refetch }));
     render(<FlyOverClosestPanel location={location} />);
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the standardized status bar with the last update time', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    render(<FlyOverClosestPanel location={location} />);
+
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('keeps the last update time, surfaces the error, and still offers Refresh on a failed refresh', async () => {
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    mockedUseFlyOversQuery.mockReturnValue(
+      makeState({
+        isError: true,
+        error: new Error('Aircraft feed is temporarily unavailable'),
+        refetch,
+      }),
+    );
+    render(<FlyOverClosestPanel location={location} />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('temporarily unavailable');
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Refresh' }));
     expect(refetch).toHaveBeenCalledTimes(1);

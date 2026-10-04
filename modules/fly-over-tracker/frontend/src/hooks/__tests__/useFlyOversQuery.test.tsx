@@ -70,6 +70,9 @@ function Panel({ location, autoRefresh, baseUrl }: PanelProps): React.JSX.Elemen
       <span data-testid="loading">{String(query.isLoading)}</span>
       <span data-testid="fetching">{String(query.isFetching)}</span>
       <span data-testid="error">{String(query.isError)}</span>
+      <span data-testid="updatedAt">
+        {query.dataUpdatedAt === null ? 'null' : String(query.dataUpdatedAt)}
+      </span>
       <button onClick={() => query.refetch()}>refetch</button>
       <button onClick={() => setCurrent(locationB)}>change location</button>
     </div>
@@ -176,5 +179,40 @@ describe('useFlyOversQuery', () => {
 
     await waitFor(() => expect(screen.getByTestId('error')).toHaveTextContent('true'));
     expect(screen.getByTestId('count')).toHaveTextContent('none');
+  });
+
+  it('exposes dataUpdatedAt as the epoch ms of the last successful fetch', async () => {
+    mockedGetFlyOvers.mockResolvedValue(result);
+    renderPanel({ location: locationA });
+
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('1'));
+    const updatedAt = Number(screen.getByTestId('updatedAt').textContent);
+    expect(Number.isFinite(updatedAt)).toBe(true);
+    expect(updatedAt).toBeGreaterThan(0);
+    expect(updatedAt).toBeLessThanOrEqual(Date.now());
+  });
+
+  it('reports dataUpdatedAt null before the first successful load', async () => {
+    mockedGetFlyOvers.mockImplementation(() => new Promise<FlyOverResult>(() => {}));
+    renderPanel({ location: locationA });
+
+    await flush();
+    expect(screen.getByTestId('updatedAt')).toHaveTextContent('null');
+    expect(screen.getByTestId('count')).toHaveTextContent('none');
+  });
+
+  it('advances dataUpdatedAt after a manual refetch succeeds', async () => {
+    mockedGetFlyOvers.mockResolvedValue(result);
+    renderPanel({ location: locationA });
+
+    await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('1'));
+    const first = Number(screen.getByTestId('updatedAt').textContent);
+
+    fireEvent.click(screen.getByRole('button', { name: 'refetch' }));
+    await waitFor(() => expect(mockedGetFlyOvers).toHaveBeenCalledTimes(2));
+    await flush();
+
+    const second = Number(screen.getByTestId('updatedAt').textContent);
+    expect(second).toBeGreaterThanOrEqual(first);
   });
 });

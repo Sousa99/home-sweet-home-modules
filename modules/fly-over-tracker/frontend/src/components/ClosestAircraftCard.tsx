@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { WidgetStatusBar } from '@sousa99/homesweethome-components';
 import { getApiBaseUrl } from '../api/baseUrl';
 import { useFlyOversQuery } from '../hooks/useFlyOversQuery';
 import type { LocationQuery } from '../api/types';
 import { AircraftCard } from './AircraftCard';
-import { UpdatingIndicator } from './UpdatingIndicator';
-import { Button } from './ui/button';
 import type { RefreshRate } from './RefreshRateSelect';
 import { createWidgetQueryClient } from '../lib/widgetQueryClient';
 import { selectClosest } from '../lib/closest';
@@ -29,10 +28,10 @@ export interface ClosestAircraftCardProps {
  * nearest to the configured location within the radius, using the full
  * `AircraftCard` presentation. Fills the available width and only the vertical
  * space its content needs. Fetches and auto-refreshes its own data through
- * `useFlyOversQuery`, shows a top-corner updating indicator while a refresh is
- * in flight, and exposes a manual Refresh action. When the closest aircraft
- * changes, the card content animates in (fade + slide) instead of swapping
- * abruptly.
+ * `useFlyOversQuery`, and shows the standardized `WidgetStatusBar` (last-update
+ * time, updating indicator, manual Refresh, failure notice). When the closest
+ * aircraft changes, the card content animates in (fade + slide) instead of
+ * swapping abruptly.
  */
 export const ClosestAircraftCard = ({
   location,
@@ -60,7 +59,7 @@ function ClosestAircraftCardContent({
   baseUrl,
   className,
 }: ClosestAircraftCardProps): JSX.Element {
-  const { data, isLoading, isFetching, isError, error, refetch } = useFlyOversQuery({
+  const { data, dataUpdatedAt, isLoading, isFetching, isError, error, refetch } = useFlyOversQuery({
     location,
     autoRefresh,
     baseUrl,
@@ -71,22 +70,14 @@ function ClosestAircraftCardContent({
 
   return (
     <div className={cn('relative w-full space-y-2', className)}>
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-slate-600">Closest aircraft</p>
-        <div className="flex items-center gap-2">
-          <UpdatingIndicator visible={isFetching} />
-          <Button variant="ghost" size="sm" onClick={refetch}>
-            Refresh
-          </Button>
-        </div>
-      </div>
+      <WidgetStatusBar
+        lastUpdatedAt={dataUpdatedAt}
+        updating={isFetching}
+        error={isError ? (error?.message ?? 'Something went wrong.') : null}
+        onRefresh={refetch}
+      />
 
       {isLoading && <p className="text-center text-sm text-slate-500">Loading aircraft…</p>}
-      {isError && (
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
-          {error?.message ?? 'Something went wrong.'}
-        </p>
-      )}
       {isEmpty && (
         <p className="text-center text-sm text-slate-500">
           No aircraft within {location.radiusKm} km of this location.

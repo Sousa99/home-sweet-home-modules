@@ -70,6 +70,7 @@ const result: FlyOverResult = {
 function makeState(overrides: Partial<UseFlyOversQueryResult>): UseFlyOversQueryResult {
   return {
     data: result,
+    dataUpdatedAt: 1_726_900_000,
     isLoading: false,
     isFetching: false,
     isError: false,
@@ -111,10 +112,13 @@ describe('FlyOverWidget', () => {
   });
 
   it('shows a loading hint while the first fetch is pending', () => {
-    mockedUseFlyOversQuery.mockReturnValue(makeState({ data: null, isLoading: true }));
+    mockedUseFlyOversQuery.mockReturnValue(
+      makeState({ data: null, dataUpdatedAt: null, isLoading: true }),
+    );
     render(<FlyOverWidget location={location} />);
 
     expect(screen.getByText('Loading aircraft…')).toBeInTheDocument();
+    expect(screen.getByText('Not updated yet')).toBeInTheDocument();
   });
 
   it('shows an empty state when no aircraft are in range', () => {
@@ -130,6 +134,7 @@ describe('FlyOverWidget', () => {
     mockedUseFlyOversQuery.mockReturnValue(
       makeState({
         data: null,
+        dataUpdatedAt: null,
         isError: true,
         error: new Error('Aircraft feed is temporarily unavailable'),
       }),
@@ -137,13 +142,56 @@ describe('FlyOverWidget', () => {
     render(<FlyOverWidget location={location} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('temporarily unavailable');
+    expect(screen.getByText('Not updated yet')).toBeInTheDocument();
+  });
+
+  it('renders the standardized status bar with the last update time', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    render(<FlyOverWidget location={location} />);
+
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('no longer renders the count/status header sentence', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    render(<FlyOverWidget location={location} />);
+
+    expect(screen.queryByText(/Aircraft over/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/aircraft over/i)).not.toBeInTheDocument();
+  });
+
+  it('keeps the last update time, surfaces the error, and still offers Refresh on a failed refresh', async () => {
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    mockedUseFlyOversQuery.mockReturnValue(
+      makeState({
+        isError: true,
+        error: new Error('Aircraft feed is temporarily unavailable'),
+        refetch,
+      }),
+    );
+    render(<FlyOverWidget location={location} />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('temporarily unavailable');
+    expect(
+      screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
   it('shows the updating indicator only while a refresh is in flight', () => {
     const { rerender } = render(<FlyOverWidget location={location} />);
     mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: true }));
     rerender(<FlyOverWidget location={location} />);
-    expect(screen.getByRole('status')).toHaveTextContent('Updating…');
+    expect(
+      screen.getAllByRole('status').some((region) => region.textContent?.includes('Updating…')),
+    ).toBe(true);
 
     mockedUseFlyOversQuery.mockReturnValue(makeState({ isFetching: false }));
     rerender(<FlyOverWidget location={location} />);

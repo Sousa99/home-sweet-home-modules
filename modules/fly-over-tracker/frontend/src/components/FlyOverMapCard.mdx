@@ -49,8 +49,9 @@ import { FlyOverMapCard } from '@sousa99/fly-over-tracker-components';
 
 - **Self-sufficient data** — fetches `GET {baseUrl}/api/fly-overs` and re-fetches
   automatically every `autoRefresh` seconds (`'off'` disables automatic refresh).
-- **Update feedback** — a small "Updating…" indicator appears in the top corner while
-  a refresh is in flight and clears when it completes.
+- **Status bar** — the standardized status bar shows `Last updated {YYYY-MM-DD HH:MM:SS <zone>}` (or
+  `Not updated yet` before the first load), an `Updating…` indicator while a refresh is
+  in flight, a `Refresh` button, and a failure notice when the feed is down.
 - **Layout** — `w-full`, `h-full` flex column: the map is `flex-1`. Mount it inside a
   container with a defined height.
 - **Basemap** — defaults to OpenStreetMap tiles; override with the optional `tileUrl` prop
