@@ -270,4 +270,97 @@ describe('StopCard widget', () => {
       screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/),
     ).toBeInTheDocument();
   });
+
+  it('renders the status bar above and outside the card', async () => {
+    mockedGetStopTimes.mockResolvedValue(response);
+    const { container } = render(
+      <StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />,
+    );
+    await screen.findByText('Cais');
+
+    const widget = container.querySelector('[data-testid="stop-card-widget"]');
+    expect(widget).not.toBeNull();
+    const status = screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+    const card = screen.getByRole('heading', { name: 'Sete Rios' }).closest('.rounded-xl');
+    expect(card).not.toBeNull();
+    expect(widget!.children[0]!.contains(status)).toBe(true);
+    expect(widget!.children[1]!.contains(card as HTMLElement)).toBe(true);
+    expect(card!.contains(status)).toBe(false);
+  });
+
+  it('keeps the card interior free of status text', async () => {
+    mockedGetStopTimes.mockResolvedValue(response);
+    const { container } = render(
+      <StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />,
+    );
+    await screen.findByText('Cais');
+
+    const card = container.querySelector('.rounded-xl');
+    expect(card).not.toBeNull();
+    expect(card!.textContent).not.toMatch(/Last updated|Not updated yet|Refresh|Updating/);
+  });
+
+  it('keeps the status bar above the card in the missing state', () => {
+    const { container } = render(
+      <StopCard stopId="S1" stopName="Sete Rios" missing refetchIntervalMs={0} />,
+    );
+
+    const widget = container.querySelector('[data-testid="stop-card-widget"]');
+    expect(widget).not.toBeNull();
+    const card = widget!.querySelector('.rounded-xl');
+    expect(card).not.toBeNull();
+    expect(widget!.children[0]!.textContent).toContain('Not updated yet');
+    expect(widget!.children[1]).toBe(card);
+  });
+
+  it('gives each widget its own status bar above its own card', async () => {
+    mockedGetStopTimes.mockResolvedValue(response);
+    const { container } = render(
+      <div>
+        <StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />
+        <StopCard stopId="S2" stopName="Algés" refetchIntervalMs={0} />
+      </div>,
+    );
+    await screen.findAllByText('Cais');
+
+    const widgets = container.querySelectorAll('[data-testid="stop-card-widget"]');
+    expect(widgets).toHaveLength(2);
+    widgets.forEach((widget) => {
+      const bar = widget.children[0] as HTMLElement;
+      const card = widget.children[1] as HTMLElement;
+      expect(bar.querySelector('[role="status"]')).not.toBeNull();
+      expect(bar.textContent).toMatch(/Last updated/);
+      expect(card.classList.contains('rounded-xl')).toBe(true);
+      expect(card.contains(bar)).toBe(false);
+    });
+  });
+
+  it("refreshing one widget does not change another widget's status", async () => {
+    const t0 = new Date(2026, 9, 4, 14, 0, 0).getTime();
+    const t1 = new Date(2026, 9, 4, 14, 0, 5).getTime();
+    const nowSpyLocal = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    nowSpy = nowSpyLocal;
+    mockedGetStopTimes.mockResolvedValue(response);
+    const user = userEvent.setup();
+    const { container } = render(
+      <div>
+        <StopCard stopId="S1" stopName="Sete Rios" refetchIntervalMs={0} />
+        <StopCard stopId="S2" stopName="Algés" refetchIntervalMs={0} />
+      </div>,
+    );
+    await screen.findAllByText('Cais');
+
+    const [first, second] = Array.from(
+      container.querySelectorAll('[data-testid="stop-card-widget"]'),
+    ) as [Element, Element];
+    expect(first.children[0]!.textContent).toMatch(/Last updated 2026-10-04 14:00:00 .+/);
+    expect(second.children[0]!.textContent).toMatch(/Last updated 2026-10-04 14:00:00 .+/);
+
+    nowSpyLocal.mockReturnValue(t1);
+    await user.click(screen.getAllByRole('button', { name: 'Refresh' })[0]!);
+    await waitFor(() =>
+      expect(first.children[0]!.textContent).toMatch(/Last updated 2026-10-04 14:00:05 .+/),
+    );
+    expect(second.children[0]!.textContent).toMatch(/Last updated 2026-10-04 14:00:00 .+/);
+  });
 });
