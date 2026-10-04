@@ -14,6 +14,7 @@ Scheme: REST `31xx`, MCP `32xx`, SPA `33xx`, Storybook `34xx` — indexed by mod
 | fly-over-tracker | `3101` | `3201` | `3301` | `3401` |
 | procrastinator-tracker | `3102` | `3202` | `3302` | `3402` |
 | current-time | — | — | `3303` | `3403` |
+| weather-psychic | `3104` | `3204` | `3304` | `3404` |
 
 Rules:
 

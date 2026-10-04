@@ -1,0 +1,82 @@
+import { Meta, Canvas, Controls, ArgTypes } from '@storybook/addon-docs/blocks';
+import * as CurrentWeatherCardStories from './CurrentWeatherCard.stories';
+import * as DailyForecastCardStories from './DailyForecastCard.stories';
+import * as LocationSelectorStories from './LocationSelector.stories';
+
+<Meta title="Weather/Documentation" />
+
+# Weather Psychic
+
+A Home Sweet Home module that shows what the weather is currently and to come. It publishes two
+widgets plus a location selector, all configurable per embed and self-fetching (no host React Query
+setup required):
+
+| Component            | Purpose                                                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `CurrentWeatherCard` | Detailed current weather (temperature, condition, feels-like, humidity, wind, precipitation, UV) with an auto-scrolling hourly strip. |
+| `DailyForecastCard`  | A compact, succinct list of the upcoming days, starting tomorrow.                                                                     |
+| `LocationSelector`   | Search-and-select control for choosing the location.                                                                                  |
+
+Both widgets render the standardized `WidgetStatusBar` on top ("Last updated …", Updating…,
+Refresh) and honor the base-url contract: an optional `baseUrl` prop defaults to the runtime
+configured API base URL (from `/config.json` / `API_BASE_URL`), falling back to same-origin `/api`.
+
+## Embedding
+
+```tsx
+import '@sousa99/weather-psychic-components/styles.css';
+import {
+  CurrentWeatherCard,
+  DailyForecastCard,
+  LocationSelector,
+} from '@sousa99/weather-psychic-components';
+
+function Dashboard() {
+  const [location, setLocation] = useState<Location | null>(null);
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <LocationSelector value={location} onChange={setLocation} />
+      {location && (
+        <>
+          <CurrentWeatherCard location={location} />
+          <DailyForecastCard location={location} />
+        </>
+      )}
+    </div>
+  );
+}
+```
+
+## CurrentWeatherCard
+
+The current weather in a detailed, graphic format for a configurable location. The hourly strip
+excludes the current hour and auto-scrolls to the right (respecting `prefers-reduced-motion`).
+
+<Canvas of={CurrentWeatherCardStories.Ready} />
+<Controls of={CurrentWeatherCardStories.Ready} />
+
+### States
+
+| Story         | Shows                                         |
+| ------------- | --------------------------------------------- |
+| Loading       | Initial load state                            |
+| Ready         | A fixture forecast for Lisbon                 |
+| Madrid        | A second location (per-embed configurability) |
+| LoadError     | Provider failure; last-known data kept        |
+| ReducedMotion | Rendering with reduced motion                 |
+
+## DailyForecastCard
+
+The upcoming days as a compact list starting tomorrow (the current day is excluded), each a
+succinct day / condition / low-high summary.
+
+<Canvas of={DailyForecastCardStories.Ready} />
+<Controls of={DailyForecastCardStories.Ready} />
+
+## LocationSelector
+
+Search-and-select control; the SPA binds it to a persisted `useLocation`, but the control itself
+persists nothing.
+
+<Canvas of={LocationSelectorStories.Empty} />
+<ArgTypes of={LocationSelectorStories.Empty} />

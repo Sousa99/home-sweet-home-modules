@@ -15,7 +15,7 @@ set -euo pipefail
 GHCR="${1:-ghcr.io/sousa99}"
 PLATFORMS="${PLATFORMS:-linux/amd64}"
 
-MODULES="fly-over-tracker procrastinator-tracker bus-catcher current-time"
+MODULES="fly-over-tracker procrastinator-tracker bus-catcher current-time weather-psychic"
 
 release_notes() {
   local changelog="$1"

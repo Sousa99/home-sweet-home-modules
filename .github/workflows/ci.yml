@@ -111,7 +111,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [fly-over-tracker, procrastinator-tracker, bus-catcher]
+        module: [fly-over-tracker, procrastinator-tracker, bus-catcher, weather-psychic]
 
     steps:
       - uses: actions/checkout@v4
@@ -138,7 +138,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [current-time, fly-over-tracker, procrastinator-tracker, bus-catcher]
+        module: [current-time, fly-over-tracker, procrastinator-tracker, bus-catcher, weather-psychic]
 
     steps:
       - uses: actions/checkout@v4
@@ -165,7 +165,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [current-time, fly-over-tracker, procrastinator-tracker, bus-catcher]
+        module: [current-time, fly-over-tracker, procrastinator-tracker, bus-catcher, weather-psychic]
 
     steps:
       - uses: actions/checkout@v4
@@ -222,12 +222,15 @@ jobs:
       - name: 🐳 Validate docker-compose.yml
         run: |
           docker compose config -q
-          SERVICES="$(docker compose --profile full config --services | wc -l)"
-          if [ "$SERVICES" -ne 14 ]; then
-            echo "::error::expected 14 services under --profile full, got $SERVICES"
+          ALL="$(COMPOSE_PROFILES='*' docker compose config --services | sort)"
+          FULL="$(docker compose --profile full config --services | sort)"
+          if [ "$ALL" != "$FULL" ]; then
+            echo "::error::--profile full must include every compose service"
+            echo "::error::only in full: $(comm -13 <(echo "$ALL") <(echo "$FULL"))"
+            echo "::error::missing from full: $(comm -23 <(echo "$ALL") <(echo "$FULL"))"
             exit 1
           fi
-          echo "✅ compose file valid (14 services, 5 profiles)"
+          echo "✅ compose file valid ($(echo "$FULL" | wc -l) services, all under --profile full)"
 
   actionlint:
     name: 🔬 actionlint
