@@ -103,53 +103,57 @@ export const DailyForecastCard = ({
     .slice(0, maxDays);
 
   return (
-    <Card data-testid="daily-forecast-card" className={cn('h-full w-full', className)}>
-      <WidgetStatusBar
-        lastUpdatedAt={lastUpdatedAt}
-        updating={updating}
-        error={error}
-        onRefresh={() => void load()}
-      />
+    <div className={cn('flex h-full w-full flex-col', className)}>
+      <div className="pb-2">
+        <WidgetStatusBar
+          lastUpdatedAt={lastUpdatedAt}
+          updating={updating}
+          error={error}
+          onRefresh={() => void load()}
+        />
+      </div>
 
-      <h2 className="mt-3 mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-        Daily forecast
-      </h2>
+      <Card data-testid="daily-forecast-card" className="min-h-0 flex-1">
+        <h2 className="mt-3 mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Daily forecast
+        </h2>
 
-      {data === null && !error && (
-        <p className="py-6 text-center text-sm text-slate-500">Loading forecast…</p>
-      )}
+        {data === null && !error && (
+          <p className="py-6 text-center text-sm text-slate-500">Loading forecast…</p>
+        )}
 
-      {data !== null && days.length === 0 && (
-        <p className="py-6 text-center text-sm text-slate-500">No upcoming days available.</p>
-      )}
+        {data !== null && days.length === 0 && (
+          <p className="py-6 text-center text-sm text-slate-500">No upcoming days available.</p>
+        )}
 
-      {days.length > 0 && (
-        <ul className="space-y-1">
-          {days.map((entry) => (
-            <li
-              key={entry.date}
-              className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2"
-            >
-              <span className="w-24 shrink-0 text-sm font-medium text-slate-700">
-                {formatDay(entry.date)}
-              </span>
-              <span className="flex items-center gap-1.5 text-sm text-slate-600">
-                <span aria-hidden="true" className="text-amber-600">
-                  {ICON_GLYPH[iconForWeather(entry.weatherCode, true)] ?? '?'}
+        {days.length > 0 && (
+          <ul className="space-y-1">
+            {days.map((entry) => (
+              <li
+                key={entry.date}
+                className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2"
+              >
+                <span className="w-24 shrink-0 text-sm font-medium text-slate-700">
+                  {formatDay(entry.date)}
                 </span>
-                {entry.condition}
-              </span>
-              <span className="shrink-0 text-xs text-slate-400">
-                {formatPercent(entry.precipitationProbability)}
-              </span>
-              <span className="shrink-0 text-sm font-medium text-slate-700">
-                {formatLowHigh(entry.temperatureMin, entry.temperatureMax)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Card>
+                <span className="flex items-center gap-1.5 text-sm text-slate-600">
+                  <span aria-hidden="true" className="text-amber-600">
+                    {ICON_GLYPH[iconForWeather(entry.weatherCode, true)] ?? '?'}
+                  </span>
+                  {entry.condition}
+                </span>
+                <span className="shrink-0 text-xs text-slate-400">
+                  {formatPercent(entry.precipitationProbability)}
+                </span>
+                <span className="shrink-0 text-sm font-medium text-slate-700">
+                  {formatLowHigh(entry.temperatureMin, entry.temperatureMax)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </div>
   );
 };
 

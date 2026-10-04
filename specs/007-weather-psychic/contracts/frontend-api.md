@@ -26,9 +26,10 @@ Detailed current weather with a graphic display plus an auto-scrolling hourly st
 | `className` | `string` | `undefined` | Extra classes for the widget root. |
 
 Behavior:
-- Renders the shared `WidgetStatusBar` **on top** of the widget (per the `005` status-bar contract:
+- Renders the shared `WidgetStatusBar` **above the card** (per the `005` status-bar contract:
   "Last updated …", "Updating…", Refresh; `lastUpdatedAt`/`updating`/`error`/`onRefresh` derived
-  from the widget's load state).
+  from the widget's load state) — the status row sits outside the card chrome, matching the other
+  modules' published widgets.
 - Renders the current conditions in a detailed, graphic format (temperature, condition, feels-like,
   humidity, wind, precipitation probability, UV; icon driven by `weatherCode` + `isDay`).
 - Below it, an hourly strip of the coming hours **excluding the current hour** (FR-003) that
@@ -51,7 +52,7 @@ Compact, succinct list of the upcoming days.
 | `className` | `string` | `undefined` | Extra classes for the widget root. |
 
 Behavior:
-- Renders the shared `WidgetStatusBar` **on top** (same status-bar contract as
+- Renders the shared `WidgetStatusBar` **above the card** (same status-bar contract as
   `CurrentWeatherCard`).
 - Lists the upcoming days **starting tomorrow** (today excluded, FR-005) in ascending order, each a
   very succinct summary: day name, condition (icon + label), low/high temperature (FR-006).

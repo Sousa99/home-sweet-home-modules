@@ -93,55 +93,59 @@ export const CurrentWeatherCard = ({
   const current = data?.current ?? null;
 
   return (
-    <Card data-testid="current-weather-card" className={cn('h-full w-full', className)}>
-      <WidgetStatusBar
-        lastUpdatedAt={lastUpdatedAt}
-        updating={updating}
-        error={error}
-        onRefresh={() => void load()}
-      />
+    <div className={cn('flex h-full w-full flex-col', className)}>
+      <div className="pb-2">
+        <WidgetStatusBar
+          lastUpdatedAt={lastUpdatedAt}
+          updating={updating}
+          error={error}
+          onRefresh={() => void load()}
+        />
+      </div>
 
-      {data === null && !error && (
-        <p className="py-8 text-center text-sm text-slate-500">Loading weather…</p>
-      )}
+      <Card data-testid="current-weather-card" className="min-h-0 flex-1">
+        {data === null && !error && (
+          <p className="py-8 text-center text-sm text-slate-500">Loading weather…</p>
+        )}
 
-      {data !== null && current !== null && (
-        <div className="mt-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <ConditionIcon code={current.weatherCode} isDay={current.isDay} />
-              <div>
-                <p className="text-4xl font-semibold text-slate-800">
-                  {formatTemperature(current.temperature)}
+        {data !== null && current !== null && (
+          <div className="mt-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <ConditionIcon code={current.weatherCode} isDay={current.isDay} />
+                <div>
+                  <p className="text-4xl font-semibold text-slate-800">
+                    {formatTemperature(current.temperature)}
+                  </p>
+                  <p className="text-sm text-slate-600">{current.condition}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-slate-700">{location.name}</p>
+                <p className="text-xs text-slate-500">
+                  Feels like {formatTemperature(current.apparentTemperature)}
                 </p>
-                <p className="text-sm text-slate-600">{current.condition}</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm font-medium text-slate-700">{location.name}</p>
-              <p className="text-xs text-slate-500">
-                Feels like {formatTemperature(current.apparentTemperature)}
-              </p>
+
+            <dl className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+              <Detail label="Humidity" value={formatPercent(current.humidity)} />
+              <Detail label="Wind" value={`${Math.round(current.windSpeed)} km/h`} />
+              <Detail label="Precip." value={formatPercent(current.precipitationProbability)} />
+              <Detail label="UV index" value={String(current.uvIndex)} />
+              <Detail label="Updated" value={formatHour(current.time)} />
+            </dl>
+
+            <div className="mt-4 border-t border-slate-100 pt-3">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Hourly forecast
+              </h3>
+              <HourlyStrip hourly={data.hourly} now={data.current.time} />
             </div>
           </div>
-
-          <dl className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
-            <Detail label="Humidity" value={formatPercent(current.humidity)} />
-            <Detail label="Wind" value={`${Math.round(current.windSpeed)} km/h`} />
-            <Detail label="Precip." value={formatPercent(current.precipitationProbability)} />
-            <Detail label="UV index" value={String(current.uvIndex)} />
-            <Detail label="Updated" value={formatHour(current.time)} />
-          </dl>
-
-          <div className="mt-4 border-t border-slate-100 pt-3">
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Hourly forecast
-            </h3>
-            <HourlyStrip hourly={data.hourly} now={data.current.time} />
-          </div>
-        </div>
-      )}
-    </Card>
+        )}
+      </Card>
+    </div>
   );
 };
 
