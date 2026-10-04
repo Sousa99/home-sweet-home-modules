@@ -9,7 +9,7 @@ export interface UseAutoScrollOptions {
 }
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
-const DEFAULT_SPEED = 30;
+const DEFAULT_SPEED = 45;
 const DEFAULT_PAUSE = 1500;
 
 /**
