@@ -249,3 +249,76 @@ services:
     ports:
       - '${HSH_CURRENT_TIME_STORYBOOK_PORT:-3403}:80'
     profiles: [rest+storybook, full]
+
+  # ------------------------------------------------------------- weather-psychic
+  weather-psychic-backend:
+    build:
+      context: .
+      dockerfile: modules/weather-psychic/Dockerfile.backend
+    command: ['node', 'dist/index.js', '--http']
+    environment:
+      HOST: 0.0.0.0
+      PORT: '3000'
+      MCP_PORT: '3001'
+    ports:
+      - '${HSH_WEATHER_PSYCHIC_REST_PORT:-3104}:3000'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles: [rest+spa, rest+storybook, full, backend]
+
+  weather-psychic-mcp:
+    build:
+      context: .
+      dockerfile: modules/weather-psychic/Dockerfile.backend
+    command: ['node', 'dist/index.js', '--mcp']
+    environment:
+      HOST: 0.0.0.0
+      PORT: '3000'
+      MCP_PORT: '3001'
+    ports:
+      - '${HSH_WEATHER_PSYCHIC_MCP_PORT:-3204}:3001'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "const s=require('net').connect(3001,'127.0.0.1',()=>process.exit(0));s.on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles: [mcp, full, backend]
+
+  weather-psychic-spa:
+    build:
+      context: .
+      dockerfile: modules/weather-psychic/Dockerfile.frontend
+    environment:
+      BACKEND_UPSTREAM: '${HSH_WEATHER_PSYCHIC_UPSTREAM:-weather-psychic-backend:3000}'
+    ports:
+      - '${HSH_WEATHER_PSYCHIC_SPA_PORT:-3304}:80'
+    depends_on:
+      weather-psychic-backend:
+        condition: service_healthy
+    profiles: [rest+spa, full]
+
+  weather-psychic-storybook:
+    build:
+      context: .
+      dockerfile: modules/weather-psychic/Dockerfile.storybook
+    environment:
+      BACKEND_UPSTREAM: '${HSH_WEATHER_PSYCHIC_UPSTREAM:-weather-psychic-backend:3000}'
+    ports:
+      - '${HSH_WEATHER_PSYCHIC_STORYBOOK_PORT:-3404}:80'
+    depends_on:
+      weather-psychic-backend:
+        condition: service_healthy
+    profiles: [rest+storybook, full]

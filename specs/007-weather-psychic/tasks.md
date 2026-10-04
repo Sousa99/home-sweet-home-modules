@@ -226,14 +226,14 @@ and the selector; read the written docs page.
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T057 [P] Create public export surface `modules/weather-psychic/frontend/src/index.ts` (export `CurrentWeatherCard`, `DailyForecastCard`, `LocationSelector` + their prop types + API types)
-- [ ] T058 [P] Write exports test `modules/weather-psychic/frontend/src/lib/__tests__/exports.test.ts` locking the public surface (no internal members leak)
-- [ ] T059 [P] Create module documentation `modules/weather-psychic/README.md`, `modules/weather-psychic/setup.md`, `modules/weather-psychic/AGENTS.md` following the [module-standard outline](../004-local-setup-standardization/contracts/module-standard.md) (README: Overview/Stack/Features/Prereqs/Getting Started/Quality Gates/Package/Embedding/Learn More; setup.md + AGENTS.md per the outline; document the Open-Meteo opt-in external integration)
-- [ ] T060 [P] Create `modules/weather-psychic/Dockerfile.backend`, `Dockerfile.frontend`, `Dockerfile.storybook` + `frontend/deploy/` nginx entrypoint + `/api` proxy (per `specs/004-local-setup-standardization/contracts/compose.md` pattern)
-- [ ] T061 [P] Update the host-port allocation `specs/004-local-setup-standardization/contracts/ports.md` (add weather-psychic row: REST `3104`, MCP `3204`, SPA `3304`, Storybook `3404`)
-- [ ] T062 [P] Run a module-standard conformance self-check against the [conformance checklist](../004-local-setup-standardization/contracts/module-standard.md) (base-url, documentation, workbench, tests, tooling) for both weather-psychic packages and record results in `specs/007-weather-psychic/` notes
-- [ ] T063 Run the validation scenarios in `specs/007-weather-psychic/quickstart.md` (mock-feed E2E via curl + MCP, live feed, SPA dashboard, embed check)
-- [ ] T064 Run the full gate suite: `pnpm lint && pnpm format && pnpm typecheck && pnpm test` (all four gates green across the workspace)
+- [x] T057 [P] Create public export surface `modules/weather-psychic/frontend/src/index.ts` (export `CurrentWeatherCard`, `DailyForecastCard`, `LocationSelector` + their prop types + API types)
+- [x] T058 [P] Write exports test `modules/weather-psychic/frontend/src/lib/__tests__/exports.test.ts` locking the public surface (no internal members leak)
+- [x] T059 [P] Create module documentation `modules/weather-psychic/README.md`, `modules/weather-psychic/setup.md`, `modules/weather-psychic/AGENTS.md` following the [module-standard outline](../004-local-setup-standardization/contracts/module-standard.md) (README: Overview/Stack/Features/Prereqs/Getting Started/Quality Gates/Package/Embedding/Learn More; setup.md + AGENTS.md per the outline; document the Open-Meteo opt-in external integration)
+- [x] T060 [P] Create `modules/weather-psychic/Dockerfile.backend`, `Dockerfile.frontend`, `Dockerfile.storybook` + `frontend/deploy/` nginx entrypoint + `/api` proxy (per `specs/004-local-setup-standardization/contracts/compose.md` pattern)
+- [x] T061 [P] Update the host-port allocation `specs/004-local-setup-standardization/contracts/ports.md` (add weather-psychic row: REST `3104`, MCP `3204`, SPA `3304`, Storybook `3404`)
+- [x] T062 [P] Run a module-standard conformance self-check against the [conformance checklist](../004-local-setup-standardization/contracts/module-standard.md) (base-url, documentation, workbench, tests, tooling) for both weather-psychic packages and record results in `specs/007-weather-psychic/` notes
+- [x] T063 Run the validation scenarios in `specs/007-weather-psychic/quickstart.md` (mock-feed E2E via curl + MCP, live feed, SPA dashboard, embed check)
+- [x] T064 Run the full gate suite: `pnpm lint && pnpm format && pnpm typecheck && pnpm test` (all four gates green across the workspace)
 
 ---
 
