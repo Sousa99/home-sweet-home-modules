@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { configureApiBaseUrl } from '../../api/baseUrl';
 import type { Aircraft, FlyOverResult, LocationQuery } from '../../api/types';
@@ -66,12 +66,92 @@ function makeState(overrides: Partial<UseFlyOversQueryResult>): UseFlyOversQuery
   };
 }
 
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+type ChangeListener = (event: { matches: boolean; media: string }) => void;
+
+function mockMatchMedia(reduce: boolean) {
+  const listeners = new Set<ChangeListener>();
+  const mql = {
+    matches: reduce,
+    media: REDUCED_MOTION_QUERY,
+    addEventListener: (_type: string, cb: ChangeListener) => {
+      listeners.add(cb);
+    },
+    removeEventListener: (_type: string, cb: ChangeListener) => {
+      listeners.delete(cb);
+    },
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    onchange: null,
+    dispatchEvent: () => true,
+  };
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockImplementation((query: string) => ({ ...mql, media: query })),
+  );
+  return {
+    /** Flip the reduced-motion preference and notify the hook's listener. */
+    toggleTo(value: boolean) {
+      for (const listener of [...listeners]) {
+        listener({ matches: value, media: REDUCED_MOTION_QUERY });
+      }
+    },
+  };
+}
+
+/**
+ * Deterministic requestAnimationFrame driver: frames advance by 16ms (like the
+ * browser's typical cadence) and callbacks receive the cumulative clock, so the
+ * smooth-scroll loop can be stepped through frame by frame.
+ */
+function createRafDriver() {
+  let now = 0;
+  let nextId = 1;
+  const queue: Array<{ id: number; cb: FrameRequestCallback }> = [];
+
+  vi.stubGlobal('requestAnimationFrame', ((cb: FrameRequestCallback) => {
+    queue.push({ id: nextId, cb });
+    return nextId++;
+  }) as typeof requestAnimationFrame);
+  vi.stubGlobal('cancelAnimationFrame', ((id: number) => {
+    const idx = queue.findIndex((f) => f.id === id);
+    if (idx >= 0) queue.splice(idx, 1);
+  }) as typeof cancelAnimationFrame);
+
+  return {
+    /** Run a single 16ms frame. */
+    frame() {
+      now += 16;
+      const batch = [...queue];
+      queue.length = 0;
+      for (const f of batch) f.cb(now);
+    },
+    /** Run `n` frames. */
+    frames(n: number) {
+      for (let i = 0; i < n; i += 1) this.frame();
+    },
+  };
+}
+
+/** Force the overflow metrics the auto-scroll hook reads (jsdom cannot lay out). */
+function overflow(list: HTMLElement, scrollHeight: number, clientHeight: number): void {
+  Object.defineProperty(list, 'scrollHeight', { configurable: true, value: scrollHeight });
+  Object.defineProperty(list, 'clientHeight', { configurable: true, value: clientHeight });
+}
+
+let driver: ReturnType<typeof createRafDriver>;
+let motion: ReturnType<typeof mockMatchMedia>;
+
 beforeEach(() => {
   vi.clearAllMocks();
+  motion = mockMatchMedia(false);
+  driver = createRafDriver();
 });
 
 afterEach(() => {
   configureApiBaseUrl(undefined);
+  vi.unstubAllGlobals();
 });
 
 describe('FlyOverClosestPanel', () => {
@@ -224,5 +304,200 @@ describe('FlyOverClosestPanel', () => {
       autoRefresh: 'off',
       baseUrl: 'https://configured.example.com',
     });
+  });
+
+  it('auto-scrolls the closest-flights list when it overflows', () => {
+    const many = Array.from({ length: 20 }, (_, i) =>
+      aircraft({
+        icao24: `c${String(i).padStart(5, '0')}`,
+        callsign: `FLY${i}`,
+        distanceKm: 10 + i,
+      }),
+    );
+    mockedUseFlyOversQuery.mockReturnValue(makeState({ data: result(many) }));
+    render(<FlyOverClosestPanel location={location} />);
+
+    const list = screen.getByTestId('closest-flights-list');
+    overflow(list, 2000, 300); // max scrollTop = 1700 (never reached here)
+
+    act(() => {
+      driver.frames(10);
+    });
+    // ~0.4px/frame at the 25 px/s default: it has moved a little but far from
+    // the 1700px max — a slow glide, not a single jump to the end.
+    expect(list.scrollTop).toBeGreaterThan(0);
+    expect(list.scrollTop).toBeLessThan(1700);
+
+    act(() => {
+      driver.frames(20);
+    });
+    const progressed = list.scrollTop;
+    expect(progressed).toBeGreaterThan(8);
+
+    act(() => {
+      driver.frames(20);
+    });
+    expect(list.scrollTop).toBeGreaterThan(progressed);
+  });
+
+  it('starts auto-scrolling once loading gives way to an overflowing list', () => {
+    const many = Array.from({ length: 20 }, (_, i) =>
+      aircraft({
+        icao24: `c${String(i).padStart(5, '0')}`,
+        callsign: `FLY${i}`,
+        distanceKm: 10 + i,
+      }),
+    );
+    mockedUseFlyOversQuery.mockReturnValue(
+      makeState({ data: null, dataUpdatedAt: null, isLoading: true }),
+    );
+    const { rerender } = render(<FlyOverClosestPanel location={location} />);
+    expect(screen.queryByTestId('closest-flights-list')).not.toBeInTheDocument();
+
+    // Frames with no list keep the loop alive without moving anything.
+    act(() => {
+      driver.frames(5);
+    });
+
+    // Loading resolves into an overflowing list.
+    mockedUseFlyOversQuery.mockReturnValue(makeState({ data: result(many) }));
+    rerender(<FlyOverClosestPanel location={location} />);
+
+    const list = screen.getByTestId('closest-flights-list');
+    overflow(list, 2000, 300);
+
+    act(() => {
+      driver.frames(10);
+    });
+    expect(list.scrollTop).toBeGreaterThan(0);
+  });
+
+  it('keeps a short non-overflowing list static', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    render(<FlyOverClosestPanel location={location} />);
+
+    const list = screen.getByTestId('closest-flights-list');
+    overflow(list, 300, 300); // scrollHeight === clientHeight → nothing to scroll
+
+    act(() => {
+      driver.frames(20);
+    });
+    expect(list.scrollTop).toBe(0);
+  });
+
+  it('never auto-scrolls under prefers-reduced-motion', () => {
+    motion = mockMatchMedia(true);
+    const many = Array.from({ length: 20 }, (_, i) =>
+      aircraft({
+        icao24: `c${String(i).padStart(5, '0')}`,
+        callsign: `FLY${i}`,
+        distanceKm: 10 + i,
+      }),
+    );
+    mockedUseFlyOversQuery.mockReturnValue(makeState({ data: result(many) }));
+    render(<FlyOverClosestPanel location={location} />);
+
+    const list = screen.getByTestId('closest-flights-list');
+    overflow(list, 2000, 300);
+
+    act(() => {
+      driver.frames(100);
+    });
+    expect(list.scrollTop).toBe(0);
+  });
+
+  it('halts the auto-scroll when reduced motion is enabled mid-scroll', () => {
+    const many = Array.from({ length: 20 }, (_, i) =>
+      aircraft({
+        icao24: `c${String(i).padStart(5, '0')}`,
+        callsign: `FLY${i}`,
+        distanceKm: 10 + i,
+      }),
+    );
+    mockedUseFlyOversQuery.mockReturnValue(makeState({ data: result(many) }));
+    render(<FlyOverClosestPanel location={location} />);
+
+    const list = screen.getByTestId('closest-flights-list');
+    overflow(list, 2000, 300);
+
+    act(() => {
+      driver.frames(10);
+    });
+    const stoppedAt = list.scrollTop;
+    expect(stoppedAt).toBeGreaterThan(0);
+
+    act(() => {
+      motion.toggleTo(true);
+      driver.frames(50);
+    });
+    expect(list.scrollTop).toBe(stoppedAt);
+  });
+
+  it('pauses the auto-scroll while the pointer is over the list and resumes on leave', () => {
+    const many = Array.from({ length: 20 }, (_, i) =>
+      aircraft({
+        icao24: `c${String(i).padStart(5, '0')}`,
+        callsign: `FLY${i}`,
+        distanceKm: 10 + i,
+      }),
+    );
+    mockedUseFlyOversQuery.mockReturnValue(makeState({ data: result(many) }));
+    render(<FlyOverClosestPanel location={location} />);
+
+    const list = screen.getByTestId('closest-flights-list');
+    overflow(list, 2000, 300);
+
+    act(() => {
+      driver.frames(5);
+    });
+    const beforeHover = list.scrollTop;
+    expect(beforeHover).toBeGreaterThan(0);
+
+    // Hover holds the position exactly, no matter how many frames pass.
+    act(() => {
+      fireEvent.pointerEnter(list);
+      driver.frames(10);
+    });
+    expect(list.scrollTop).toBe(beforeHover);
+
+    // Leaving resumes the glide.
+    act(() => {
+      fireEvent.pointerLeave(list);
+      driver.frames(1);
+    });
+    act(() => {
+      driver.frames(5);
+    });
+    expect(list.scrollTop).toBeGreaterThan(beforeHover);
+  });
+
+  it('renders no scrolling list in the loading state', () => {
+    mockedUseFlyOversQuery.mockReturnValue(
+      makeState({ data: null, dataUpdatedAt: null, isLoading: true }),
+    );
+    render(<FlyOverClosestPanel location={location} />);
+
+    expect(screen.queryByTestId('closest-flights-list')).not.toBeInTheDocument();
+  });
+
+  it('renders no scrolling list in the empty state', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({ data: result([]) }));
+    render(<FlyOverClosestPanel location={location} />);
+
+    expect(screen.queryByTestId('closest-flights-list')).not.toBeInTheDocument();
+  });
+
+  it('renders no scrolling list in the error state', () => {
+    mockedUseFlyOversQuery.mockReturnValue(
+      makeState({
+        data: null,
+        dataUpdatedAt: null,
+        isError: true,
+        error: new Error('Aircraft feed is temporarily unavailable'),
+      }),
+    );
+    render(<FlyOverClosestPanel location={location} />);
+
+    expect(screen.queryByTestId('closest-flights-list')).not.toBeInTheDocument();
   });
 });
