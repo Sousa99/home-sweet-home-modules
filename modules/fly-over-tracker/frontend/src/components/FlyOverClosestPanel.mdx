@@ -56,6 +56,13 @@ import { FlyOverClosestPanel } from '@sousa99/fly-over-tracker-components';
 
 <Canvas of={FlyOverClosestPanelStories.AutoRefresh} />
 
+### Many flights (auto-scrolling)
+
+Twenty aircraft in range — the closest-flights list overflows the panel and demonstrates the
+slow auto-scroll over a long list.
+
+<Canvas of={FlyOverClosestPanelStories.ManyFlights} />
+
 ## Behavior notes
 
 - **Single fetch** — the panel makes one `GET {baseUrl}/api/fly-overs` call per refresh
@@ -67,6 +74,15 @@ import { FlyOverClosestPanel } from '@sousa99/fly-over-tracker-components';
   every other aircraft in range, sorted closest first.
 - **Capping** — `maxResults` slices the remaining list; omit it to list everything after
   the closest.
+- **Auto-scrolling list** — when the list's content is taller than the panel, the list
+  scrolls smoothly on its own at a deliberately **slower** pace than the weather day +
+  hour strip (25 px/s vs 45 px/s, with a longer 2000 ms end-pause), pausing at the last
+  row before returning to the top and looping. The closest-aircraft tile above stays
+  static.
+- **Hover-pause** — moving the pointer over the list pauses the auto-scroll (the position
+  is held), so manual scrolling stays possible; leaving resumes the loop.
+- **Reduced motion** — when the OS "reduce motion" preference is enabled the list never
+  auto-scrolls, and it stops immediately if the preference is toggled on mid-scroll.
 - **States** — loading, empty ("No aircraft within … km"), and error states render in
   place of the content; stale data is never presented as fresh.
 - **Requirements** — the host must provide the peer dependencies `react` and `react-dom`.

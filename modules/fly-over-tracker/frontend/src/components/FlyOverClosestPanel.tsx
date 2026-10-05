@@ -11,6 +11,7 @@ import type { RefreshRate } from './RefreshRateSelect';
 import { createWidgetQueryClient } from '../lib/widgetQueryClient';
 import { selectClosest } from '../lib/closest';
 import { cn } from '../lib/utils';
+import { useAutoScroll } from '../lib/useAutoScroll';
 
 export interface FlyOverClosestPanelProps {
   /** The location and radius to watch (a valid LocationQuery). */
@@ -71,6 +72,7 @@ function FlyOverClosestPanelContent({
     autoRefresh,
     baseUrl,
   });
+  const { ref: listRef } = useAutoScroll<HTMLDivElement>();
 
   const aircraft: Aircraft[] = data?.aircraft ?? [];
   const closest = selectClosest(aircraft);
@@ -101,7 +103,11 @@ function FlyOverClosestPanelContent({
         </div>
       )}
       {visible.length > 0 && (
-        <div className="mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto">
+        <div
+          ref={listRef}
+          data-testid="closest-flights-list"
+          className="mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto"
+        >
           {visible.map((aircraftItem) => (
             <AircraftMapCard key={aircraftItem.icao24} aircraft={aircraftItem} />
           ))}
