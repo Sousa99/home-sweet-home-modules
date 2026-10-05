@@ -82,6 +82,28 @@ function makeElement(scrollHeight = 600, clientHeight = 300): HTMLElement {
   return el;
 }
 
+/**
+ * Like `makeElement`, but models a display that quantizes `scrollTop` to whole
+ * device pixels: the setter keeps the assigned value but reading it back floors
+ * it. This is what real browsers do on many displays, and it is why a hook that
+ * reads `scrollTop` back each frame to advance can get stuck (a sub-pixel
+ * assignment rounds back to the previous whole pixel).
+ */
+function makeQuantizedElement(scrollHeight = 5000, clientHeight = 300): HTMLElement {
+  const el = document.createElement('div');
+  Object.defineProperty(el, 'scrollHeight', { configurable: true, value: scrollHeight });
+  Object.defineProperty(el, 'clientHeight', { configurable: true, value: clientHeight });
+  let assigned = 0;
+  Object.defineProperty(el, 'scrollTop', {
+    configurable: true,
+    get: () => Math.floor(assigned),
+    set: (value: number) => {
+      assigned = value;
+    },
+  });
+  return el;
+}
+
 beforeEach(() => {
   vi.useFakeTimers();
 });
@@ -329,5 +351,29 @@ describe('useAutoScroll', () => {
     expect(el.scrollTop).toBeCloseTo(25 * seconds, 5);
     // … and clearly below what the weather strip's 45 px/s would produce.
     expect(el.scrollTop).toBeLessThan(45 * seconds);
+  });
+
+  it('advances under device-pixel quantization at the default speed', () => {
+    mockMatchMedia(false);
+    const driver = createRafDriver();
+    const el = makeQuantizedElement(5000, 300); // max scrollTop = 4700
+    const { result } = renderHook(() => useAutoScroll()); // default 25 px/s
+    act(() => {
+      result.current.ref.current = el;
+    });
+
+    // 25 px/s at 16ms/frame is ~0.4px/frame. Reading `scrollTop` back each
+    // frame floors that to 0 forever, so the list never moves; accumulating the
+    // fractional offset must eventually land on a whole pixel and keep going.
+    act(() => {
+      driver.frames(40); // ~0.64s → ~16px accumulated
+    });
+    expect(el.scrollTop).toBeGreaterThan(0);
+
+    const progressed = el.scrollTop;
+    act(() => {
+      driver.frames(40);
+    });
+    expect(el.scrollTop).toBeGreaterThan(progressed);
   });
 });
