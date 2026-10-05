@@ -44,8 +44,8 @@ the Foundational phase.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T001 Write FAILING unit tests for the vertical auto-scroll hook in `modules/fly-over-tracker/frontend/src/lib/__tests__/useAutoScroll.test.ts` — reuse weather-psychic's rAF driver (`vi.useFakeTimers` + 16 ms frames, `scrollTop`/`scrollHeight`/`clientHeight` fixtures): advances `scrollTop` smoothly toward the max; holds at the end for `resetPauseMs` then resets to `0` and keeps scrolling (loop); never moves under `prefers-reduced-motion: reduce`; pauses on `pointerenter` and resumes on `pointerleave` (per `research.md` R2, R3, R4)
-- [ ] T002 Implement the vertical auto-scroll hook in `modules/fly-over-tracker/frontend/src/lib/useAutoScroll.ts` — frame-driven `requestAnimationFrame` loop advancing `scrollTop` by `speedPxPerSecond` (default `25`), `resetPauseMs` (default `2000`) end-pause + snap-to-top loop, `matchMedia('(prefers-reduced-motion: reduce)')` guard with mid-scroll stop, and pointer-enter/leave hover-pause (depends on T001; make T001 green) (per `research.md` R1–R4, `contracts/closest-list-auto-scroll.md`)
+- [X] T001 Write FAILING unit tests for the vertical auto-scroll hook in `modules/fly-over-tracker/frontend/src/lib/__tests__/useAutoScroll.test.ts` — reuse weather-psychic's rAF driver (`vi.useFakeTimers` + 16 ms frames, `scrollTop`/`scrollHeight`/`clientHeight` fixtures): advances `scrollTop` smoothly toward the max; holds at the end for `resetPauseMs` then resets to `0` and keeps scrolling (loop); never moves under `prefers-reduced-motion: reduce`; pauses on `pointerenter` and resumes on `pointerleave` (per `research.md` R2, R3, R4)
+- [X] T002 Implement the vertical auto-scroll hook in `modules/fly-over-tracker/frontend/src/lib/useAutoScroll.ts` — frame-driven `requestAnimationFrame` loop advancing `scrollTop` by `speedPxPerSecond` (default `25`), `resetPauseMs` (default `2000`) end-pause + snap-to-top loop, `matchMedia('(prefers-reduced-motion: reduce)')` guard with mid-scroll stop, and pointer-enter/leave hover-pause (depends on T001; make T001 green) (per `research.md` R1–R4, `contracts/closest-list-auto-scroll.md`)
 
 **Checkpoint**: Hook unit tests green — user story implementation can now begin in parallel.
 
@@ -64,11 +64,11 @@ the max, holds at the end, then resets to the top. A short/non-overflowing list 
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T003 [US1] Add FAILING component test in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverClosestPanel.test.tsx` — render a long overflowing list (fixture of N aircraft via the mocked `useFlyOversQuery`), stub the rAF globals, and assert the list container's `scrollTop` advances slowly across frames; assert a short non-overflowing list's `scrollTop` stays `0` (FR-001, FR-008)
+- [X] T003 [US1] Add FAILING component test in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverClosestPanel.test.tsx` — render a long overflowing list (fixture of N aircraft via the mocked `useFlyOversQuery`), stub the rAF globals, and assert the list container's `scrollTop` advances slowly across frames; assert a short non-overflowing list's `scrollTop` stays `0` (FR-001, FR-008)
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Wire the hook into `modules/fly-over-tracker/frontend/src/components/FlyOverClosestPanel.tsx` — attach `useAutoScroll`'s `ref` to the list container (`div.mt-2.min-h-0.flex-1.space-y-2.overflow-y-auto`) so only the capped list auto-scrolls; the closest-aircraft tile above stays static; empty/loading/error renders are untouched (depends on T002, T003; make T003 green) (FR-001, FR-002, FR-003, FR-008, FR-009)
+- [X] T004 [US1] Wire the hook into `modules/fly-over-tracker/frontend/src/components/FlyOverClosestPanel.tsx` — attach `useAutoScroll`'s `ref` to the list container (`div.mt-2.min-h-0.flex-1.space-y-2.overflow-y-auto`) so only the capped list auto-scrolls; the closest-aircraft tile above stays static; empty/loading/error renders are untouched (depends on T002, T003; make T003 green) (FR-001, FR-002, FR-003, FR-008, FR-009)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently (MVP).
 
@@ -84,11 +84,11 @@ step many frames — `scrollTop` never changes. Toggling the preference mid-scro
 
 ### Tests for User Story 2 (required — Test-First) ⚠️
 
-- [ ] T005 [P] [US2] Add FAILING component test in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverClosestPanel.test.tsx` — with `(prefers-reduced-motion: reduce)` stubbed true, the overflowing list never advances across many frames; and switching the preference to true mid-scroll halts advancement (FR-005, `research.md` R4)
+- [X] T005 [P] [US2] Add FAILING component test in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverClosestPanel.test.tsx` — with `(prefers-reduced-motion: reduce)` stubbed true, the overflowing list never advances across many frames; and switching the preference to true mid-scroll halts advancement (FR-005, `research.md` R4)
 
 ### Implementation for User Story 2
 
-- [ ] T006 [US2] Confirm/satisfy reduced-motion at the widget level — verify `FlyOverClosestPanel.tsx`'s hook wiring honors the reduced-motion flag end-to-end (the guard lives in the hook from T002; add any passthrough needed so the widget test in T005 goes green) (depends on T004, T005)
+- [X] T006 [US2] Confirm/satisfy reduced-motion at the widget level — verify `FlyOverClosestPanel.tsx`'s hook wiring honors the reduced-motion flag end-to-end (the guard lives in the hook from T002; add any passthrough needed so the widget test in T005 goes green) (depends on T004, T005)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently.
 
@@ -104,12 +104,12 @@ the existing panel suite (closest tile, capping, states, status bar, refresh) pa
 
 ### Tests for User Story 3 (required — Test-First) ⚠️
 
-- [ ] T007 [P] [US3] Add FAILING component tests in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverClosestPanel.test.tsx` — `pointerEnter` on the list pauses advancement (position held over frames) and `pointerLeave` resumes; empty/loading/error renders never attach a scrolling list (FR-006, FR-009)
-- [ ] T008 [P] [US3] Confirm no-regression coverage in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverClosestPanel.test.tsx` — the existing assertions (closest tile appears once, `maxResults` cap, loading/empty/error states, status bar last-updated, Refresh, prop plumbing) must all pass unchanged after the wiring (FR-007)
+- [X] T007 [P] [US3] Add FAILING component tests in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverClosestPanel.test.tsx` — `pointerEnter` on the list pauses advancement (position held over frames) and `pointerLeave` resumes; empty/loading/error renders never attach a scrolling list (FR-006, FR-009)
+- [X] T008 [P] [US3] Confirm no-regression coverage in `modules/fly-over-tracker/frontend/src/components/__tests__/FlyOverClosestPanel.test.tsx` — the existing assertions (closest tile appears once, `maxResults` cap, loading/empty/error states, status bar last-updated, Refresh, prop plumbing) must all pass unchanged after the wiring (FR-007)
 
 ### Implementation for User Story 3
 
-- [ ] T009 [US3] Ensure the hover-pause and unchanged-content behavior at the widget level — the pause mechanism lives in the hook (T002); confirm the `FlyOverClosestPanel.tsx` wiring exposes it and that no content/ordering/refresh logic changed (make T007 and T008 green) (depends on T004, T007, T008)
+- [X] T009 [US3] Ensure the hover-pause and unchanged-content behavior at the widget level — the pause mechanism lives in the hook (T002); confirm the `FlyOverClosestPanel.tsx` wiring exposes it and that no content/ordering/refresh logic changed (make T007 and T008 green) (depends on T004, T007, T008)
 
 **Checkpoint**: All user stories should now be independently functional.
 
@@ -119,10 +119,10 @@ the existing panel suite (closest tile, capping, states, status bar, refresh) pa
 
 **Purpose**: Improvements that affect multiple user stories / final validation.
 
-- [ ] T010 [P] Add a long-list overflow story to `modules/fly-over-tracker/frontend/src/components/FlyOverClosestPanel.stories.tsx` (many aircraft fixture) so the slow auto-scroll and hover-pause are visually demonstrable (SC-002, `quickstart.md` §2)
-- [ ] T011 [P] Update behavior notes in `modules/fly-over-tracker/frontend/src/components/FlyOverClosestPanel.mdx` — document the auto-scrolling list (slower than the weather strip), end-pause/loop, hover-pause for manual scroll, and reduced-motion support
-- [ ] T012 Run the shared quality gates for the workspace: `pnpm lint`, `pnpm format`, `pnpm typecheck`, `pnpm test` — all four must be green, including `modules/fly-over-tracker/frontend`
-- [ ] T013 Run the `specs/009-closest-flights-auto-scroll/quickstart.md` validation guide end-to-end (hook + component tests, Storybook long-list visual check, reduced-motion check, public-surface check via `build:lib`)
+- [X] T010 [P] Add a long-list overflow story to `modules/fly-over-tracker/frontend/src/components/FlyOverClosestPanel.stories.tsx` (many aircraft fixture) so the slow auto-scroll and hover-pause are visually demonstrable (SC-002, `quickstart.md` §2)
+- [X] T011 [P] Update behavior notes in `modules/fly-over-tracker/frontend/src/components/FlyOverClosestPanel.mdx` — document the auto-scrolling list (slower than the weather strip), end-pause/loop, hover-pause for manual scroll, and reduced-motion support
+- [X] T012 Run the shared quality gates for the workspace: `pnpm lint`, `pnpm format`, `pnpm typecheck`, `pnpm test` — all four must be green, including `modules/fly-over-tracker/frontend`
+- [X] T013 Run the `specs/009-closest-flights-auto-scroll/quickstart.md` validation guide end-to-end (hook + component tests, Storybook long-list visual check, reduced-motion check, public-surface check via `build:lib`)
 
 ---
 

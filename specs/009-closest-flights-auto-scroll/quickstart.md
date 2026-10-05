@@ -62,8 +62,9 @@ Open `DashboardWidgets/FlyOverClosestPanel`:
 
 Enable the OS-level "reduce motion" preference and reload the Storybook page:
 
-- The long-list story never auto-scrolls (FR-005). Toggling the preference off mid-view resumes the
-  loop; toggling it on stops it immediately.
+- The long-list story never auto-scrolls (FR-005). Enabling the preference mid-view stops the loop
+  immediately. Toggling the preference off does **not** resume the loop — like the weather strip, the
+  animation only starts on mount, so a reload/remount is required to start it again.
 
 ### 4. SPA end-to-end (optional)
 
