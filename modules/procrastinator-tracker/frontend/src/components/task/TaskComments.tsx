@@ -32,14 +32,14 @@ export function TaskComments({ taskId, comments }: TaskCommentsProps) {
       {comments.length > 0 && (
         <ul className="space-y-2">
           {comments.map((c) => (
-            <li key={c.id} className="rounded-lg bg-slate-50 px-3 py-2 text-sm">
+            <li key={c.id} className="rounded-brutal bg-surface-alt px-3 py-2 text-sm">
               <div className="mb-1 flex items-center gap-2">
                 <Badge>{c.status}</Badge>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-ink-muted">
                   {new Date(c.createdAt).toLocaleString()}
                 </span>
               </div>
-              <p className="text-slate-700">{c.body}</p>
+              <p className="text-ink">{c.body}</p>
             </li>
           ))}
         </ul>
@@ -52,7 +52,7 @@ export function TaskComments({ taskId, comments }: TaskCommentsProps) {
           rows={2}
           required
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-error">{error}</p>}
         <Button type="submit" size="sm" disabled={addComment.isPending}>
           <MessageSquarePlus className="size-4" />
           Add comment

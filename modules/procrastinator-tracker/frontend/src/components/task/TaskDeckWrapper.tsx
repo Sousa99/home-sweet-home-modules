@@ -111,7 +111,7 @@ export function TaskDeckWrapper({
         error={state.kind === 'error' ? state.message : null}
         onRefresh={() => void load()}
       />
-      {state.kind === 'loading' && <p className="text-sm text-slate-400">Loading tasks…</p>}
+      {state.kind === 'loading' && <p className="text-sm text-ink-muted">Loading tasks…</p>}
       {tasks !== null &&
         (tasks.length === 0 ? (
           <div className="h-[var(--deck-height,16rem)] w-full">

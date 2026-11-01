@@ -40,7 +40,7 @@ export const WidgetStatusBar = ({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600',
+        'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-muted',
         className,
       )}
     >
@@ -54,10 +54,10 @@ export const WidgetStatusBar = ({
           <span
             role="status"
             aria-live="polite"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 shadow-sm"
+            className="inline-flex items-center gap-1.5 rounded-brutal border-brutal bg-surface px-2 py-1 text-xs text-ink-muted shadow-brutal"
           >
             <span
-              className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-primary/40 border-t-primary"
+              className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-outline border-t-accent"
               aria-hidden="true"
             />
             Updating…
@@ -68,7 +68,7 @@ export const WidgetStatusBar = ({
             type="button"
             onClick={onRefresh}
             disabled={updating}
-            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-brutal border-brutal bg-surface px-3 text-xs font-bold text-ink shadow-brutal transition-colors hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-outline disabled:pointer-events-none disabled:opacity-50"
           >
             Refresh
           </button>

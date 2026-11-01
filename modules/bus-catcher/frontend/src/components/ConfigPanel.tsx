@@ -75,11 +75,11 @@ export function ConfigPanel() {
         <CardContent>
           <StopSearch onSelect={selectStop} />
           {selected && (
-            <div className="mt-3 rounded-lg border border-slate-200 p-3">
-              <p className="text-sm font-medium text-slate-700">{selected.name}</p>
+            <div className="mt-3 rounded-brutal border-brutal p-3">
+              <p className="text-sm font-medium text-ink">{selected.name}</p>
               {servingLines.length > 0 && (
                 <div className="mt-2">
-                  <p className="text-xs text-slate-500">Filter by line and direction (optional)</p>
+                  <p className="text-xs text-ink-muted">Filter by line and direction (optional)</p>
                   <div className="mt-1 flex flex-wrap gap-1.5">
                     {servingLines.map((line) => (
                       <Button
@@ -98,7 +98,7 @@ export function ConfigPanel() {
                 {addStop.isPending ? 'Saving…' : 'Save stop'}
               </Button>
               {addStop.isError && (
-                <p className="mt-2 text-sm text-red-600" role="alert">
+                <p className="mt-2 text-sm text-error" role="alert">
                   {mutationError(addStop.error)}
                 </p>
               )}
@@ -112,11 +112,11 @@ export function ConfigPanel() {
         </CardHeader>
         <CardContent>
           {stops.length === 0 ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-muted">
               No stops configured yet. Search above to add one.
             </p>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-outline">
               {stops.map((item, index) => (
                 <ConfigStopRow key={item.id} item={item} index={index} stops={stops} />
               ))}
@@ -168,18 +168,20 @@ function ConfigStopRow({
         <div className="min-w-0">
           <span
             className={cn(
-              'text-sm font-medium text-slate-700',
-              (!item.enabled || item.missing) && 'text-slate-400',
+              'text-sm font-medium text-ink',
+              (!item.enabled || item.missing) && 'text-ink-muted',
             )}
           >
             {item.stop.name}
           </span>
-          {item.missing && <Badge className="ml-2 bg-red-100 text-red-700">no longer found</Badge>}
+          {item.missing && (
+            <Badge className="ml-2 bg-surface-alt text-error">no longer found</Badge>
+          )}
           {item.lineFilter.length > 0 && (
             <Badge className="ml-2">{item.lineFilter.join(', ')}</Badge>
           )}
           {missingLines.length > 0 && (
-            <span className="ml-2 text-xs text-red-600">
+            <span className="ml-2 text-xs text-error">
               lines {missingLines.join(', ')} no longer exist
             </span>
           )}
@@ -275,10 +277,10 @@ function EditFilter({ item, onDone }: { item: ConfigStop; onDone: () => void }) 
   }
 
   return (
-    <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-      <p className="text-xs text-slate-500">Lines shown for this stop</p>
+    <div className="mt-2 rounded-brutal border-brutal bg-surface-alt p-3">
+      <p className="text-xs text-ink-muted">Lines shown for this stop</p>
       {servingLines.length === 0 ? (
-        <p className="mt-1 text-xs text-slate-400">No line info available.</p>
+        <p className="mt-1 text-xs text-ink-muted">No line info available.</p>
       ) : (
         <div className="mt-1 flex flex-wrap gap-1.5">
           {servingLines.map((line) => (
@@ -294,7 +296,7 @@ function EditFilter({ item, onDone }: { item: ConfigStop; onDone: () => void }) 
         </div>
       )}
       <div className="mt-3">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-ink-muted">
           Departure thresholds (minutes before the bus arrives)
         </p>
         <div className="mt-1 grid grid-cols-3 gap-2">
@@ -339,7 +341,7 @@ function EditFilter({ item, onDone }: { item: ConfigStop; onDone: () => void }) 
         </Button>
       </div>
       {error && (
-        <p className="mt-2 text-sm text-red-600" role="alert">
+        <p className="mt-2 text-sm text-error" role="alert">
           {error}
         </p>
       )}

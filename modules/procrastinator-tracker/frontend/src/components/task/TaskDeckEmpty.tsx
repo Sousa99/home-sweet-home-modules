@@ -10,14 +10,14 @@ export function TaskDeckEmpty({ message, className, ...props }: TaskDeckEmptyPro
   return (
     <div
       className={cn(
-        'flex h-full w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-amber-200/70 bg-white/60 px-6 text-center',
+        'flex h-full w-full flex-col items-center justify-center gap-3 rounded-brutal border-brutal bg-surface px-6 text-center',
         className,
       )}
       data-testid="task-deck-empty"
       {...props}
     >
-      <Inbox aria-hidden className="size-8 text-slate-300" />
-      <p className="text-sm text-slate-400">{message}</p>
+      <Inbox aria-hidden className="size-8 text-ink-muted" />
+      <p className="text-sm text-ink-muted">{message}</p>
     </div>
   );
 }

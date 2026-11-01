@@ -35,7 +35,7 @@ export function HourlyStrip({
   );
 
   if (entries.length === 0) {
-    return <p className="py-4 text-center text-sm text-slate-500">No hourly forecast available.</p>;
+    return <p className="py-4 text-center text-sm text-ink-muted">No hourly forecast available.</p>;
   }
 
   return (
@@ -47,16 +47,16 @@ export function HourlyStrip({
       {entries.map((entry) => (
         <div
           key={entry.time}
-          className="flex w-16 shrink-0 flex-col items-center gap-1 rounded-lg border border-slate-100 bg-slate-50/60 px-2 py-2"
+          className="flex w-16 shrink-0 flex-col items-center gap-1 rounded-brutal border-brutal bg-surface-alt px-2 py-2"
         >
-          <span className="text-xs text-slate-500">{formatHour(entry.time)}</span>
-          <span aria-hidden="true" className="text-lg text-amber-600">
+          <span className="text-xs text-ink-muted">{formatHour(entry.time)}</span>
+          <span aria-hidden="true" className="text-lg text-accent">
             {ICON_GLYPH[iconForWeather(entry.weatherCode, entry.isDay)] ?? '?'}
           </span>
-          <span className="text-sm font-medium text-slate-700">
+          <span className="text-sm font-medium text-ink">
             {formatTemperature(entry.temperature)}
           </span>
-          <span className="text-[10px] text-slate-400">
+          <span className="text-[10px] text-ink-muted">
             {formatPercent(entry.precipitationProbability)}
           </span>
         </div>

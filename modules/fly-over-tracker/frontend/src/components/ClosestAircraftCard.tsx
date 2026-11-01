@@ -77,9 +77,9 @@ function ClosestAircraftCardContent({
         onRefresh={refetch}
       />
 
-      {isLoading && <p className="text-center text-sm text-slate-500">Loading aircraft…</p>}
+      {isLoading && <p className="text-center text-sm text-ink-muted">Loading aircraft…</p>}
       {isEmpty && (
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-ink-muted">
           No aircraft within {location.radiusKm} km of this location.
         </p>
       )}

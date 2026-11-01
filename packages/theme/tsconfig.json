@@ -1,0 +1,7 @@
+{
+  "extends": "@sousa99/homesweethome-config/tsconfig.base",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["tokens.ts"]
+}

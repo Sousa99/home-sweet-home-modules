@@ -56,8 +56,8 @@ export function TaskDeckCard({ task }: { task: Task }) {
   return (
     <Card
       className={cn(
-        'flex h-full w-full flex-col overflow-hidden transition hover:border-amber-400',
-        isUrgent && 'border-amber-400/80',
+        'flex h-full w-full flex-col overflow-hidden transition hover:border-accent',
+        isUrgent && 'border-accent',
       )}
     >
       <CardHeader>
@@ -66,13 +66,13 @@ export function TaskDeckCard({ task }: { task: Task }) {
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
         <div className="min-h-0 flex-1 overflow-hidden">
-          {task.description && <p className="line-clamp-6 text-slate-600">{task.description}</p>}
+          {task.description && <p className="line-clamp-6 text-ink-muted">{task.description}</p>}
         </div>
         <div className="mt-auto shrink-0 space-y-2">
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
             {task.urgency !== null && (
               <span className="inline-flex items-center gap-1">
-                <Flame className="size-3.5 text-amber-500" />
+                <Flame className="size-3.5 text-accent" />
                 {task.urgency}
               </span>
             )}
@@ -97,7 +97,7 @@ export function TaskDeckCard({ task }: { task: Task }) {
             </div>
           )}
           {task.assignees.length > 0 && (
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-ink-muted">
               {task.assignees.map((a) => a.name).join(', ')}
             </div>
           )}

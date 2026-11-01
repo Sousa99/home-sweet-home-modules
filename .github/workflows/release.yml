@@ -45,6 +45,9 @@ jobs:
       - name: 🚨 Lint
         run: pnpm lint
 
+      - name: 🎨 Theme token guard
+        run: pnpm guard:theme
+
       - name: 🔍 Typecheck
         run: pnpm typecheck
 

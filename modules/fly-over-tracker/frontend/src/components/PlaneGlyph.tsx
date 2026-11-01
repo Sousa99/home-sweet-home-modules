@@ -17,11 +17,11 @@ export const PlaneGlyph = ({ trueTrack = 0, className }: PlaneGlyphProps): JSX.E
   return (
     <span
       aria-hidden="true"
-      className={cn('inline-block text-slate-800', className)}
+      className={cn('inline-block text-ink', className)}
       style={{ transform: `rotate(${normalizeDegrees(trueTrack ?? 0)}deg)` }}
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-        <path fill="currentColor" stroke="#ffffff" strokeWidth="1" d={PLANE_SVG_PATH} />
+        <path fill="currentColor" stroke="var(--hsh-surface)" strokeWidth="1" d={PLANE_SVG_PATH} />
       </svg>
     </span>
   );

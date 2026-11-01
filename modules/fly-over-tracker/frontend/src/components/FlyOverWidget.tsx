@@ -106,10 +106,10 @@ function FlyOverWidgetContent({
         />
       </div>
 
-      <div className="mt-2 max-h-[40%] shrink-0 space-y-2 overflow-y-auto border-t border-slate-100 pt-2">
-        {isLoading && <p className="text-center text-sm text-slate-500">Loading aircraft…</p>}
+      <div className="mt-2 max-h-[40%] shrink-0 space-y-2 overflow-y-auto border-t border-outline pt-2">
+        {isLoading && <p className="text-center text-sm text-ink-muted">Loading aircraft…</p>}
         {isEmpty && (
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-ink-muted">
             No aircraft within {location.radiusKm} km of this location.
           </p>
         )}

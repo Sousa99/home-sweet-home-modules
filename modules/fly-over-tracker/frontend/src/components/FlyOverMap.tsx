@@ -124,7 +124,7 @@ export const FlyOverMap = ({
         zoom={10}
         maxZoom={19}
         scrollWheelZoom
-        className="h-[420px] w-full overflow-hidden rounded-xl border border-primary/20 shadow-sm"
+        className="h-[420px] w-full overflow-hidden rounded-brutal border-brutal shadow-brutal"
       >
         <MapFitController fitRequest={fitRequest} onFitApplied={onFitApplied} />
         <TileLayer
@@ -135,7 +135,7 @@ export const FlyOverMap = ({
         <Circle
           center={[center.lat, center.lng]}
           radius={radiusKm * 1000}
-          pathOptions={{ color: '#d97706', weight: 2 }}
+          pathOptions={{ color: 'var(--hsh-accent)', weight: 2 }}
         />
         <Marker
           position={[center.lat, center.lng]}

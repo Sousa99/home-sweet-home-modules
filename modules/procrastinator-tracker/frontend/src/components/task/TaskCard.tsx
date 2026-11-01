@@ -9,17 +9,17 @@ export function TaskCard({ task }: { task: Task }) {
   const isUrgent = task.urgency !== null && task.urgency >= 4;
   return (
     <Link to={`/tasks/${task.id}`} className="block">
-      <Card className={cn('transition hover:border-amber-400', isUrgent && 'border-amber-400/80')}>
+      <Card className={cn('transition hover:border-accent', isUrgent && 'border-accent')}>
         <CardHeader>
           <CardTitle className="flex-1">{task.title}</CardTitle>
           <StatusBadge status={task.status} />
         </CardHeader>
         <CardContent className="space-y-2">
-          {task.description && <p className="line-clamp-2 text-slate-600">{task.description}</p>}
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          {task.description && <p className="line-clamp-2 text-ink-muted">{task.description}</p>}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
             {task.urgency !== null && (
               <span className="inline-flex items-center gap-1">
-                <Flame className="size-3.5 text-amber-500" />
+                <Flame className="size-3.5 text-accent" />
                 {task.urgency}
               </span>
             )}
@@ -44,7 +44,7 @@ export function TaskCard({ task }: { task: Task }) {
             </div>
           )}
           {task.assignees.length > 0 && (
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-ink-muted">
               {task.assignees.map((a) => a.name).join(', ')}
             </div>
           )}

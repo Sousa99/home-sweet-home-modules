@@ -281,7 +281,7 @@ describe('StopCard widget', () => {
     const widget = container.querySelector('[data-testid="stop-card-widget"]');
     expect(widget).not.toBeNull();
     const status = screen.getByText(/Last updated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
-    const card = screen.getByRole('heading', { name: 'Sete Rios' }).closest('.rounded-xl');
+    const card = screen.getByRole('heading', { name: 'Sete Rios' }).closest('.rounded-brutal');
     expect(card).not.toBeNull();
     expect(widget!.children[0]!.contains(status)).toBe(true);
     expect(widget!.children[1]!.contains(card as HTMLElement)).toBe(true);
@@ -295,9 +295,11 @@ describe('StopCard widget', () => {
     );
     await screen.findByText('Cais');
 
-    const card = container.querySelector('.rounded-xl');
+    const widget = container.querySelector('[data-testid="stop-card-widget"]');
+    expect(widget).not.toBeNull();
+    const card = widget!.children[1] as HTMLElement;
     expect(card).not.toBeNull();
-    expect(card!.textContent).not.toMatch(/Last updated|Not updated yet|Refresh|Updating/);
+    expect(card.textContent).not.toMatch(/Last updated|Not updated yet|Refresh|Updating/);
   });
 
   it('keeps the status bar above the card in the missing state', () => {
@@ -307,7 +309,7 @@ describe('StopCard widget', () => {
 
     const widget = container.querySelector('[data-testid="stop-card-widget"]');
     expect(widget).not.toBeNull();
-    const card = widget!.querySelector('.rounded-xl');
+    const card = widget!.querySelector('.rounded-brutal');
     expect(card).not.toBeNull();
     expect(widget!.children[0]!.textContent).toContain('Not updated yet');
     expect(widget!.children[1]).toBe(card);
@@ -330,7 +332,7 @@ describe('StopCard widget', () => {
       const card = widget.children[1] as HTMLElement;
       expect(bar.querySelector('[role="status"]')).not.toBeNull();
       expect(bar.textContent).toMatch(/Last updated/);
-      expect(card.classList.contains('rounded-xl')).toBe(true);
+      expect(card.classList.contains('rounded-brutal')).toBe(true);
       expect(card.contains(bar)).toBe(false);
     });
   });

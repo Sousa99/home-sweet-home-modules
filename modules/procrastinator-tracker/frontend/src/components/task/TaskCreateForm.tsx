@@ -59,10 +59,7 @@ export function TaskCreateForm({ onCreated }: TaskCreateFormProps) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-3 rounded-xl border border-dashed border-amber-300 bg-white/70 p-4"
-    >
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-brutal border-brutal bg-surface p-4">
       <div>
         <Label htmlFor="task-title">Task</Label>
         <Input
@@ -153,10 +150,10 @@ export function TaskCreateForm({ onCreated }: TaskCreateFormProps) {
                   type="button"
                   onClick={() => toggleAssignee(u.id)}
                   className={
-                    'rounded-full border px-3 py-1 text-xs ' +
+                    'rounded-brutal border px-3 py-1 text-xs ' +
                     (active
-                      ? 'border-amber-500 bg-amber-100 text-amber-800'
-                      : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50')
+                      ? 'border-accent bg-surface-alt text-accent'
+                      : 'border-outline bg-surface text-ink-muted hover:bg-surface-alt')
                   }
                 >
                   {u.name}
@@ -166,7 +163,7 @@ export function TaskCreateForm({ onCreated }: TaskCreateFormProps) {
           </div>
         </div>
       )}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-error">{error}</p>}
       <Button type="submit" disabled={createTask.isPending} className="w-full">
         <Plus className="size-4" />
         Add task

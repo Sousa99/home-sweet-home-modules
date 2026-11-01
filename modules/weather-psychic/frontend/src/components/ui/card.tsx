@@ -1,19 +1,15 @@
-import type { JSX, ReactNode } from 'react';
+import type { HTMLAttributes, JSX } from 'react';
 import { cn } from '../../lib/utils';
 
-export interface CardProps {
-  children?: ReactNode;
-  className?: string;
-}
+export type CardProps = HTMLAttributes<HTMLDivElement>;
 
-/**
- * Shared card chrome following the module's light amber/slate visual language.
- */
-export function Card({ children, className }: CardProps): JSX.Element {
+/** Shared card chrome following the Home Sweet Home neo-brutalist identity. */
+export function Card({ className, ...props }: CardProps): JSX.Element {
   return (
-    <div className={cn('rounded-xl border border-amber-200/70 bg-white p-4 shadow-sm', className)}>
-      {children}
-    </div>
+    <div
+      className={cn('rounded-brutal border-brutal bg-surface p-4 shadow-brutal', className)}
+      {...props}
+    />
   );
 }
 
@@ -27,8 +23,8 @@ export interface CardHeaderProps {
 export function CardHeader({ title, subtitle, className }: CardHeaderProps): JSX.Element {
   return (
     <div className={cn('mb-3', className)}>
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-700">{title}</h2>
-      {subtitle !== undefined && <p className="text-xs text-slate-500">{subtitle}</p>}
+      <h2 className="font-display text-sm font-black uppercase tracking-wide text-ink">{title}</h2>
+      {subtitle !== undefined && <p className="text-xs text-ink-muted">{subtitle}</p>}
     </div>
   );
 }

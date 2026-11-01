@@ -136,6 +136,7 @@ interface MockProps {
   eventHandlers?: Record<string, (event: unknown) => void>;
   icon?: unknown;
   url?: unknown;
+  attribution?: unknown;
 }
 
 function toPoint(position: unknown): { lat: number; lng: number } {
@@ -165,13 +166,18 @@ export function MapContainer({ children, center, className }: MockProps) {
 /** Tile layer URLs rendered by the current test render, in render order. */
 export const tileLayerUrls: string[] = [];
 
-/** Clears `tileLayerUrls`; call between renders in a test. */
+/** Tile layer attributions rendered by the current test render, in render order. */
+export const tileLayerAttributions: string[] = [];
+
+/** Clears the tile layer stores; call between renders in a test. */
 export function resetTileLayerUrls(): void {
   tileLayerUrls.length = 0;
+  tileLayerAttributions.length = 0;
 }
 
-export function TileLayer({ url }: MockProps) {
+export function TileLayer({ url, attribution }: MockProps) {
   if (typeof url === 'string') tileLayerUrls.push(url);
+  if (typeof attribution === 'string') tileLayerAttributions.push(attribution);
   return null;
 }
 

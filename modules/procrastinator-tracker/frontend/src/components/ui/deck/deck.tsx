@@ -294,7 +294,7 @@ export type DeckEmptyProps = HTMLAttributes<HTMLDivElement>;
 export const DeckEmpty = ({ children, className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'absolute inset-0 flex items-center justify-center rounded-lg border border-dashed text-muted-foreground',
+      'absolute inset-0 flex items-center justify-center rounded-brutal border-brutal text-ink-muted',
       className,
     )}
     {...props}

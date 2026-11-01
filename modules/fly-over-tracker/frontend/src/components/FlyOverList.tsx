@@ -30,19 +30,19 @@ export const FlyOverList = ({
 }: FlyOverListProps): JSX.Element | null => {
   if (status === 'idle') {
     return (
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-ink-muted">
         Enter a location to see the aircraft overhead.
       </p>
     );
   }
 
   if (status === 'loading') {
-    return <p className="text-center text-sm text-slate-500">Loading aircraft…</p>;
+    return <p className="text-center text-sm text-ink-muted">Loading aircraft…</p>;
   }
 
   if (status === 'error') {
     return (
-      <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
+      <p className="rounded-brutal bg-surface-alt p-3 text-sm text-error" role="alert">
         {error ?? 'Something went wrong.'}
       </p>
     );
@@ -55,7 +55,7 @@ export const FlyOverList = ({
   if (result.count === 0) {
     return (
       <div className="space-y-3">
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-ink-muted">
           No aircraft within {result.radiusKm} km of this location.
         </p>
         <div className="flex justify-center">
@@ -70,7 +70,7 @@ export const FlyOverList = ({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-muted">
           {result.count} aircraft over {result.center.lat.toFixed(4)},{' '}
           {result.center.lng.toFixed(4)} (±{result.radiusKm} km) · as of {formatAsOf(result.asOf)}
         </p>

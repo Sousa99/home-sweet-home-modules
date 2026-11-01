@@ -1,0 +1,46 @@
+{
+  "name": "@sousa99/homesweethome-theme",
+  "version": "0.0.0",
+  "private": false,
+  "type": "module",
+  "description": "Shared neo-brutalist light/dark design tokens for Home Sweet Home",
+  "repository": "https://github.com/sousa99/home-sweet-home-modules.git",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "main": "./tokens.ts",
+  "module": "./tokens.ts",
+  "types": "./tokens.ts",
+  "exports": {
+    ".": {
+      "types": "./tokens.ts",
+      "import": "./tokens.ts"
+    },
+    "./theme.css": "./theme.css",
+    "./tokens": {
+      "types": "./tokens.ts",
+      "import": "./tokens.ts"
+    }
+  },
+  "files": [
+    "theme.css",
+    "tokens.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "devDependencies": {
+    "@sousa99/homesweethome-config": "workspace:*",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

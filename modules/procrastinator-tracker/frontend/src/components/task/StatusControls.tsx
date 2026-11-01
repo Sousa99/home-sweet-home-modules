@@ -43,7 +43,7 @@ export function StatusControls({ task, onChanged }: StatusControlsProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Move to:</span>
+      <span className="text-xs font-medium uppercase tracking-wide text-ink-muted">Move to:</span>
       {targets.map((target) => (
         <Button
           key={target}
