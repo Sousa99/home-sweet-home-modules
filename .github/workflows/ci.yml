@@ -268,7 +268,9 @@ jobs:
             echo "::error::PR title must match '<type>(<scope>)?: <subject>' (types: feat, fix, chore, docs, refactor, test, build, ci, style, perf, revert)."
             exit 1
           fi
-          if [[ ! "$HEAD_REF" =~ $BRANCH_RE ]]; then
+          if [[ "$HEAD_REF" == changeset-release/* ]]; then
+            echo "Skipping branch-name check for automated release branch: $HEAD_REF"
+          elif [[ ! "$HEAD_REF" =~ $BRANCH_RE ]]; then
             echo "::error::Branch name must match 'feature/NNN-kebab-case'."
             exit 1
           fi
