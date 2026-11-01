@@ -253,6 +253,8 @@ export interface AircraftMapViewProps {
   className?: string;
   /** Override the tile layer URL (Leaflet `{z}/{x}/{y}` placeholders). */
   tileUrl?: string;
+  /** Attribution HTML matching `tileUrl`; defaults to the OpenStreetMap credit. */
+  tileAttribution?: string;
   /** Log map layout/tile diagnostics to the console (`[fly-over-map]`). */
   debug?: boolean;
 }
@@ -270,6 +272,7 @@ export const AircraftMapView = ({
   aircraft = [],
   className,
   tileUrl = DEFAULT_TILE_URL,
+  tileAttribution = TILE_ATTRIBUTION,
   debug = false,
 }: AircraftMapViewProps): JSX.Element => {
   useEffect(() => {
@@ -283,13 +286,13 @@ export const AircraftMapView = ({
       maxZoom={19}
       scrollWheelZoom
       className={cn(
-        'h-full w-full overflow-hidden rounded-xl border border-primary/20 shadow-sm',
+        'h-full w-full overflow-hidden rounded-brutal border-brutal shadow-brutal',
         className,
       )}
     >
       <MapLayoutController center={center} radiusKm={radiusKm} debug={debug} />
       <TileLayer
-        attribution={TILE_ATTRIBUTION}
+        attribution={tileAttribution}
         url={tileUrl}
         maxZoom={19}
         eventHandlers={{
@@ -302,7 +305,7 @@ export const AircraftMapView = ({
       <Circle
         center={[center.lat, center.lng]}
         radius={radiusKm * 1000}
-        pathOptions={{ color: '#d97706', weight: 2 }}
+        pathOptions={{ color: 'var(--hsh-accent)', weight: 2 }}
       />
       <Marker position={[center.lat, center.lng]} />
       {aircraft.map((aircraftItem) => (

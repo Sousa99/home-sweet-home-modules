@@ -1,0 +1,187 @@
+/*
+ * Home Sweet Home — shared neo-brutalist theme tokens.
+ *
+ * This file is the single source of truth for the dashboard and every module
+ * widget. Consumers import it after Tailwind:
+ *
+ *   @import 'tailwindcss';
+ *   @import '@sousa99/homesweethome-theme/theme.css';
+ *
+ * Runtime appearance is selected with `data-theme="light|dark"` on <html>.
+ * With no attribute the light appearance applies, which keeps widgets safe to
+ * consume before the dark-mode host lands.
+ */
+
+@theme inline {
+  --color-bg: var(--hsh-bg);
+  --color-surface: var(--hsh-surface);
+  --color-surface-alt: var(--hsh-surface-alt);
+  --color-ink: var(--hsh-ink);
+  --color-ink-muted: var(--hsh-ink-muted);
+  --color-accent: var(--hsh-accent);
+  --color-accent-ink: var(--hsh-accent-ink);
+  --color-outline: var(--hsh-outline);
+  --color-ok: var(--hsh-ok);
+  --color-warn: var(--hsh-warn);
+  --color-error: var(--hsh-error);
+  --color-info: var(--hsh-info);
+  --color-map: var(--hsh-map-bg);
+  --color-map-line: var(--hsh-map-line);
+
+  --font-sans: var(--hsh-font-body);
+  --font-display: var(--hsh-font-display);
+
+  --radius-brutal: var(--hsh-radius);
+  --shadow-brutal: var(--hsh-shadow-offset) var(--hsh-shadow-offset) 0 var(--hsh-shadow-color);
+}
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --hsh-bg: #f1eee4;
+  --hsh-surface: #fffdf6;
+  --hsh-surface-alt: #f7f3e8;
+  --hsh-ink: #111111;
+  --hsh-ink-muted: #4b4b4b;
+  --hsh-accent: #ff5a36;
+  --hsh-accent-ink: #111111;
+  --hsh-outline: #111111;
+  --hsh-shadow-color: #111111;
+  --hsh-ok: #0a7a3d;
+  --hsh-warn: #8a4a00;
+  --hsh-error: #b3261e;
+  --hsh-info: #1d4ed8;
+  --hsh-map-bg: #dce8ff;
+  --hsh-map-line: #93a9d6;
+
+  --hsh-radius: 0px;
+  --hsh-border-width: 0.1875rem;
+  --hsh-shadow-offset: 0.375rem;
+
+  --hsh-font-display:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --hsh-font-body:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --hsh-bg: #101010;
+  --hsh-surface: #1a1a1a;
+  --hsh-surface-alt: #222222;
+  --hsh-ink: #f6f2e7;
+  --hsh-ink-muted: #b9b4a8;
+  --hsh-accent: #c8ff3d;
+  --hsh-accent-ink: #111111;
+  --hsh-outline: #f6f2e7;
+  --hsh-shadow-color: #000000;
+  --hsh-ok: #8ce99a;
+  --hsh-warn: #ffd43b;
+  --hsh-error: #ff8787;
+  --hsh-info: #74c0fc;
+  --hsh-map-bg: #16200a;
+  --hsh-map-line: #3c5420;
+
+  --hsh-radius: 0px;
+  --hsh-border-width: 0.1875rem;
+  --hsh-shadow-offset: 0.375rem;
+
+  --hsh-font-display:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --hsh-font-body:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+@utility border-brutal {
+  border-width: var(--hsh-border-width);
+  border-style: solid;
+  border-color: var(--hsh-outline);
+}
+
+@utility rounded-brutal {
+  border-radius: var(--hsh-radius);
+}
+
+@layer components {
+  .hsh-card {
+    border: var(--hsh-border-width) solid var(--hsh-outline);
+    border-radius: var(--hsh-radius);
+    background-color: var(--hsh-surface);
+    color: var(--hsh-ink);
+    box-shadow: var(--hsh-shadow-offset) var(--hsh-shadow-offset) 0 var(--hsh-shadow-color);
+  }
+
+  .hsh-heading {
+    color: var(--hsh-ink);
+    font-family: var(--hsh-font-display);
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  .hsh-label {
+    color: var(--hsh-ink-muted);
+    font-family: var(--hsh-font-body);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .hsh-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border: var(--hsh-border-width) solid var(--hsh-outline);
+    border-radius: var(--hsh-radius);
+    background-color: var(--hsh-surface);
+    color: var(--hsh-ink);
+    padding: 0.375rem 0.75rem;
+    font-weight: 700;
+    box-shadow: var(--hsh-shadow-offset) var(--hsh-shadow-offset) 0 var(--hsh-shadow-color);
+    transition:
+      transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+
+  .hsh-button:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: calc(var(--hsh-shadow-offset) + 1px) calc(var(--hsh-shadow-offset) + 1px) 0
+      var(--hsh-shadow-color);
+  }
+
+  .hsh-button:active:not(:disabled) {
+    transform: translate(var(--hsh-shadow-offset), var(--hsh-shadow-offset));
+    box-shadow: 0 0 0 var(--hsh-shadow-color);
+  }
+
+  .hsh-badge {
+    display: inline-flex;
+    align-items: center;
+    border: var(--hsh-border-width) solid var(--hsh-outline);
+    border-radius: var(--hsh-radius);
+    background-color: var(--hsh-accent);
+    color: var(--hsh-accent-ink);
+    padding: 0.125rem 0.375rem;
+    font-weight: 800;
+  }
+
+  .hsh-focus:focus-visible {
+    outline: var(--hsh-border-width) solid var(--hsh-outline);
+    outline-offset: var(--hsh-border-width);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hsh-button {
+    transition: none;
+  }
+
+  .hsh-button:hover:not(:disabled),
+  .hsh-button:active:not(:disabled) {
+    transform: none;
+  }
+}

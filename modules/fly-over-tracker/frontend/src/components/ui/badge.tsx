@@ -5,7 +5,7 @@ export function Badge({ className, ...props }: HTMLAttributes<HTMLSpanElement>) 
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600',
+        'inline-flex items-center rounded-brutal bg-surface-alt px-2 py-0.5 text-xs text-ink-muted',
         className,
       )}
       {...props}

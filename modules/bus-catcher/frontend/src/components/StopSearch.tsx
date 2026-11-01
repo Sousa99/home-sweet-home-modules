@@ -19,12 +19,12 @@ export function StopSearch({ onSelect }: { onSelect: (stop: Stop) => void }) {
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
-      {isFetching && <p className="mt-1 text-xs text-slate-400">Searching…</p>}
+      {isFetching && <p className="mt-1 text-xs text-ink-muted">Searching…</p>}
       {!isFetching && debounced.length >= 2 && results.length === 0 && (
-        <p className="mt-1 text-xs text-slate-500">No stops found.</p>
+        <p className="mt-1 text-xs text-ink-muted">No stops found.</p>
       )}
       {results.length > 0 && (
-        <ul className="mt-2 divide-y divide-slate-100">
+        <ul className="mt-2 divide-y divide-outline">
           {results.map((stop) => (
             <li key={stop.id} className="py-1">
               <Button

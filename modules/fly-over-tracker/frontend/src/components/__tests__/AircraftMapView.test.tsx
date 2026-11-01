@@ -5,6 +5,7 @@ import {
   mapStore,
   markerStore,
   resizeObserverStore,
+  tileLayerAttributions,
   tileLayerUrls,
 } from '../../test/react-leaflet-mock';
 import { circleBounds } from '../../lib/location';
@@ -160,6 +161,20 @@ describe('AircraftMapView', () => {
   it('uses the default OpenStreetMap tiles', () => {
     render(<AircraftMapView center={CENTER} radiusKm={50} />);
     expect(tileLayerUrls[0]).toBe('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    expect(tileLayerAttributions[0]).toContain('OpenStreetMap');
+  });
+
+  it('forwards a custom tile URL and attribution', () => {
+    render(
+      <AircraftMapView
+        center={CENTER}
+        radiusKm={50}
+        tileUrl="https://dark.example/{z}/{x}/{y}.png"
+        tileAttribution="&copy; Dark Tiles"
+      />,
+    );
+    expect(tileLayerUrls[0]).toBe('https://dark.example/{z}/{x}/{y}.png');
+    expect(tileLayerAttributions[0]).toBe('© Dark Tiles');
   });
 
   it('logs layout diagnostics to the console when debug is enabled', () => {

@@ -59,6 +59,9 @@ jobs:
       - name: 🚨 ESLint
         run: pnpm lint
 
+      - name: 🎨 Theme token guard
+        run: pnpm guard:theme
+
   typecheck:
     name: 🔍 Typecheck
     runs-on: ubuntu-latest

@@ -109,11 +109,11 @@ export const CurrentWeatherCard = ({
 
       <Card data-testid="current-weather-card" className="min-h-0 flex-1">
         {data === null && !error && (
-          <p className="py-8 text-center text-sm text-slate-500">Loading weather…</p>
+          <p className="py-8 text-center text-sm text-ink-muted">Loading weather…</p>
         )}
 
         {data !== null && current === null && (
-          <p className="py-8 text-center text-sm text-slate-500">
+          <p className="py-8 text-center text-sm text-ink-muted">
             No current conditions available.
           </p>
         )}
@@ -124,15 +124,15 @@ export const CurrentWeatherCard = ({
               <div className="flex items-center gap-3">
                 <ConditionIcon code={current.weatherCode} isDay={current.isDay} />
                 <div>
-                  <p className="text-4xl font-semibold text-slate-800">
+                  <p className="text-4xl font-semibold text-ink">
                     {formatTemperature(current.temperature)}
                   </p>
-                  <p className="text-sm text-slate-600">{current.condition}</p>
+                  <p className="text-sm text-ink-muted">{current.condition}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-medium text-slate-700">{location.name}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-medium text-ink">{location.name}</p>
+                <p className="text-xs text-ink-muted">
                   Feels like {formatTemperature(current.apparentTemperature)}
                 </p>
               </div>
@@ -146,8 +146,8 @@ export const CurrentWeatherCard = ({
               <Detail label="Updated" value={formatHour(current.time)} />
             </dl>
 
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="mt-4 border-t border-outline pt-3">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
                 Hourly forecast
               </h3>
               <HourlyStrip hourly={data.hourly} now={data.current.time} />
@@ -161,9 +161,9 @@ export const CurrentWeatherCard = ({
 
 function Detail({ label, value }: { label: string; value: string }): JSX.Element {
   return (
-    <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2">
-      <dt className="text-xs uppercase tracking-wide text-slate-400">{label}</dt>
-      <dd className="font-medium text-slate-700">{value}</dd>
+    <div className="rounded-brutal border-brutal bg-surface-alt px-3 py-2">
+      <dt className="text-xs uppercase tracking-wide text-ink-muted">{label}</dt>
+      <dd className="font-medium text-ink">{value}</dd>
     </div>
   );
 }
@@ -174,7 +174,7 @@ function ConditionIcon({ code, isDay }: { code: number; isDay: boolean }): JSX.E
     <span
       data-testid="condition-icon"
       aria-hidden="true"
-      className="flex h-14 w-14 items-center justify-center rounded-xl border border-amber-200/70 bg-amber-50 text-2xl text-amber-600"
+      className="flex h-14 w-14 items-center justify-center rounded-brutal border-brutal bg-surface-alt text-2xl text-accent"
     >
       {ICON_GLYPH[iconKey] ?? '?'}
     </span>

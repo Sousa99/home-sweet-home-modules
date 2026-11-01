@@ -85,12 +85,12 @@ export const LocationSelector = ({
           if (results.length > 0) setOpen(true);
         }}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-amber-200/70 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200"
+        className="w-full rounded-brutal border-brutal bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-outline"
       />
-      {searching && <span className="absolute right-3 top-2.5 text-xs text-slate-400">…</span>}
+      {searching && <span className="absolute right-3 top-2.5 text-xs text-ink-muted">…</span>}
 
       {open && results.length > 0 && (
-        <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-100 bg-white shadow-md">
+        <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-brutal border-brutal bg-surface shadow-brutal">
           {results.map((result) => (
             <li key={result.id}>
               <button
@@ -99,11 +99,11 @@ export const LocationSelector = ({
                   onChange(result);
                   setOpen(false);
                 }}
-                className="flex w-full items-baseline justify-between gap-2 px-3 py-2 text-left text-sm text-slate-700 hover:bg-amber-50"
+                className="flex w-full items-baseline justify-between gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-surface-alt"
               >
                 <span>{result.name}</span>
                 {result.country !== undefined && (
-                  <span className="text-xs text-slate-400">{result.country}</span>
+                  <span className="text-xs text-ink-muted">{result.country}</span>
                 )}
               </button>
             </li>

@@ -133,11 +133,11 @@ export function StopCard({
         </CardHeader>
         <CardContent>
           {missing ? (
-            <p className="text-sm text-amber-700">
+            <p className="text-sm text-accent">
               This stop no longer exists in the schedule — remove it in Config.
             </p>
           ) : state.status === 'loading' ? (
-            <p className="text-sm text-slate-500">Loading…</p>
+            <p className="text-sm text-ink-muted">Loading…</p>
           ) : data === null ? null : (
             <>
               <StopTimesList times={times} thresholds={thresholds} />

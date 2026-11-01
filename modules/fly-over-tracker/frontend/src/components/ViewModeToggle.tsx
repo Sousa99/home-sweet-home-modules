@@ -25,7 +25,7 @@ export const ViewModeToggle = ({ mode, onChange }: ViewModeToggleProps): JSX.Ele
     <div
       role="group"
       aria-label="View mode"
-      className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm"
+      className="inline-flex rounded-brutal border-brutal bg-surface p-0.5 shadow-brutal"
     >
       {OPTIONS.map((option) => {
         const active = mode === option.value;

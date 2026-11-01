@@ -93,6 +93,9 @@ importers:
 
   modules/bus-catcher/frontend:
     dependencies:
+      '@sousa99/homesweethome-theme':
+        specifier: workspace:*
+        version: link:../../../packages/theme
       '@tanstack/react-query':
         specifier: ^5.103.2
         version: 5.103.2(react@19.3.0)
@@ -156,13 +159,16 @@ importers:
         version: 6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
       vite-plugin-dts:
         specifier: ^5.1.0
-        version: 5.1.1(@microsoft/api-extractor@7.59.2(@types/node@26.6.2))(esbuild@0.25.12)(rollup@4.63.5)(supports-color@8.1.1)(typescript@5.9.3)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+        version: 5.1.1(@microsoft/api-extractor@7.59.2(@types/node@26.6.2))(esbuild@0.28.2)(rollup@4.63.5)(supports-color@8.1.1)(typescript@5.9.3)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
       vitest:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@26.6.2)(jiti@2.7.0)(jsdom@25.0.1(supports-color@8.1.1))(lightningcss@1.32.0)(supports-color@8.1.1)(tsx@4.23.15)(yaml@2.9.1)
 
   modules/current-time/frontend:
     dependencies:
+      '@sousa99/homesweethome-theme':
+        specifier: workspace:*
+        version: link:../../../packages/theme
       lucide-react:
         specifier: ^0.469.0
         version: 0.469.0(react@19.3.0)
@@ -279,6 +285,9 @@ importers:
 
   modules/fly-over-tracker/frontend:
     dependencies:
+      '@sousa99/homesweethome-theme':
+        specifier: workspace:*
+        version: link:../../../packages/theme
       '@tanstack/react-query':
         specifier: ^5.103.2
         version: 5.103.2(react@19.3.0)
@@ -416,6 +425,9 @@ importers:
       '@radix-ui/react-use-controllable-state':
         specifier: ^1.2.6
         version: 1.2.6(@types/react@19.3.0)(react@19.3.0)
+      '@sousa99/homesweethome-theme':
+        specifier: workspace:*
+        version: link:../../../packages/theme
       '@tanstack/react-query':
         specifier: ^5.62.0
         version: 5.103.2(react@19.3.0)
@@ -541,6 +553,9 @@ importers:
 
   modules/weather-psychic/frontend:
     dependencies:
+      '@sousa99/homesweethome-theme':
+        specifier: workspace:*
+        version: link:../../../packages/theme
       lucide-react:
         specifier: ^0.544.0
         version: 0.544.0(react@19.3.0)
@@ -680,6 +695,18 @@ importers:
       typescript-eslint:
         specifier: ^8.18.0
         version: 8.70.1(eslint@9.39.5(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@5.9.3)
+
+  packages/theme:
+    devDependencies:
+      '@sousa99/homesweethome-config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@26.6.2)(jiti@2.7.0)(jsdom@25.0.1(supports-color@8.1.1))(lightningcss@1.32.0)(supports-color@8.1.1)(tsx@4.23.15)(yaml@2.9.1)
 
 packages:
 
@@ -7791,26 +7818,6 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unplugin-dts@1.1.1(@microsoft/api-extractor@7.59.2(@types/node@26.6.2))(esbuild@0.25.12)(rollup@4.63.5)(supports-color@8.1.1)(typescript@5.9.3)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)):
-    dependencies:
-      '@rollup/pluginutils': 5.4.0(rollup@4.63.5)
-      '@volar/typescript': 2.4.28(typescript@5.9.3)
-      compare-versions: 6.1.1
-      debug: 4.4.3(supports-color@8.1.1)
-      glob-to-regexp: 0.4.1
-      kolorist: 1.8.0
-      local-pkg: 1.2.1
-      magic-string: 0.30.21
-      typescript: 5.9.3
-      unplugin: 2.3.11
-    optionalDependencies:
-      '@microsoft/api-extractor': 7.59.2(@types/node@26.6.2)
-      esbuild: 0.25.12
-      rollup: 4.63.5
-      vite: 6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
-    transitivePeerDependencies:
-      - supports-color
-
   unplugin-dts@1.1.1(@microsoft/api-extractor@7.59.2(@types/node@26.6.2))(esbuild@0.28.2)(rollup@4.63.5)(supports-color@8.1.1)(typescript@5.9.3)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)):
     dependencies:
       '@rollup/pluginutils': 5.4.0(rollup@4.63.5)
@@ -7896,22 +7903,6 @@ snapshots:
       - terser
       - tsx
       - yaml
-
-  vite-plugin-dts@5.1.1(@microsoft/api-extractor@7.59.2(@types/node@26.6.2))(esbuild@0.25.12)(rollup@4.63.5)(supports-color@8.1.1)(typescript@5.9.3)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)):
-    dependencies:
-      unplugin-dts: 1.1.1(@microsoft/api-extractor@7.59.2(@types/node@26.6.2))(esbuild@0.25.12)(rollup@4.63.5)(supports-color@8.1.1)(typescript@5.9.3)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
-    optionalDependencies:
-      '@microsoft/api-extractor': 7.59.2(@types/node@26.6.2)
-      rollup: 4.63.5
-      vite: 6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
-    transitivePeerDependencies:
-      - '@rspack/core'
-      - '@vue/language-core'
-      - esbuild
-      - rolldown
-      - supports-color
-      - typescript
-      - webpack
 
   vite-plugin-dts@5.1.1(@microsoft/api-extractor@7.59.2(@types/node@26.6.2))(esbuild@0.28.2)(rollup@4.63.5)(supports-color@8.1.1)(typescript@5.9.3)(vite@6.4.3(@types/node@26.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)):
     dependencies:

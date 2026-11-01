@@ -84,11 +84,11 @@ const App = (): JSX.Element => {
   const pendingFit = query !== null && query !== fittedQuery;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-primary/20 bg-white">
+    <div className="min-h-screen bg-surface-alt">
+      <header className="border-b border-outline bg-surface">
         <div className="mx-auto max-w-3xl px-4 py-6">
-          <h1 className="text-2xl font-semibold text-slate-800">fly-over-tracker</h1>
-          <p className="text-sm text-slate-500">Aircraft currently flying over a location</p>
+          <h1 className="text-2xl font-semibold text-ink">fly-over-tracker</h1>
+          <p className="text-sm text-ink-muted">Aircraft currently flying over a location</p>
         </div>
       </header>
       <main
@@ -116,7 +116,7 @@ const App = (): JSX.Element => {
             className="fixed right-4 top-4 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2"
           >
             {isStale && (
-              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-amber-800 shadow-lg">
+              <div className="flex items-start gap-2 rounded-brutal border-brutal bg-surface px-3 py-2 text-sm text-accent shadow-brutal">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -137,9 +137,9 @@ const App = (): JSX.Element => {
               </div>
             )}
             {isUpdating && (
-              <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-lg">
+              <div className="flex items-center gap-2 rounded-brutal border-brutal bg-surface px-3 py-2 text-sm text-ink-muted shadow-brutal">
                 <span
-                  className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-primary/40 border-t-primary"
+                  className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-outline border-t-accent"
                   aria-hidden="true"
                 />
                 Updating…
@@ -151,7 +151,7 @@ const App = (): JSX.Element => {
         {mode === 'map' ? (
           mapFailed ? (
             <div className="space-y-3">
-              <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800" role="alert">
+              <p className="rounded-brutal bg-surface-alt p-3 text-sm text-accent" role="alert">
                 The map could not be loaded. Results are available in the list view.
               </p>
               <FlyOverList
@@ -164,7 +164,7 @@ const App = (): JSX.Element => {
           ) : (
             <div className="space-y-3">
               {status === 'error' && (
-                <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
+                <p className="rounded-brutal bg-surface-alt p-3 text-sm text-error" role="alert">
                   {error ?? 'Something went wrong.'}
                 </p>
               )}

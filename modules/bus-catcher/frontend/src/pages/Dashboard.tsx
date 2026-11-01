@@ -28,7 +28,7 @@ export default function DashboardPage() {
       {stops.length === 0 ? (
         <Card>
           <CardContent>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-muted">
               No stops configured yet. Go to the Config tab to add one.
             </p>
           </CardContent>
@@ -55,21 +55,21 @@ function StatusBanner({ status }: { status: Status | undefined }) {
   if (!status) return null;
   if (status.refreshing) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+      <div className="rounded-brutal border-brutal bg-surface-alt px-4 py-2 text-sm text-accent">
         Refreshing the schedule — times may be temporarily out of date.
       </div>
     );
   }
   if (status.realtimeAvailable === false && status.realtimeLastUpdate !== null) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+      <div className="rounded-brutal border-brutal bg-surface-alt px-4 py-2 text-sm text-accent">
         Live ETA is unavailable right now — showing scheduled times.
       </div>
     );
   }
   if (status.stale) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+      <div className="rounded-brutal border-brutal bg-surface-alt px-4 py-2 text-sm text-error">
         Schedule data may be out of date (last refreshed{' '}
         {status.lastRefresh ? formatScheduledTime(status.lastRefresh) : 'never'}
         ).
@@ -78,7 +78,7 @@ function StatusBanner({ status }: { status: Status | undefined }) {
   }
   if (status.lastRefresh) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-500">
+      <div className="rounded-brutal border-brutal bg-surface-alt px-4 py-2 text-xs text-ink-muted">
         Schedule updated {formatScheduledTime(status.lastRefresh)}
       </div>
     );

@@ -181,7 +181,7 @@ export const FlyOverForm = ({
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="space-y-4 rounded-xl border border-primary/20 bg-white p-4 shadow-sm"
+      className="space-y-4 rounded-brutal border-brutal bg-surface p-4 shadow-brutal"
     >
       <div className="flex justify-center">
         <Button
@@ -195,7 +195,7 @@ export const FlyOverForm = ({
         </Button>
       </div>
       {geoError && (
-        <p className="text-xs text-red-600" role="alert">
+        <p className="text-xs text-error" role="alert">
           {geoError}
         </p>
       )}
@@ -210,7 +210,7 @@ export const FlyOverForm = ({
             aria-invalid={errors.lat ? true : undefined}
           />
           {errors.lat && (
-            <p className="mt-1 text-xs text-red-600" role="alert">
+            <p className="mt-1 text-xs text-error" role="alert">
               {errors.lat}
             </p>
           )}
@@ -225,7 +225,7 @@ export const FlyOverForm = ({
             aria-invalid={errors.lng ? true : undefined}
           />
           {errors.lng && (
-            <p className="mt-1 text-xs text-red-600" role="alert">
+            <p className="mt-1 text-xs text-error" role="alert">
               {errors.lng}
             </p>
           )}
@@ -240,7 +240,7 @@ export const FlyOverForm = ({
             aria-invalid={errors.radiusKm ? true : undefined}
           />
           {errors.radiusKm && (
-            <p className="mt-1 text-xs text-red-600" role="alert">
+            <p className="mt-1 text-xs text-error" role="alert">
               {errors.radiusKm}
             </p>
           )}

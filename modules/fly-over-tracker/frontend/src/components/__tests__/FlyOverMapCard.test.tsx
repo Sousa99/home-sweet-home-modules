@@ -5,7 +5,7 @@ import { configureApiBaseUrl } from '../../api/baseUrl';
 import type { Aircraft, FlyOverResult, LocationQuery } from '../../api/types';
 import type { UseFlyOversQueryResult } from '../../hooks/useFlyOversQuery';
 import { FlyOverMapCard } from '../FlyOverMapCard';
-import { tileLayerUrls } from '../../test/react-leaflet-mock';
+import { tileLayerAttributions, tileLayerUrls } from '../../test/react-leaflet-mock';
 
 vi.mock('../../hooks/useFlyOversQuery', () => ({
   useFlyOversQuery: vi.fn(),
@@ -96,6 +96,20 @@ describe('FlyOverMapCard', () => {
     mockedUseFlyOversQuery.mockReturnValue(makeState({}));
     render(<FlyOverMapCard location={location} />);
     expect(tileLayerUrls[0]).toBe('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    expect(tileLayerAttributions[0]).toContain('OpenStreetMap');
+  });
+
+  it('forwards a custom tile URL and attribution', () => {
+    mockedUseFlyOversQuery.mockReturnValue(makeState({}));
+    render(
+      <FlyOverMapCard
+        location={location}
+        tileUrl="https://dark.example/{z}/{x}/{y}.png"
+        tileAttribution="&copy; Dark Tiles"
+      />,
+    );
+    expect(tileLayerUrls[0]).toBe('https://dark.example/{z}/{x}/{y}.png');
+    expect(tileLayerAttributions[0]).toBe('© Dark Tiles');
   });
 
   it('shows an error banner when the fetch fails', () => {

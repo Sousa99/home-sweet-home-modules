@@ -13,15 +13,15 @@ export default function TaskDetailPage() {
   const task = useTask(taskId);
 
   if (task.isLoading) {
-    return <p className="text-sm text-slate-400">Loading task…</p>;
+    return <p className="text-sm text-ink-muted">Loading task…</p>;
   }
   if (task.isError || !task.data) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-error">
           Could not load task: {task.error?.message ?? 'not found'}
         </p>
-        <Link to="/" className="text-sm text-amber-700 hover:underline">
+        <Link to="/" className="text-sm text-accent hover:underline">
           ← Back to dashboard
         </Link>
       </div>
@@ -32,10 +32,7 @@ export default function TaskDetailPage() {
 
   return (
     <div className="space-y-4">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-1 text-sm text-amber-700 hover:underline"
-      >
+      <Link to="/" className="inline-flex items-center gap-1 text-sm text-accent hover:underline">
         <ArrowLeft className="size-4" /> Dashboard
       </Link>
 
@@ -45,12 +42,12 @@ export default function TaskDetailPage() {
           <StatusBadge status={t.status} />
         </CardHeader>
         <CardContent className="space-y-4">
-          {t.description && <p className="whitespace-pre-wrap text-slate-700">{t.description}</p>}
+          {t.description && <p className="whitespace-pre-wrap text-ink">{t.description}</p>}
 
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted">
             {t.urgency !== null && (
               <span className="inline-flex items-center gap-1">
-                <Flame className="size-4 text-amber-500" /> Urgency {t.urgency}/5
+                <Flame className="size-4 text-accent" /> Urgency {t.urgency}/5
               </span>
             )}
             {t.location && (
@@ -76,7 +73,7 @@ export default function TaskDetailPage() {
               {t.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600"
+                  className="rounded-brutal bg-surface-alt px-2.5 py-0.5 text-xs text-ink-muted"
                 >
                   {tag}
                 </span>
@@ -87,14 +84,14 @@ export default function TaskDetailPage() {
           <StatusControls task={t} />
 
           <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
               Assignees
             </h3>
             <TaskAssignees task={t} />
           </div>
 
           <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
               Comments ({t.comments.length})
             </h3>
             <TaskComments taskId={t.id} comments={t.comments} />

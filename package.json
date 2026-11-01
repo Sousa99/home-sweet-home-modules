@@ -10,6 +10,7 @@
   "scripts": {
     "prepare": "husky",
     "lint": "eslint .",
+    "guard:theme": "node scripts/check-theme-tokens.mjs",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "typecheck": "pnpm -r typecheck",

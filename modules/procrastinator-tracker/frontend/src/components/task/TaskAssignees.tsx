@@ -32,10 +32,10 @@ export function TaskAssignees({ task }: TaskAssigneesProps) {
             onClick={() => void toggle(u.id)}
             disabled={updateTask.isPending}
             className={cn(
-              'rounded-full border px-3 py-1 text-xs transition-colors',
+              'rounded-brutal border px-3 py-1 text-xs transition-colors',
               active
-                ? 'border-amber-500 bg-amber-100 text-amber-800'
-                : 'border-slate-300 bg-white text-slate-500 hover:bg-slate-50',
+                ? 'border-accent bg-surface-alt text-accent'
+                : 'border-outline bg-surface text-ink-muted hover:bg-surface-alt',
             )}
           >
             {u.name}
@@ -43,7 +43,7 @@ export function TaskAssignees({ task }: TaskAssigneesProps) {
         );
       })}
       {users.data.length === 0 && (
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-ink-muted">
           No users yet — create them via the API or MCP.
         </span>
       )}

@@ -52,15 +52,15 @@ export const AircraftCard = ({ aircraft }: AircraftCardProps): JSX.Element => {
       </CardHeader>
       <CardContent>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-1">
-          <dt className="text-slate-400">Origin</dt>
+          <dt className="text-ink-muted">Origin</dt>
           <dd title={aircraft.originAirportName ?? undefined}>{origin}</dd>
-          <dt className="text-slate-400">Destination</dt>
+          <dt className="text-ink-muted">Destination</dt>
           <dd title={aircraft.destinationAirportName ?? undefined}>{destination}</dd>
-          <dt className="text-slate-400">Altitude</dt>
+          <dt className="text-ink-muted">Altitude</dt>
           <dd>{altitudeMeters(aircraft.altitude)}</dd>
-          <dt className="text-slate-400">Speed</dt>
+          <dt className="text-ink-muted">Speed</dt>
           <dd>{speedKmh(aircraft.velocity)}</dd>
-          <dt className="text-slate-400">Heading</dt>
+          <dt className="text-ink-muted">Heading</dt>
           <dd>{headingDegrees(aircraft.trueTrack)}</dd>
         </dl>
       </CardContent>

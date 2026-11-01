@@ -18,9 +18,9 @@ export function DashboardPage({ baseUrl = '' }: DashboardPageProps): JSX.Element
   const [location, setLocation] = useLocation();
 
   return (
-    <main className="flex min-h-screen flex-col bg-amber-50/60 px-4 py-8 text-slate-800">
-      <header className="mx-auto flex w-full max-w-5xl items-center gap-2 text-slate-500">
-        <CloudSun className="size-5 text-amber-600" />
+    <main className="flex min-h-screen flex-col bg-surface-alt px-4 py-8 text-ink">
+      <header className="mx-auto flex w-full max-w-5xl items-center gap-2 text-ink-muted">
+        <CloudSun className="size-5 text-accent" />
         <h1 className="text-sm font-medium uppercase tracking-[0.3em]">Weather psychic</h1>
       </header>
 
@@ -32,7 +32,7 @@ export function DashboardPage({ baseUrl = '' }: DashboardPageProps): JSX.Element
           placeholder="Search for a city…"
         />
         {location === null && (
-          <p className="mt-4 text-sm text-slate-500">
+          <p className="mt-4 text-sm text-ink-muted">
             Select a location to see the current weather and the forecast ahead.
           </p>
         )}

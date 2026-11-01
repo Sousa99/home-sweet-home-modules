@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "@radix-ui/react-use-controllable-state": "^1.2.6",
+    "@sousa99/homesweethome-theme": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "lucide-react": "^0.469.0",
     "motion": "^13.2.0",

@@ -21,20 +21,20 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl bg-gradient-to-br from-amber-100 to-orange-50 p-6 text-center">
-        <h1 className="text-2xl font-semibold text-slate-800">What are we tackling today?</h1>
-        <p className="mt-1 text-sm text-slate-500">
+      <section className="rounded-brutal bg-surface-alt   p-6 text-center">
+        <h1 className="text-2xl font-semibold text-ink">What are we tackling today?</h1>
+        <p className="mt-1 text-sm text-ink-muted">
           {active.length > 0
             ? `${active.length} ${active.length === 1 ? 'task' : 'tasks'} on the go. Small steps.`
             : 'Nothing pending — time to add your next win.'}
         </p>
-        {active.length === 0 && <Sparkles className="mx-auto mt-3 size-6 text-amber-500" />}
+        {active.length === 0 && <Sparkles className="mx-auto mt-3 size-6 text-accent" />}
       </section>
 
       <button
         type="button"
         onClick={() => setShowForm((v) => !v)}
-        className="w-full rounded-xl border border-dashed border-amber-300 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100/60"
+        className="w-full rounded-brutal border-brutal py-2 text-sm font-medium text-accent hover:bg-surface-alt"
       >
         {showForm ? 'Hide form' : '+ Add a task'}
       </button>
@@ -43,17 +43,17 @@ export default function DashboardPage() {
       <FilterBar filters={filters} onChange={setFilters} />
 
       <div className="flex justify-center">
-        <div className="inline-flex rounded-xl border border-amber-200/70 bg-white p-1 shadow-sm">
+        <div className="inline-flex rounded-brutal border-brutal bg-surface p-1 shadow-brutal">
           {(['deck', 'list'] as const).map((mode) => (
             <button
               key={mode}
               type="button"
               onClick={() => setView(mode)}
               className={cn(
-                'rounded-lg px-4 py-1.5 text-sm font-medium capitalize transition',
+                'rounded-brutal px-4 py-1.5 text-sm font-medium capitalize transition',
                 view === mode
-                  ? 'bg-amber-500 text-white shadow-sm'
-                  : 'text-slate-500 hover:bg-amber-50',
+                  ? 'bg-accent text-accent-ink shadow-brutal'
+                  : 'text-ink-muted hover:bg-surface-alt',
               )}
             >
               {mode}
@@ -66,15 +66,15 @@ export default function DashboardPage() {
 
       {view === 'list' && (
         <>
-          {tasks.isLoading && <p className="text-sm text-slate-400">Loading tasks…</p>}
+          {tasks.isLoading && <p className="text-sm text-ink-muted">Loading tasks…</p>}
           {tasks.isError && (
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-error">
               Could not load tasks: {tasks.error?.message ?? 'unknown error'}
             </p>
           )}
 
           {!tasks.isLoading && !tasks.isError && active.length === 0 && (
-            <p className="rounded-xl bg-white/60 py-8 text-center text-sm text-slate-400">
+            <p className="rounded-brutal bg-surface py-8 text-center text-sm text-ink-muted">
               {filters.status || filters.tag
                 ? 'No tasks match these filters.'
                 : 'No active tasks. Add one above to get rolling.'}
@@ -89,7 +89,7 @@ export default function DashboardPage() {
 
           {finished.length > 0 && (
             <section>
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
                 Done ({finished.length})
               </h2>
               <div className="space-y-3 opacity-70">

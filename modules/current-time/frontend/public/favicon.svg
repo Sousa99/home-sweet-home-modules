@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .surface { fill: #fffdf6; stroke: #111111; }
+    .ink { fill: #111111; }
+    .accent { fill: #ff5a36; }
+    @media (prefers-color-scheme: dark) {
+      .surface { fill: #1a1a1a; stroke: #f6f2e7; }
+      .ink { fill: #f6f2e7; }
+      .accent { fill: #c8ff3d; }
+    }
+  </style>
+  <rect class="surface" x="2" y="2" width="28" height="28" stroke-width="4" />
+  <text
+    class="ink"
+    x="16"
+    y="21"
+    text-anchor="middle"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="15"
+    font-weight="900"
+  >12</text>
+  <rect class="accent" x="6" y="24" width="20" height="3" />
+</svg>

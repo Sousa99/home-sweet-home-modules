@@ -81,6 +81,7 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
+    "@sousa99/homesweethome-theme": "workspace:*",
     "@tanstack/react-query": "^5.103.2"
   }
 }

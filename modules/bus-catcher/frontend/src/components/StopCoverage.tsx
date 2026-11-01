@@ -15,12 +15,12 @@ function updatedAgeLabel(iso: string): string {
 export function StopCoverage({ realtime }: { realtime?: RealtimeInfo }) {
   if (!realtime) return null;
   if (!realtime.available) {
-    return <p className="text-xs text-amber-700">Live times unavailable — showing schedule.</p>;
+    return <p className="text-xs text-accent">Live times unavailable — showing schedule.</p>;
   }
   if (realtime.liveCount === 0) return null;
   const age = realtime.lastUpdate ? updatedAgeLabel(realtime.lastUpdate) : 'recently';
   return (
-    <p className="text-xs text-slate-500">
+    <p className="text-xs text-ink-muted">
       Live times for {realtime.liveCount} of {realtime.totalCount} buses · updated {age}
     </p>
   );
