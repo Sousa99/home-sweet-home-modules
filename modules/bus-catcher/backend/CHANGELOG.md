@@ -1,5 +1,7 @@
 # @sousa99/bus-catcher-backend
 
+## 0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
