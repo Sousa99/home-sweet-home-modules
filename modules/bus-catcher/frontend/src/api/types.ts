@@ -76,6 +76,7 @@ export interface Status {
   feedVersion: string | null;
   stale: boolean;
   refreshing: boolean;
+  refreshError?: string | null;
   realtimeLastUpdate?: string | null;
   realtimeAvailable?: boolean;
   realtimeStale?: boolean;

@@ -93,7 +93,8 @@ export function createApp(deps: AppDeps): Hono {
   });
 
   app.post('/api/refresh', (c) => {
-    const result = deps.refresh.refresh();
+    const force = ['1', 'true', 'yes'].includes((c.req.query('force') ?? '').toLowerCase());
+    const result = deps.refresh.refresh({ force });
     return c.json(result, 202);
   });
 

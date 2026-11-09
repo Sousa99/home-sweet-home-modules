@@ -99,6 +99,7 @@ export const statusSchema = z.object({
   feedVersion: z.string().nullable(),
   stale: z.boolean(),
   refreshing: z.boolean(),
+  refreshError: z.string().nullable().optional(),
   realtimeLastUpdate: z.string().nullable().optional(),
   realtimeAvailable: z.boolean().optional(),
   realtimeStale: z.boolean().optional(),

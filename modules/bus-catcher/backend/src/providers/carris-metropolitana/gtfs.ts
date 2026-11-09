@@ -241,7 +241,7 @@ export function unzipGtfs(buffer: Uint8Array): Record<string, Uint8Array> {
   return unzipSync(buffer);
 }
 
-function parseStopTimeRow(row: Record<string, string>): GtfsStopTime | null {
+export function parseStopTimeRow(row: Record<string, string>): GtfsStopTime | null {
   const parsed = stopTimeSchema.safeParse(row);
   if (!parsed.success) return null;
   const r = parsed.data;
@@ -259,11 +259,95 @@ function parseStopTimeRow(row: Record<string, string>): GtfsStopTime | null {
   };
 }
 
+export function parseTripRow(row: Record<string, string>): GtfsTrip | null {
+  const parsed = tripSchema.safeParse(row);
+  if (!parsed.success) return null;
+  const r = parsed.data;
+  return {
+    id: r.trip_id,
+    lineId: r.route_id,
+    serviceId: r.service_id,
+    headsign: r.trip_headsign ?? '',
+    directionId: r.direction_id ?? null,
+  };
+}
+
+/**
+ * Incremental CSV reader for files streamed out of the GTFS archive. Chunks may
+ * split a row anywhere (even mid multi-byte character); complete newline-
+ * terminated rows are decoded and handed to `onRow`. `lineNumber` is 1-based
+ * with the header counted as line 1, matching the old whole-file parser.
+ */
+export interface CsvRowStream {
+  push(chunk: Uint8Array, final: boolean): void;
+}
+
+export function createCsvRowStream(
+  onRow: (row: Record<string, string>, lineNumber: number) => void,
+): CsvRowStream {
+  const decoder = new TextDecoder();
+  let leftover = new Uint8Array(0);
+  let header: string[] | null = null;
+  let dataRow = 0;
+
+  const handleLine = (bytes: Uint8Array): void => {
+    let line = decoder.decode(bytes);
+    if (header === null) {
+      line = line.replace(/^\uFEFF/, '');
+      header = splitCsvLine(line).map((h) => h.trim());
+      return;
+    }
+    dataRow += 1;
+    if (line.trim() === '') return;
+    onRow(rowFromCsvLine(line, header), dataRow + 1);
+  };
+
+  return {
+    push(chunk, final) {
+      let data: Uint8Array;
+      if (leftover.length === 0) {
+        data = chunk;
+      } else {
+        data = new Uint8Array(leftover.length + chunk.length);
+        data.set(leftover);
+        data.set(chunk, leftover.length);
+      }
+
+      let start = 0;
+      for (let i = 0; i < data.length; i++) {
+        if (data[i] === 10) {
+          let end = i;
+          if (end > start && data[end - 1] === 13) end--;
+          handleLine(data.subarray(start, end));
+          start = i + 1;
+        }
+      }
+
+      leftover = start < data.length ? data.slice(start) : new Uint8Array(0);
+      if (final && leftover.length > 0) {
+        handleLine(leftover);
+        leftover = new Uint8Array(0);
+      }
+    },
+  };
+}
+
 /**
  * Parses the non-stop_times tables from decoded files. Used for small tables
  * whose files fit comfortably in memory.
  */
-export function parseGtfsMeta(files: Record<string, string>): Omit<ParsedGtfs, 'stopTimes'> {
+export interface ParseGtfsMetaOptions {
+  /**
+   * Set false when the caller streams trips.txt separately (the memory-bounded
+   * ingest path) so a missing-in-`files` trips table does not warn spuriously.
+   */
+  includeTrips?: boolean;
+}
+
+export function parseGtfsMeta(
+  files: Record<string, string>,
+  options: ParseGtfsMetaOptions = {},
+): Omit<ParsedGtfs, 'stopTimes'> {
   const warnings: string[] = [];
 
   const lines = parseTable(
@@ -302,23 +386,10 @@ export function parseGtfsMeta(files: Record<string, string>): Omit<ParsedGtfs, '
     warnings,
   );
 
-  const trips = parseTable(
-    files['trips.txt'],
-    'trips.txt',
-    (row) => {
-      const parsed = tripSchema.safeParse(row);
-      if (!parsed.success) return null;
-      const r = parsed.data;
-      return {
-        id: r.trip_id,
-        lineId: r.route_id,
-        serviceId: r.service_id,
-        headsign: r.trip_headsign ?? '',
-        directionId: r.direction_id ?? null,
-      };
-    },
-    warnings,
-  );
+  const trips =
+    options.includeTrips === false
+      ? []
+      : parseTable(files['trips.txt'], 'trips.txt', parseTripRow, warnings);
 
   const calendar = parseTable(
     files['calendar.txt'],
@@ -399,10 +470,29 @@ export function* streamStopTimes(bytes: Uint8Array, warnings: string[]): Generat
   }
 }
 
-export async function downloadGtfs(url: string): Promise<Uint8Array> {
-  const response = await fetch(url);
+export interface DownloadGtfsOptions {
+  timeoutMs?: number;
+  maxBytes?: number;
+}
+
+export async function downloadGtfs(
+  url: string,
+  options: DownloadGtfsOptions = {},
+): Promise<Uint8Array> {
+  // The real feed is ~71 MB; allow slow home connections to finish, but never
+  // hang the single-flight refresh forever on a stalled upstream.
+  const { timeoutMs = 5 * 60_000, maxBytes = 256 * 1024 * 1024 } = options;
+  const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
   if (!response.ok) {
     throw new Error(`GTFS download failed: HTTP ${response.status} for ${url}`);
   }
-  return new Uint8Array(await response.arrayBuffer());
+  const declared = Number(response.headers.get('content-length') ?? Number.NaN);
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    throw new Error(`GTFS download too large: ${declared} bytes (max ${maxBytes})`);
+  }
+  const buffer = new Uint8Array(await response.arrayBuffer());
+  if (buffer.byteLength > maxBytes) {
+    throw new Error(`GTFS download too large: ${buffer.byteLength} bytes (max ${maxBytes})`);
+  }
+  return buffer;
 }

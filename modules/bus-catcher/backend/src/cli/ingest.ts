@@ -3,8 +3,8 @@ import { config } from '../config';
 import { createIngestSqlite } from '../db/client';
 import { migrateDb } from '../db/migrate';
 import { logger } from '../lib/logger';
-import { downloadGtfs, unzipGtfs } from '../providers/carris-metropolitana/gtfs';
-import { ingestGtfsZip } from '../providers/carris-metropolitana/ingest';
+import { downloadGtfs } from '../providers/carris-metropolitana/gtfs';
+import { ingestGtfsArchive } from '../providers/carris-metropolitana/ingest';
 
 async function main(): Promise<void> {
   logger.info('downloading GTFS feed', { url: config.feedUrl });
@@ -12,13 +12,11 @@ async function main(): Promise<void> {
   const feedVersion = createHash('sha256').update(buffer).digest('hex').slice(0, 12);
   logger.info('feed downloaded', { bytes: buffer.byteLength, feedVersion });
 
-  const zip = unzipGtfs(buffer);
-
   migrateDb();
   const sqlite = createIngestSqlite();
   try {
-    await ingestGtfsZip(sqlite, {
-      zip,
+    await ingestGtfsArchive(sqlite, {
+      archive: buffer,
       feedVersion,
       fetchedAt: new Date().toISOString(),
     });
