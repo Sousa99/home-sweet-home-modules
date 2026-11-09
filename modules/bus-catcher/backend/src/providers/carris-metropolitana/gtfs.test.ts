@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { zipSync, strToU8, strFromU8 } from 'fflate';
-import { parseGtfsFiles, unzipGtfs } from './gtfs';
+import { createCsvRowStream, parseGtfsFiles, unzipGtfs } from './gtfs';
 
 const routes = [
   'route_id,agency_id,route_short_name,route_long_name,route_type',
@@ -100,5 +100,39 @@ describe('unzipGtfs', () => {
     const extracted = unzipGtfs(zip);
     expect(strFromU8(new Uint8Array(extracted['stops.txt'] ?? new Uint8Array()))).toBe(stops);
     expect(extracted['routes.txt']).toBeTruthy();
+  });
+});
+
+describe('createCsvRowStream', () => {
+  it('reassembles rows and multi-byte characters split across chunks', () => {
+    const rows: Array<Record<string, string>> = [];
+    const lineNumbers: number[] = [];
+    const stream = createCsvRowStream((row, line) => {
+      rows.push(row);
+      lineNumbers.push(line);
+    });
+
+    const bytes = new TextEncoder().encode('a,b\r\n1,x\r\n2,ção\r\n3,z\r\n');
+    // Tiny chunks guarantee boundaries landing mid-row and mid-character.
+    for (let i = 0; i < bytes.length; i += 3) {
+      const end = Math.min(i + 3, bytes.length);
+      stream.push(bytes.subarray(i, end), end === bytes.length);
+    }
+
+    expect(rows).toEqual([
+      { a: '1', b: 'x' },
+      { a: '2', b: 'ção' },
+      { a: '3', b: 'z' },
+    ]);
+    expect(lineNumbers).toEqual([2, 3, 4]);
+  });
+
+  it('handles a final row without a trailing newline', () => {
+    const rows: Array<Record<string, string>> = [];
+    const stream = createCsvRowStream((row) => rows.push(row));
+    const bytes = new TextEncoder().encode('a\n1');
+    stream.push(bytes.subarray(0, 2), false);
+    stream.push(bytes.subarray(2), true);
+    expect(rows).toEqual([{ a: '1' }]);
   });
 });
