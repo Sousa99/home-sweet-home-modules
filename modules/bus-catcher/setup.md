@@ -40,10 +40,23 @@ Serves the REST API on `http://localhost:3000` (`PORT`):
 | `GET /api/stops?q=&limit=` | Search/list stops |
 | `GET /api/stops/:id` | Stop details |
 | `GET /api/stops/:id/times?limit=&line=` | Next arrivals (schedule + live) |
-| `GET /api/status` | Feed status (last refresh, staleness) |
-| `POST /api/refresh` | Trigger a feed refresh |
+| `GET /api/status` | Feed status (last refresh, staleness, refresh error) |
+| `POST /api/refresh` | Trigger a feed refresh (`?force=true` re-ingests even if unchanged) |
 | `GET /api/config` | Personal stop list + thresholds |
 | `POST /api/config/stops` · `PUT /api/config/stops/:id` · `DELETE /api/config/stops/:id` | Manage the personal stop list |
+
+The REST backend owns schedule ingestion. If the database has no schedule it loads the feed at
+startup (asynchronously, so `/api/health` stays responsive) and re-checks staleness periodically.
+When the upstream feed is unchanged, the download is skipped past re-ingest status but the
+~10 M-row rewrite is not repeated. Tune it with:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `SCHEDULE_AUTO_REFRESH` | `true` | Set `false` to disable startup/periodic loading |
+| `SCHEDULE_CHECK_INTERVAL_MS` | `900000` (15 min) | How often to re-check schedule staleness |
+
+The MCP process does not auto-ingest (a single writer avoids cross-process races on the shared
+SQLite file); trigger it there with the `refresh_schedule` tool or run the REST backend.
 
 ### Backend — MCP server
 
@@ -159,8 +172,9 @@ docs/                            module guides (clarify.md)
   the schedule or search for the correct stop.
 - **SPA shows no data / network errors**: make sure the backend is running on `:3000` (dev) or the
   `bus-catcher-backend` service is healthy (Compose); the SPA proxies `/api` to it.
-- **Stale schedule data**: trigger a refresh (`POST /api/refresh` or the Refresh button) — status
-  reports staleness.
+- **Stale schedule data**: the REST backend re-checks automatically (15 min default) and ingests
+  when the feed changed; trigger an immediate check with `POST /api/refresh` (or the Refresh
+  button), and check `/api/status` for `stale` / `refreshError`.
 - **Wrong database**: native runs use `../../data/bus-catcher.db` from the backend package
   directory (repo-root `data/`); override with `DB_PATH` if you need a different file.
 - **Permission errors on the shared `data/` directory**: the Docker Compose stack creates `./data`

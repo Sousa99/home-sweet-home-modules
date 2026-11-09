@@ -36,8 +36,9 @@ modes share the same service/db layer — no separate backend packages.
 - **Config list with thresholds** — manage a personal stop list with optional line filters and
   per-stop alert thresholds (defaults: heads-up `10` min, leave-now `5` min, missed `1` min);
   each configured stop renders as a `StopCard` on the dashboard.
-- **Feed lifecycle** — a refresh service ingests the upstream GTFS feed; status shows staleness
-  and you can trigger a refresh on demand.
+- **Feed lifecycle** — the REST backend loads the upstream GTFS feed automatically on startup when
+  the database is empty and re-checks it periodically; unchanged feeds are not re-ingested. Status
+  shows staleness, and you can force a refresh on demand (`POST /api/refresh?force=true`).
 - REST API **and** MCP tools — the same service powers both.
 
 ## 🧰 Prerequisites
