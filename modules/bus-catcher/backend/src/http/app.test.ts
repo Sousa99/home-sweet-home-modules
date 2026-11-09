@@ -10,6 +10,8 @@ const refreshStub: RefreshService = {
   refresh: () => ({ status: 'started' }),
   isRefreshing: () => false,
   whenIdle: async () => {},
+  lastError: () => null,
+  lastOutcome: () => null,
 };
 
 function stubRealtime(

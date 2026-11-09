@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { zipSync, strToU8 } from 'fflate';
@@ -7,7 +7,7 @@ import { createTestDbAt, type TestDb } from '../test-utils/db';
 import { createCarrisMetropolitanaProvider } from '../providers/carris-metropolitana';
 import { getMetadata } from '../providers/carris-metropolitana/queries';
 import { createConfigService } from './config';
-import { createRefreshService } from './refresh';
+import { createRefreshService, type RefreshIngestInput } from './refresh';
 import { createScheduleService } from './schedule';
 
 const tempDirs: string[] = [];
@@ -44,7 +44,9 @@ function fixtureZip(): Uint8Array {
 
 function setup(dbPath: string) {
   const provider = createCarrisMetropolitanaProvider(openDb(dbPath).db);
-  const download = vi.fn().mockResolvedValue(fixtureZip());
+  // Fresh bytes per call: the worker takes ownership of the buffer (transfer),
+  // which detaches it — a cached fixture would be empty on the next refresh.
+  const download = vi.fn().mockImplementation(async () => fixtureZip());
   const refresh = createRefreshService({
     dbPath,
     download,
@@ -83,7 +85,7 @@ describe('refresh service', () => {
       const config = createConfigService(testDb.db);
       config.addConfigStop({ stopId: 'Z1' });
 
-      expect(refresh.refresh().status).toBe('started');
+      expect(refresh.refresh({ force: true }).status).toBe('started');
       await refresh.whenIdle();
 
       expect(config.getConfigStop(1)?.stop.id).toBe('Z1');
@@ -130,11 +132,63 @@ describe('refresh service', () => {
     expect(refresh.refresh().status).toBe('started');
     await expect(refresh.whenIdle()).rejects.toThrowError('network down');
     expect(refresh.isRefreshing()).toBe(false);
+    expect(refresh.lastError()).toBe('network down');
 
     // a retry is possible and succeeds
     expect(refresh.refresh().status).toBe('started');
     await refresh.whenIdle();
     const testDb = openDb(dbPath);
     expect(getMetadata(testDb.db, 'last_refresh')).not.toBeNull();
+    expect(refresh.lastError()).toBeNull();
+  });
+
+  it('skips re-ingest when the upstream feed version is unchanged', async () => {
+    const dbPath = makeTempDbPath();
+    let current: string | null = null;
+    const runIngest = vi.fn(async (input: RefreshIngestInput) => {
+      current = input.feedVersion;
+    });
+    const download = vi.fn().mockResolvedValue(fixtureZip());
+    const updateLastRefresh = vi.fn();
+    const refresh = createRefreshService({
+      dbPath,
+      download,
+      feedUrl: 'http://fixture/gtfs.zip',
+      getCurrentFeedVersion: () => current,
+      runIngest,
+      updateLastRefresh,
+    });
+
+    expect(refresh.refresh().status).toBe('started');
+    await refresh.whenIdle();
+    expect(runIngest).toHaveBeenCalledTimes(1);
+    expect(refresh.lastOutcome()).toBe('started');
+
+    expect(refresh.refresh().status).toBe('started');
+    await refresh.whenIdle();
+    expect(runIngest).toHaveBeenCalledTimes(1);
+    expect(refresh.lastOutcome()).toBe('up_to_date');
+    expect(updateLastRefresh).toHaveBeenCalledTimes(1);
+
+    // force bypasses the skip
+    expect(refresh.refresh({ force: true }).status).toBe('started');
+    await refresh.whenIdle();
+    expect(runIngest).toHaveBeenCalledTimes(2);
+    expect(refresh.lastOutcome()).toBe('started');
+  });
+
+  it('reports in_progress when another process holds the refresh lock', async () => {
+    const dbPath = makeTempDbPath();
+    writeFileSync(`${dbPath}.refresh.lock`, '');
+    const download = vi.fn().mockResolvedValue(fixtureZip());
+    const refresh = createRefreshService({
+      dbPath,
+      download,
+      feedUrl: 'http://fixture/gtfs.zip',
+    });
+
+    expect(refresh.refresh().status).toBe('in_progress');
+    await expect(refresh.whenIdle()).resolves.toBeUndefined();
+    expect(download).not.toHaveBeenCalled();
   });
 });

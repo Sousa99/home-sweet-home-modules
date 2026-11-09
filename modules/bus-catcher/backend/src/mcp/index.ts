@@ -147,10 +147,11 @@ function registerTools(server: McpServer, deps: BackendDeps): void {
     'refresh_schedule',
     {
       title: 'Refresh the schedule',
-      description: 'Re-download and re-ingest the Carris GTFS feed.',
-      inputSchema: {},
+      description:
+        'Re-download the Carris GTFS feed and ingest it when it changed (set force to re-ingest even if unchanged).',
+      inputSchema: { force: z.boolean().optional() },
     },
-    async () => ok(deps.refresh.refresh()),
+    async ({ force }) => ok(deps.refresh.refresh({ force })),
   );
 
   server.registerTool(

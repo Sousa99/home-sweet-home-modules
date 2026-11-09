@@ -60,7 +60,11 @@ export function createScheduleService(
     },
     async getStatus() {
       const status = await provider.getStatus();
-      const base = { ...status, refreshing: refresh?.isRefreshing() ?? false };
+      const base = {
+        ...status,
+        refreshing: refresh?.isRefreshing() ?? false,
+        refreshError: refresh?.lastError() ?? null,
+      };
       if (!realtime) return base;
       const rt = await realtime.getStatus();
       return {
